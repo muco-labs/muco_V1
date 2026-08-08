@@ -32,6 +32,7 @@ import {
   getIntegrationStatus,
   issueInvoiceAdmin,
   listAuditLogsAdmin,
+  listAutomationAuditLogs,
   listFilesAdmin,
   listMessagesAdmin,
   listCustomersAdmin,
@@ -61,11 +62,13 @@ import {
   updateLeadCrm,
 } from '../../services/crm.service.js'
 import {
+  applyProjectTemplate,
   completeProjectWorkflow,
   createProjectFromProposal,
   getOperationsReport,
   getProjectBusinessTimeline,
 } from '../../services/workflow.service.js'
+import { PROJECT_TEMPLATE_IDS } from '../../lib/workflow/project-templates.js'
 import { normalizeLeadSource } from '../../lib/crm/constants.js'
 
 export const adminRoutes = new Hono()
@@ -157,6 +160,22 @@ adminRoutes.get('/audit-logs', requirePermission('audit_logs.view'), async (c) =
   }
 })
 
+adminRoutes.get('/audit-logs/automation', requirePermission('audit_logs.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listAutomationAuditLogs() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/workflow/templates', requirePermission('projects.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { templates: PROJECT_TEMPLATE_IDS })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.get('/operations/report', requirePermission('analytics.view'), async (c) => {
   try {
     return jsonSuccess(c, await getOperationsReport())
@@ -187,6 +206,22 @@ adminRoutes.post('/projects/:id/complete', requirePermission('projects.update'),
   try {
     const auth = c.get('auth')
     return jsonSuccess(c, await completeProjectWorkflow(auth.userId, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/projects/:id/apply-template', requirePermission('projects.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = z.object({ templateId: z.string().trim().min(1) }).safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid template.', 400)
+    return jsonSuccess(
+      c,
+      await applyProjectTemplate(auth.userId, paramId(c), parsed.data.templateId),
+      201,
+    )
   } catch (error) {
     return handleRouteError(c, error)
   }

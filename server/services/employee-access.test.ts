@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { roleCanAccessPortal } from '../lib/auth/permissions.js'
+import { employeeHasProjectAccess } from './employee.service.js'
 
 describe('employee portal access matrix', () => {
   it('TEST 1: employee can access employee portal', () => {
@@ -21,7 +22,6 @@ describe('employee portal access matrix', () => {
 
 describe('employee project access helper', () => {
   it('returns false without database', async () => {
-    const { employeeHasProjectAccess } = await import('../services/employee.service.js')
     await expect(employeeHasProjectAccess('a', 'b')).resolves.toBe(false)
   })
 })

@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, inArray, or, sql, sum } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ilike, inArray, lte, or, sql, sum } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
 import {
   auditLogs,
@@ -56,6 +56,10 @@ export async function getAdminDashboard() {
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
 
   const [leadCount] = await db.select({ c: count() }).from(leads).where(eq(leads.status, 'new'))
+  const [qualifiedLeads] = await db
+    .select({ c: count() })
+    .from(leads)
+    .where(eq(leads.status, 'qualified'))
   const [activeProjects] = await db
     .select({ c: count() })
     .from(projects)
@@ -79,6 +83,29 @@ export async function getAdminDashboard() {
     .from(proposals)
     .where(inArray(proposals.status, ['sent', 'viewed', 'changes_requested']))
 
+  const [openTasks] = await db
+    .select({ c: count() })
+    .from(tasks)
+    .where(inArray(tasks.status, ['todo', 'in_progress', 'blocked']))
+
+  const now = new Date()
+  const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const [tasksDueSoon] = await db
+    .select({ c: count() })
+    .from(tasks)
+    .where(
+      and(
+        inArray(tasks.status, ['todo', 'in_progress']),
+        gte(tasks.dueDate, now),
+        lte(tasks.dueDate, weekAhead),
+      ),
+    )
+
+  const [overdueInvoices] = await db
+    .select({ c: count() })
+    .from(invoices)
+    .where(eq(invoices.status, 'overdue'))
+
   const recentActivity = await db
     .select()
     .from(auditLogs)
@@ -87,6 +114,7 @@ export async function getAdminDashboard() {
 
   return {
     leadsNew: leadCount?.c ?? 0,
+    qualifiedLeads: qualifiedLeads?.c ?? 0,
     activeProjects: activeProjects?.c ?? 0,
     customers: customerCount?.c ?? 0,
     employees: employeeCount?.c ?? 0,
@@ -94,6 +122,9 @@ export async function getAdminDashboard() {
     outstandingInvoicesTotal: outstanding?.total ?? '0',
     revenueSucceeded: paidTotal?.total ?? '0',
     pendingProposals: pendingProposals?.c ?? 0,
+    openTasks: openTasks?.c ?? 0,
+    tasksDueSoon: tasksDueSoon?.c ?? 0,
+    overdueInvoices: overdueInvoices?.c ?? 0,
     recentActivity,
   }
 }
@@ -708,6 +739,24 @@ export async function listAuditLogsAdmin(limit = 100) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
   return db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(Math.min(limit, 200))
+}
+
+export async function listAutomationAuditLogs(limit = 80) {
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+  return db
+    .select()
+    .from(auditLogs)
+    .where(
+      or(
+        ilike(auditLogs.action, 'automation.%'),
+        ilike(auditLogs.action, 'payment.%'),
+        eq(auditLogs.action, 'project.created_from_proposal'),
+        eq(auditLogs.action, 'proposal.sent'),
+      ),
+    )
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(Math.min(limit, 150))
 }
 
 export async function listFilesAdmin(projectId?: string) {

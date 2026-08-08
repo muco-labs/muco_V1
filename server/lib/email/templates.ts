@@ -11,6 +11,11 @@ export const emailTemplates = {
     body: (v: { title: string }) =>
       `<p>A proposal <strong>${escapeHtml(v.title)}</strong> is ready for your review in the customer portal.</p>`,
   },
+  project_started: {
+    subject: 'Your project has started',
+    body: (v: { title: string }) =>
+      `<p>Your project <strong>${escapeHtml(v.title)}</strong> is now active. Sign in to the customer portal for updates, documents, and messages.</p>`,
+  },
   invoice_issued: {
     subject: 'Invoice issued',
     body: (v: { invoiceNumber: string }) =>

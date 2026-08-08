@@ -157,9 +157,22 @@ export async function getEmployeeDashboard(ctx: EmployeeContext) {
     .orderBy(desc(messages.createdAt))
     .limit(5)
 
+  const now = new Date()
+  const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+  const dueSoonTasks = myTasks.filter((t) => {
+    if (!t.dueDate) return false
+    const due = new Date(t.dueDate)
+    return due >= now && due <= weekAhead
+  })
+
+  const blockedTasks = myTasks.filter((t) => t.status === 'blocked')
+
   return {
     welcomeName: ctx.fullName ?? ctx.email,
     myTasks,
+    dueSoonTasks,
+    blockedTasks,
     assignedProjects,
     recentNotifications,
     unreadNotificationCount: unread[0]?.count ?? 0,

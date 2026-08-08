@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, sum } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, lt, lte, sum } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
 import {
   auditLogs,
@@ -19,6 +19,13 @@ import { AppError } from '../lib/errors.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { roleCanAccessPortal } from '../lib/auth/permissions.js'
 import { PROJECT_OPERATIONAL_PHASES } from '../lib/workflow/constants.js'
+import { WORKFLOW_AUDIT_ACTIONS } from '../lib/workflow/business-rules.js'
+import { recordAutomationEvent } from '../lib/workflow/automation-log.js'
+import {
+  getProjectTemplate,
+  isProjectTemplateId,
+  type ProjectTemplateId,
+} from '../lib/workflow/project-templates.js'
 import { recordLeadActivity } from './crm.service.js'
 import { syncOverdueInvoices } from './payment.service.js'
 import { sendTransactionalEmail } from '../lib/email/send.js'
@@ -129,9 +136,18 @@ export async function createProjectFromProposal(
       message: `Your project "${project.name}" has been created.`,
     })
     if (customerUser.email) {
-      await sendTransactionalEmail('proposal_sent', customerUser.email, { title: project.name })
+      await sendTransactionalEmail('project_started', customerUser.email, { title: project.name })
     }
   }
+
+  await recordAutomationEvent({
+    actorUserId,
+    action: WORKFLOW_AUDIT_ACTIONS.projectFromProposal,
+    entity: 'projects',
+    entityId: project.id,
+    result: 'success',
+    metadata: { proposalId, created: true },
+  })
 
   return { project, created: true as const }
 }
@@ -201,6 +217,93 @@ export async function getProjectBusinessTimeline(projectId: string) {
   return { audit, leadActivities: leadEvents }
 }
 
+export async function applyProjectTemplate(
+  actorUserId: string,
+  projectId: string,
+  templateId: string,
+) {
+  if (!isProjectTemplateId(templateId)) {
+    throw new AppError('VALIDATION_ERROR', 'Unknown project template.', 400)
+  }
+
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+  if (!project) throw new AppError('NOT_FOUND', 'Project not found.', 404)
+
+  const [existing] = await db
+    .select({ c: count() })
+    .from(milestones)
+    .where(eq(milestones.projectId, projectId))
+  if ((existing?.c ?? 0) > 0) {
+    throw new AppError(
+      'CONFLICT',
+      'This project already has milestones. Templates apply only to empty project plans.',
+      409,
+    )
+  }
+
+  const template = getProjectTemplate(templateId as ProjectTemplateId)
+  let milestoneCount = 0
+  let taskCount = 0
+
+  await db.transaction(async (tx) => {
+    let sortOrder = 0
+    for (const step of template.milestones) {
+      const [milestone] = await tx
+        .insert(milestones)
+        .values({
+          projectId,
+          name: step.name,
+          description: step.description ?? null,
+          status: 'planned',
+          sortOrder,
+        })
+        .returning({ id: milestones.id })
+      sortOrder += 1
+      milestoneCount += 1
+
+      if (step.tasks?.length) {
+        for (const title of step.tasks) {
+          await tx.insert(tasks).values({
+            projectId,
+            milestoneId: milestone.id,
+            title,
+            status: 'todo',
+            priority: 'medium',
+          })
+          taskCount += 1
+        }
+      }
+    }
+
+    await tx
+      .update(projects)
+      .set({ updatedAt: new Date(), operationalPhase: 'planning' })
+      .where(eq(projects.id, projectId))
+  })
+
+  await db.insert(auditLogs).values({
+    actorUserId,
+    action: WORKFLOW_AUDIT_ACTIONS.projectTemplateApplied,
+    entity: 'projects',
+    entityId: projectId,
+    metadata: JSON.stringify({ templateId, milestoneCount, taskCount }),
+  })
+
+  await recordAutomationEvent({
+    actorUserId,
+    action: WORKFLOW_AUDIT_ACTIONS.projectTemplateApplied,
+    entity: 'projects',
+    entityId: projectId,
+    result: 'success',
+    metadata: { templateId, milestoneCount, taskCount },
+  })
+
+  return { templateId, milestoneCount, taskCount }
+}
+
 export async function getOperationsReport() {
   await syncOverdueInvoices()
   const db = getDb()
@@ -246,14 +349,54 @@ export async function getOperationsReport() {
     .from(tasks)
     .where(inArray(tasks.status, ['todo', 'in_progress', 'blocked']))
 
+  const now = new Date()
+  const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+  const [tasksDueSoon] = await db
+    .select({ c: count() })
+    .from(tasks)
+    .where(
+      and(
+        inArray(tasks.status, ['todo', 'in_progress']),
+        gte(tasks.dueDate, now),
+        lte(tasks.dueDate, weekAhead),
+      ),
+    )
+
+  const [qualifiedLeads] = await db
+    .select({ c: count() })
+    .from(leads)
+    .where(eq(leads.status, 'qualified'))
+
+  const [pendingProposals] = await db
+    .select({ c: count() })
+    .from(proposals)
+    .where(inArray(proposals.status, ['sent', 'viewed', 'changes_requested']))
+
+  const atRiskProjects = await db
+    .selectDistinct({ projectId: tasks.projectId })
+    .from(tasks)
+    .innerJoin(projects, eq(tasks.projectId, projects.id))
+    .where(
+      and(
+        eq(projects.status, 'active'),
+        inArray(tasks.status, ['todo', 'in_progress', 'blocked']),
+        lt(tasks.dueDate, now),
+      ),
+    )
+
   return {
     openLeads: openLeads?.c ?? 0,
+    qualifiedLeads: qualifiedLeads?.c ?? 0,
+    pendingProposals: pendingProposals?.c ?? 0,
     activeProjects: activeProjects?.c ?? 0,
     completedProjects: completedProjects?.c ?? 0,
+    projectsAtRisk: atRiskProjects.length,
     outstandingInvoicesTotal: outstanding?.total ?? '0',
     overdueInvoices: overdueCount?.c ?? 0,
     revenueSucceeded: revenue?.total ?? '0',
     openSupportTickets: openSupport?.c ?? 0,
     openTasks: openTasks?.c ?? 0,
+    tasksDueSoon: tasksDueSoon?.c ?? 0,
   }
 }

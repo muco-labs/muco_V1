@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { roleCanAccessPortal } from '../lib/auth/permissions.js'
+import { customerOwnsInvoice, customerOwnsProject } from './customer.service.js'
 
 /**
  * Authorization matrix for customer portal (logic-level).
@@ -26,9 +27,6 @@ describe('customer portal access matrix', () => {
 
 describe('customerOwns helpers', () => {
   it('returns false without database', async () => {
-    const { customerOwnsInvoice, customerOwnsProject } = await import(
-      '../services/customer.service.js'
-    )
     await expect(customerOwnsInvoice('a', 'b')).resolves.toBe(false)
     await expect(customerOwnsProject('a', 'b')).resolves.toBe(false)
   })

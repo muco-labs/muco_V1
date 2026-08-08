@@ -312,7 +312,20 @@ export function AdminEmployeesPage() {
 
 export function AdminProjectsPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.projects.list(), [])
+  const [applying, setApplying] = useState<string | null>(null)
   const items = asRecords(data)
+
+  async function applyTemplate(projectId: string, templateId: string) {
+    setApplying(projectId)
+    try {
+      await adminApi.projects.applyTemplate(projectId, templateId)
+      reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not apply template')
+    } finally {
+      setApplying(null)
+    }
+  }
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
@@ -331,6 +344,23 @@ export function AdminProjectsPage() {
                 <strong>{String(project.name)}</strong>
                 <span className={ui.meta}>{String(row.companyName ?? '')}</span>
                 <StatusPill status={String(project.status)} />
+                <div className={layout.filterRow} style={{ marginTop: 'var(--space-3)' }}>
+                  <Button
+                    type="button"
+                    disabled={applying === String(project.id)}
+                    onClick={() => void applyTemplate(String(project.id), 'website')}
+                  >
+                    {applying === String(project.id) ? 'Applying…' : 'Website template'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={applying === String(project.id)}
+                    onClick={() => void applyTemplate(String(project.id), 'software')}
+                  >
+                    Software template
+                  </Button>
+                </div>
               </li>
             )
           })}
@@ -574,11 +604,15 @@ export function AdminOperationsPage() {
 
   const metrics = [
     ['Open leads', data.openLeads],
+    ['Qualified leads', data.qualifiedLeads],
+    ['Pending proposals', data.pendingProposals],
     ['Active projects', data.activeProjects],
+    ['Projects at risk', data.projectsAtRisk],
     ['Completed projects', data.completedProjects],
     ['Overdue invoices', data.overdueInvoices],
     ['Open support tickets', data.openSupportTickets],
     ['Open tasks', data.openTasks],
+    ['Tasks due (7 days)', data.tasksDueSoon],
   ] as const
 
   return (
@@ -617,7 +651,14 @@ export function AdminNotificationsPage() {
 
 export function AdminAuditLogsPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.auditLogs(), [])
+  const {
+    data: autoData,
+    error: autoError,
+    loading: autoLoading,
+    reload: reloadAuto,
+  } = useFetch(() => adminApi.automationLogs(), [])
   const items = asRecords(data)
+  const automationItems = asRecords(autoData)
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
@@ -640,6 +681,29 @@ export function AdminAuditLogsPage() {
           ))}
         </ul>
       )}
+
+      <section style={{ marginTop: 'var(--space-8)' }}>
+        <h2 className="text-h3">Automation & payments</h2>
+        {autoLoading ? (
+          <ListSkeleton rows={4} />
+        ) : autoError ? (
+          <PortalError message={autoError} onRetry={reloadAuto} />
+        ) : automationItems.length === 0 ? (
+          <p className={ui.meta}>No automation events logged yet.</p>
+        ) : (
+          <ul className={ui.stack}>
+            {automationItems.map((row) => (
+              <li key={String(row.id)} className={`surface ${ui.dataCard}`}>
+                <span className={ui.meta}>{new Date(String(row.createdAt)).toLocaleString()}</span>
+                <strong>{String(row.action)}</strong>
+                <span className={ui.meta}>
+                  {String(row.entity)} {row.entityId ? `· ${String(row.entityId)}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </>
   )
 }

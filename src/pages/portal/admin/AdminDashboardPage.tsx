@@ -43,6 +43,13 @@ export function AdminDashboardPage() {
           </Link>
         </article>
         <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Qualified leads</h2>
+          <p className="text-h2">{data.qualifiedLeads}</p>
+          <Link className="link-underline" to={adminPortalPaths.crm}>
+            Pipeline
+          </Link>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">Active projects</h2>
           <p className="text-h2">{data.activeProjects}</p>
           <Link className="link-underline" to={adminPortalPaths.projects}>
@@ -89,6 +96,27 @@ export function AdminDashboardPage() {
           <p className="text-h2">{data.pendingProposals}</p>
           <Link className="link-underline" to={adminPortalPaths.proposals}>
             Proposals
+          </Link>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Open tasks</h2>
+          <p className="text-h2">{data.openTasks}</p>
+          <Link className="link-underline" to={adminPortalPaths.tasks}>
+            Tasks
+          </Link>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Tasks due (7 days)</h2>
+          <p className="text-h2">{data.tasksDueSoon}</p>
+          <Link className="link-underline" to={adminPortalPaths.operations}>
+            Operations
+          </Link>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Overdue invoices</h2>
+          <p className="text-h2">{data.overdueInvoices}</p>
+          <Link className="link-underline" to={adminPortalPaths.invoices}>
+            Invoices
           </Link>
         </article>
       </div>

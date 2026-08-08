@@ -4,6 +4,7 @@ const base = '/api/v1/admin'
 
 export type AdminDashboard = {
   leadsNew: number
+  qualifiedLeads: number
   activeProjects: number
   customers: number
   employees: number
@@ -11,6 +12,9 @@ export type AdminDashboard = {
   outstandingInvoicesTotal: string
   revenueSucceeded: string
   pendingProposals: number
+  openTasks: number
+  tasksDueSoon: number
+  overdueInvoices: number
   recentActivity: Array<Record<string, unknown>>
 }
 
@@ -28,6 +32,7 @@ export const adminApi = {
   search: (q: string) =>
     apiRequest<Record<string, unknown>>(`${base}/search?q=${encodeURIComponent(q)}`),
   auditLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs`),
+  automationLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs/automation`),
   leads: {
     list: (params?: { status?: string; q?: string }) => {
       const search = new URLSearchParams()
@@ -73,6 +78,13 @@ export const adminApi = {
       apiRequest(`${base}/projects`, { method: 'POST', json: body }),
     assignMember: (projectId: string, body: { employeeId: string; role: string }) =>
       apiRequest(`${base}/projects/${projectId}/members`, { method: 'POST', json: body }),
+    applyTemplate: (projectId: string, templateId: string) =>
+      apiRequest(`${base}/projects/${projectId}/apply-template`, {
+        method: 'POST',
+        json: { templateId },
+      }),
+    complete: (projectId: string) =>
+      apiRequest(`${base}/projects/${projectId}/complete`, { method: 'POST' }),
   },
   tasks: {
     list: (projectId?: string) =>
