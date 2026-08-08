@@ -10,6 +10,7 @@ import {
   numeric,
   boolean,
   primaryKey,
+  foreignKey,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -99,6 +100,13 @@ export const supportTicketPriorityEnum = pgEnum('support_ticket_priority', [
   'medium',
   'high',
   'urgent',
+])
+
+export const employeeEmploymentStateEnum = pgEnum('employee_employment_state', [
+  'onboarding',
+  'active',
+  'on_leave',
+  'offboarded',
 ])
 
 export const users = pgTable(
@@ -199,10 +207,20 @@ export const employeeProfiles = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     department: text('department'),
     jobTitle: text('job_title'),
+    employmentState: employeeEmploymentStateEnum('employment_state').notNull().default('active'),
+    managerEmployeeId: uuid('manager_employee_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [uniqueIndex('employee_profiles_user_id_idx').on(table.userId)],
+  (table) => [
+    uniqueIndex('employee_profiles_user_id_idx').on(table.userId),
+    index('employee_profiles_manager_employee_id_idx').on(table.managerEmployeeId),
+    index('employee_profiles_department_idx').on(table.department),
+    foreignKey({
+      columns: [table.managerEmployeeId],
+      foreignColumns: [table.id],
+    }).onDelete('set null'),
+  ],
 )
 
 export const projects = pgTable(

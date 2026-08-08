@@ -162,6 +162,14 @@ const AdminProductWaitlistPage = lazyPage(
   () => import('@/pages/portal/admin/AdminProductWaitlistPage'),
   'AdminProductWaitlistPage',
 )
+const AdminExecutivePage = lazyPage(
+  () => import('@/pages/portal/admin/AdminExecutivePage'),
+  'AdminExecutivePage',
+)
+const AdminTeamAccessPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminTeamAccessPage'),
+  'AdminTeamAccessPage',
+)
 
 function lazyCrmPage(exportName: string) {
   return lazy(() =>
@@ -276,6 +284,8 @@ export const router = createBrowserRouter([
           { path: 'local/india', element: <AdminNationalMarketPage /> },
           { path: 'local/international', element: <AdminInternationalMarketPage /> },
           { path: 'product/waitlist', element: <AdminProductWaitlistPage /> },
+          { path: 'executive', element: <AdminExecutivePage /> },
+          { path: 'team/access', element: <AdminTeamAccessPage /> },
           { path: 'operations', element: <AdminOperationsPage /> },
           { path: 'sales', element: <AdminSalesPage /> },
           { path: 'revenue', element: <AdminRevenuePage /> },

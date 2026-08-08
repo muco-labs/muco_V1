@@ -11,6 +11,7 @@ import {
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import layout from '@/layouts/EmployeeAppLayout.module.css'
 import { adminPortalPaths, leadStatusOptions } from '@/config/admin-portal'
+import { mucoDepartments } from '@/config/org'
 import { useAuth } from '@/contexts/AuthProvider'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
@@ -278,6 +279,8 @@ export function AdminEmployeesPage() {
   const items = asRecords(data)
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
+  const [department, setDepartment] = useState('')
+  const [jobTitle, setJobTitle] = useState('')
   const [inviteMsg, setInviteMsg] = useState<string | null>(null)
 
   if (loading) return <ListSkeleton />
@@ -287,10 +290,17 @@ export function AdminEmployeesPage() {
     e.preventDefault()
     setInviteMsg(null)
     try {
-      await adminApi.employees.invite({ email, fullName })
+      await adminApi.employees.invite({
+        email,
+        fullName,
+        department: department || undefined,
+        jobTitle: jobTitle || undefined,
+      })
       setInviteMsg('Invitation sent.')
       setEmail('')
       setFullName('')
+      setDepartment('')
+      setJobTitle('')
       reload()
     } catch (err) {
       setInviteMsg(err instanceof ApiError ? err.message : 'Invite failed')
@@ -310,6 +320,11 @@ export function AdminEmployeesPage() {
   return (
     <>
       <PageIntro title="Employees" description="Team access and invitations." />
+      <p className={ui.meta}>
+        <Link className="link-underline" to={adminPortalPaths.teamAccess}>
+          Team access review
+        </Link>
+      </p>
       {canInvite ? (
         <form className={`surface ${ui.dataCard}`} onSubmit={(e) => void onInvite(e)}>
           <h2 className="text-h3">Invite employee</h2>
@@ -321,6 +336,21 @@ export function AdminEmployeesPage() {
             <div className={ui.field}>
               <label htmlFor="emp-name">Full name</label>
               <input id="emp-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+            <div className={ui.field}>
+              <label htmlFor="emp-dept">Department</label>
+              <select id="emp-dept" value={department} onChange={(e) => setDepartment(e.target.value)}>
+                <option value="">Select…</option>
+                {mucoDepartments.map((d) => (
+                  <option key={d.slug} value={d.slug}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={ui.field}>
+              <label htmlFor="emp-title">Job title</label>
+              <input id="emp-title" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
             </div>
             <Button type="submit">Send invitation</Button>
             {inviteMsg ? <p className={ui.meta}>{inviteMsg}</p> : null}
@@ -338,6 +368,12 @@ export function AdminEmployeesPage() {
               <li key={String(emp.id)} className={`surface ${ui.dataCard}`}>
                 <strong>{String(user.fullName ?? user.email)}</strong>
                 <span className={ui.meta}>{String(user.email)}</span>
+                {emp.department ? (
+                  <span className={ui.meta}>Dept: {String(emp.department)}</span>
+                ) : null}
+                {emp.employmentState ? (
+                  <span className={ui.meta}>Employment: {String(emp.employmentState)}</span>
+                ) : null}
                 <StatusPill status={String(user.status)} />
                 {canDisable && user.status === 'active' ? (
                   <Button type="button" size="sm" variant="ghost" onClick={() => void deactivate(String(user.id))}>

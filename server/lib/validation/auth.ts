@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isMucoDepartmentSlug } from '../org/departments.js'
 
 export const registerCustomerSchema = z.object({
   fullName: z.string().trim().min(1, 'Name is required.').max(120),
@@ -9,7 +10,12 @@ export const registerCustomerSchema = z.object({
 export const inviteEmployeeSchema = z.object({
   email: z.string().trim().email('Enter a valid email.').max(254),
   fullName: z.string().trim().min(1, 'Name is required.').max(120),
-  department: z.string().trim().max(80).optional(),
+  department: z
+    .string()
+    .trim()
+    .max(80)
+    .optional()
+    .refine((v) => !v || isMucoDepartmentSlug(v), { message: 'Unknown department.' }),
   jobTitle: z.string().trim().max(80).optional(),
 })
 

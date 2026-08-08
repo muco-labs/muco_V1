@@ -46,6 +46,9 @@ export const adminApi = {
         `${base}/product/waitlist${productSlug ? `?productSlug=${encodeURIComponent(productSlug)}` : ''}`,
       ),
   },
+  executive: {
+    overview: () => apiRequest<Record<string, unknown>>(`${base}/executive/overview`),
+  },
   search: (q: string) =>
     apiRequest<Record<string, unknown>>(`${base}/search?q=${encodeURIComponent(q)}`),
   auditLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs`),
@@ -91,8 +94,12 @@ export const adminApi = {
   },
   employees: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/employees`),
+    accessReview: () =>
+      apiRequest<{ items: unknown[]; count: number }>(`${base}/employees/access-review`),
     invite: (body: Record<string, unknown>) =>
       apiRequest(`${base}/employees/invite`, { method: 'POST', json: body }),
+    updateOrg: (employeeId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/employees/${employeeId}/org`, { method: 'PATCH', json: body }),
     setStatus: (userId: string, status: string) =>
       apiRequest(`${base}/users/${userId}/status`, { method: 'PATCH', json: { status } }),
   },

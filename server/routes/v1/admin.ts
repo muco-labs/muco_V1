@@ -81,6 +81,16 @@ import { getErodeMarketDashboard } from '../../services/local.service.js'
 import { getNationalMarketDashboard } from '../../services/market.service.js'
 import { getInternationalMarketDashboard } from '../../services/international.service.js'
 import { listProductWaitlistForAdmin } from '../../services/product-waitlist.service.js'
+import {
+  getEmployeeAccessReview,
+  getExecutiveOverview,
+  syncEmploymentStateForUserStatus,
+  updateEmployeeOrg,
+} from '../../services/org.service.js'
+import {
+  formatZodErrors as formatEmployeeOrgErrors,
+  updateEmployeeOrgSchema,
+} from '../../lib/validation/employee-org.js'
 
 export const adminRoutes = new Hono()
 
@@ -528,6 +538,43 @@ adminRoutes.get('/employees', requirePermission('employees.view'), async (c) => 
   }
 })
 
+adminRoutes.get('/employees/access-review', requirePermission('employees.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getEmployeeAccessReview())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/employees/:employeeId/org', requirePermission('employees.update'), async (c) => {
+  try {
+    const employeeId = paramId(c, 'employeeId')
+    const body = await c.req.json().catch(() => null)
+    const parsed = updateEmployeeOrgSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'Invalid employee organization fields.',
+        400,
+        formatEmployeeOrgErrors(parsed.error),
+      )
+    }
+    const auth = c.get('auth')
+    const updated = await updateEmployeeOrg(auth, employeeId, parsed.data)
+    return jsonSuccess(c, updated)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/executive/overview', requirePermission('analytics.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getExecutiveOverview(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.post('/employees/invite', requirePermission('employees.create'), async (c) => {
   try {
     const limit = checkRateLimit(
@@ -566,6 +613,7 @@ adminRoutes.patch('/users/:userId/status', requirePermission('users.disable'), a
     }
     await assertCanChangeUserStatus(auth, userId)
     await setUserStatus(userId, parsed.data.status, auth.userId)
+    await syncEmploymentStateForUserStatus(userId, parsed.data.status, auth.userId)
     return jsonSuccess(c, { userId, status: parsed.data.status })
   } catch (error) {
     return handleRouteError(c, error)

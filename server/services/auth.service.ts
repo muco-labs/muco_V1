@@ -177,12 +177,14 @@ export async function inviteEmployee(input: {
       userId: user.id,
       department: input.department?.trim() || null,
       jobTitle: input.jobTitle?.trim() || null,
+      employmentState: 'onboarding',
     })
     .onConflictDoUpdate({
       target: employeeProfiles.userId,
       set: {
         department: input.department?.trim() || null,
         jobTitle: input.jobTitle?.trim() || null,
+        employmentState: 'onboarding',
         updatedAt: new Date(),
       },
     })
