@@ -19,6 +19,7 @@ import { hasPermission } from '../lib/auth/permissions.js'
 import { roleCanAccessPortal } from '../lib/auth/permissions.js'
 import { getSupabaseAdmin } from '../lib/supabase.js'
 import { serverEnv } from '../lib/env.js'
+import { computeProjectProgressFromTasks } from './workflow.service.js'
 
 export type EmployeeContext = {
   userId: string
@@ -418,7 +419,7 @@ export async function getEmployeeProjectDetail(ctx: EmployeeContext, projectId: 
     })),
     files: fileRows,
     messages: messageRows,
-    progressPercent: milestoneProgressPercent(milestoneRows),
+    progressPercent: computeProjectProgressFromTasks(taskRows, milestoneRows),
   }
 }
 

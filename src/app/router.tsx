@@ -126,6 +126,7 @@ const AdminFilesPage = lazyAdminPage('AdminFilesPage')
 const AdminMessagesPage = lazyAdminPage('AdminMessagesPage')
 const AdminSupportPage = lazyAdminPage('AdminSupportPage')
 const AdminAnalyticsPage = lazyAdminPage('AdminAnalyticsPage')
+const AdminOperationsPage = lazyAdminPage('AdminOperationsPage')
 const AdminNotificationsPage = lazyAdminPage('AdminNotificationsPage')
 const AdminAuditLogsPage = lazyAdminPage('AdminAuditLogsPage')
 const AdminSettingsPage = lazyAdminPage('AdminSettingsPage')
@@ -230,6 +231,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminDashboardPage /> },
           { path: 'crm', element: <CrmHomePage /> },
+          { path: 'operations', element: <AdminOperationsPage /> },
           { path: 'crm/leads/:id', element: <CrmLeadDetailPage /> },
           { path: 'leads', element: <CrmHomePage /> },
           { path: 'leads/:id', element: <CrmLeadDetailPage /> },

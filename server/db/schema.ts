@@ -215,6 +215,10 @@ export const projects = pgTable(
     name: text('name').notNull(),
     description: text('description'),
     status: projectStatusEnum('status').notNull().default('draft'),
+    service: text('service'),
+    operationalPhase: text('operational_phase').notNull().default('discovery'),
+    leadId: uuid('lead_id').references(() => leads.id, { onDelete: 'set null' }),
+    proposalId: uuid('proposal_id'),
     startDate: timestamp('start_date', { withTimezone: true }),
     expectedCompletion: timestamp('expected_completion', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -248,8 +252,11 @@ export const milestones = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    description: text('description'),
     status: milestoneStatusEnum('status').notNull().default('planned'),
+    sortOrder: integer('sort_order').notNull().default(0),
     dueDate: timestamp('due_date', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -406,6 +413,7 @@ export const invoices = pgTable(
       .notNull()
       .references(() => customerProfiles.id, { onDelete: 'restrict' }),
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    proposalId: uuid('proposal_id').references(() => proposals.id, { onDelete: 'set null' }),
     invoiceNumber: text('invoice_number').notNull(),
     amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
     status: invoiceStatusEnum('status').notNull().default('draft'),
@@ -472,6 +480,7 @@ export const files = pgTable(
     mimeType: text('mime_type').notNull(),
     fileSizeBytes: integer('file_size_bytes').notNull(),
     category: text('category').default('other'),
+    visibility: text('visibility').notNull().default('internal'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

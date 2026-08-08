@@ -15,6 +15,8 @@ import {
   proposals,
   supportTicketReplies,
   supportTickets,
+  roles,
+  userRoles,
   tasks,
   users,
 } from '../db/schema.js'
@@ -23,6 +25,12 @@ import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission } from '../lib/auth/permissions.js'
 import { getSupabaseAdmin } from '../lib/supabase.js'
 import { isRazorpayConfigured, serverEnv } from '../lib/env.js'
+import {
+  finalizeSuccessfulPayment,
+  syncOverdueInvoices,
+  verifyRazorpayCheckoutSignature,
+} from './payment.service.js'
+import { computeProjectProgressFromTasks } from './workflow.service.js'
 
 export type CustomerContext = {
   userId: string
@@ -95,14 +103,6 @@ const customerVisibleProposalStatuses = [
 ] as const
 
 const customerVisibleInvoiceStatuses = ['sent', 'paid', 'partial', 'overdue'] as const
-
-function milestoneProgressPercent(
-  rows: Array<{ status: string }>,
-): number | null {
-  if (rows.length === 0) return null
-  const completed = rows.filter((m) => m.status === 'completed').length
-  return Math.round((completed / rows.length) * 100)
-}
 
 export async function getCustomerDashboard(ctx: CustomerContext) {
   const db = getDb()
@@ -284,9 +284,13 @@ export async function listCustomerProjects(ctx: CustomerContext) {
         .select({ status: milestones.status })
         .from(milestones)
         .where(eq(milestones.projectId, project.id))
+      const ts = await db
+        .select({ status: tasks.status })
+        .from(tasks)
+        .where(eq(tasks.projectId, project.id))
       return {
         ...project,
-        progressPercent: milestoneProgressPercent(ms),
+        progressPercent: computeProjectProgressFromTasks(ts, ms),
       }
     }),
   )
@@ -337,7 +341,7 @@ export async function getCustomerProjectDetail(ctx: CustomerContext, projectId: 
     tasks: taskRows,
     files: fileRows.map(sanitizeFile),
     messages: messageRows,
-    progressPercent: milestoneProgressPercent(milestoneRows),
+    progressPercent: computeProjectProgressFromTasks(taskRows, milestoneRows),
   }
 }
 
@@ -480,10 +484,30 @@ export async function decideProposal(
     message: `Your ${decision.replace('_', ' ')} response was saved.`,
   })
 
+  if (decision === 'approve') {
+    const adminUsers = await db
+      .select({ userId: userRoles.userId })
+      .from(userRoles)
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(inArray(roles.name, ['FOUNDER', 'ADMIN', 'SUPER_ADMIN']))
+    const unique = [...new Set(adminUsers.map((r) => r.userId))]
+    if (unique.length > 0) {
+      await db.insert(notifications).values(
+        unique.map((userId) => ({
+          userId,
+          type: 'proposal.approved',
+          title: 'Proposal approved',
+          message: `Customer approved proposal ${updated.title ?? proposalId}.`,
+        })),
+      )
+    }
+  }
+
   return getCustomerProposal(ctx, proposalId)
 }
 
 export async function listCustomerInvoices(ctx: CustomerContext) {
+  await syncOverdueInvoices()
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
 
@@ -564,6 +588,8 @@ export async function listCustomerFiles(ctx: CustomerContext, projectId?: string
 
   const byId = new Map<string, (typeof rows)[number]>()
   for (const row of [...rows, ...projectFiles]) {
+    const visibility = row.visibility ?? 'internal'
+    if (visibility !== 'customer_visible' && visibility !== 'deliverable') continue
     byId.set(row.id, row)
   }
 
@@ -947,14 +973,7 @@ export async function verifyRazorpayPayment(
     throw new AppError('SERVICE_UNAVAILABLE', 'Payments are not configured.', 503)
   }
 
-  const crypto = await import('node:crypto')
-  const payload = `${input.razorpayOrderId}|${input.razorpayPaymentId}`
-  const expected = crypto
-    .createHmac('sha256', serverEnv.razorpayKeySecret!)
-    .update(payload)
-    .digest('hex')
-
-  if (expected !== input.razorpaySignature) {
+  if (!verifyRazorpayCheckoutSignature(input.razorpayOrderId, input.razorpayPaymentId, input.razorpaySignature)) {
     throw new AppError('FORBIDDEN', 'Payment verification failed.', 403)
   }
 
@@ -969,32 +988,12 @@ export async function verifyRazorpayPayment(
 
   if (!payment) throw new AppError('NOT_FOUND', 'Payment not found.', 404)
 
-  if (payment.status === 'succeeded') {
-    return { status: 'succeeded' as const, paymentId: payment.id }
-  }
-
-  await db
-    .update(payments)
-    .set({
-      status: 'succeeded',
-      gatewayReference: input.razorpayPaymentId,
-      updatedAt: new Date(),
-    })
-    .where(eq(payments.id, payment.id))
-
-  await db
-    .update(invoices)
-    .set({ status: 'paid', updatedAt: new Date() })
-    .where(eq(invoices.id, payment.invoiceId))
-
-  await db.insert(auditLogs).values({
+  return finalizeSuccessfulPayment({
+    paymentId: payment.id,
+    razorpayPaymentId: input.razorpayPaymentId,
     actorUserId: ctx.userId,
-    action: 'payment.verified',
-    entity: 'payments',
-    entityId: payment.id,
+    source: 'customer_verify',
   })
-
-  return { status: 'succeeded' as const, paymentId: payment.id }
 }
 
 /** Resource ownership check for tests and routes. */

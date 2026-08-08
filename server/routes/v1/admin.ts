@@ -21,6 +21,7 @@ import {
   assignProjectMemberAdmin,
   assertCanChangeUserStatus,
   createInvoiceAdmin,
+  createInvoiceWithLineItemsAdmin,
   createLeadAdmin,
   createProjectAdmin,
   createProposalAdmin,
@@ -59,6 +60,12 @@ import {
   scheduleLeadFollowUpCrm,
   updateLeadCrm,
 } from '../../services/crm.service.js'
+import {
+  completeProjectWorkflow,
+  createProjectFromProposal,
+  getOperationsReport,
+  getProjectBusinessTimeline,
+} from '../../services/workflow.service.js'
 import { normalizeLeadSource } from '../../lib/crm/constants.js'
 
 export const adminRoutes = new Hono()
@@ -134,6 +141,49 @@ adminRoutes.get('/search', async (c) => {
 adminRoutes.get('/audit-logs', requirePermission('audit_logs.view'), async (c) => {
   try {
     return jsonSuccess(c, { items: await listAuditLogsAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/operations/report', requirePermission('analytics.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getOperationsReport())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/proposals/:id/create-project', requirePermission('projects.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => ({}))
+    const parsed = z
+      .object({ name: z.string().optional(), operationalPhase: z.string().optional() })
+      .safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid input.', 400)
+    return jsonSuccess(
+      c,
+      await createProjectFromProposal(auth.userId, paramId(c), parsed.data),
+      201,
+    )
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/projects/:id/complete', requirePermission('projects.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await completeProjectWorkflow(auth.userId, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/projects/:id/timeline', requirePermission('projects.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getProjectBusinessTimeline(paramId(c)))
   } catch (error) {
     return handleRouteError(c, error)
   }
@@ -543,9 +593,19 @@ adminRoutes.get('/invoices', requirePermission('invoices.view'), async (c) => {
 const invoiceCreateSchema = z.object({
   customerId: z.string().uuid(),
   projectId: z.string().uuid().optional(),
+  proposalId: z.string().uuid().optional(),
   invoiceNumber: z.string().min(2),
-  amount: z.string(),
+  amount: z.string().optional(),
   dueDate: z.string().optional(),
+  lineItems: z
+    .array(
+      z.object({
+        description: z.string().min(1),
+        quantity: z.string(),
+        unitAmount: z.string(),
+      }),
+    )
+    .optional(),
 })
 
 adminRoutes.post('/invoices', requirePermission('invoices.create'), async (c) => {
@@ -554,7 +614,34 @@ adminRoutes.post('/invoices', requirePermission('invoices.create'), async (c) =>
     const body = await c.req.json().catch(() => null)
     const parsed = invoiceCreateSchema.safeParse(body)
     if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid invoice.', 400)
-    return jsonSuccess(c, await createInvoiceAdmin(auth.userId, parsed.data), 201)
+    if (parsed.data.lineItems?.length) {
+      return jsonSuccess(
+        c,
+        await createInvoiceWithLineItemsAdmin(auth.userId, {
+          customerId: parsed.data.customerId,
+          projectId: parsed.data.projectId,
+          proposalId: parsed.data.proposalId,
+          invoiceNumber: parsed.data.invoiceNumber,
+          dueDate: parsed.data.dueDate,
+          lineItems: parsed.data.lineItems,
+        }),
+        201,
+      )
+    }
+    if (!parsed.data.amount) {
+      throw new AppError('VALIDATION_ERROR', 'Amount or line items required.', 400)
+    }
+    return jsonSuccess(
+      c,
+      await createInvoiceAdmin(auth.userId, {
+        customerId: parsed.data.customerId,
+        projectId: parsed.data.projectId,
+        invoiceNumber: parsed.data.invoiceNumber,
+        amount: parsed.data.amount,
+        dueDate: parsed.data.dueDate,
+      }),
+      201,
+    )
   } catch (error) {
     return handleRouteError(c, error)
   }

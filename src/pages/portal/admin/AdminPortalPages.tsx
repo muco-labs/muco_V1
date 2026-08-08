@@ -565,6 +565,44 @@ export function AdminAnalyticsPage() {
   )
 }
 
+export function AdminOperationsPage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.operations.report(), [])
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data) return null
+
+  const metrics = [
+    ['Open leads', data.openLeads],
+    ['Active projects', data.activeProjects],
+    ['Completed projects', data.completedProjects],
+    ['Overdue invoices', data.overdueInvoices],
+    ['Open support tickets', data.openSupportTickets],
+    ['Open tasks', data.openTasks],
+  ] as const
+
+  return (
+    <>
+      <PageIntro
+        title="Operations"
+        description="Cross-module reporting from verified database records."
+      />
+      <div className={ui.cardGrid}>
+        {metrics.map(([label, value]) => (
+          <article key={label} className={`surface ${ui.dataCard}`}>
+            <h2 className="text-h3">{label}</h2>
+            <p className="text-h2">{String(value ?? 0)}</p>
+          </article>
+        ))}
+      </div>
+      <p className={ui.meta} style={{ marginTop: 'var(--space-4)' }}>
+        Outstanding invoices: ₹{String(data.outstandingInvoicesTotal ?? '0')} · Revenue (paid): ₹
+        {String(data.revenueSucceeded ?? '0')}
+      </p>
+    </>
+  )
+}
+
 export function AdminNotificationsPage() {
   return (
     <>
@@ -615,6 +653,7 @@ export function AdminSettingsPage() {
   const supabase = (data?.supabase as { configured?: boolean }) ?? {}
   const database = (data?.database as { configured?: boolean }) ?? {}
   const razorpay = (data?.razorpay as { configured?: boolean }) ?? {}
+  const email = (data?.email as { resend?: { configured?: boolean } }) ?? {}
 
   function statusLabel(configured?: boolean) {
     return configured ? 'Configured' : 'Not configured'
@@ -629,6 +668,7 @@ export function AdminSettingsPage() {
           <li>Supabase: {statusLabel(supabase.configured)}</li>
           <li>Database: {statusLabel(database.configured)}</li>
           <li>Razorpay: {statusLabel(razorpay.configured)}</li>
+          <li>Email (Resend): {statusLabel(email.resend?.configured)}</li>
         </ul>
         <p className={ui.meta}>{String(data?.note ?? '')}</p>
       </article>

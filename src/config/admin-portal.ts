@@ -1,6 +1,7 @@
 export const adminPortalPaths = {
   root: '/admin',
   crm: '/admin/crm',
+  operations: '/admin/operations',
   crmLeadDetail: (id: string) => `/admin/crm/leads/${id}`,
   leads: '/admin/crm',
   leadDetail: (id: string) => `/admin/crm/leads/${id}`,
@@ -32,6 +33,7 @@ export type AdminNavItem = {
 export const adminNav: AdminNavItem[] = [
   { label: 'Dashboard', path: adminPortalPaths.root, end: true, permission: null },
   { label: 'CRM', path: adminPortalPaths.crm, permission: 'leads.view' },
+  { label: 'Operations', path: adminPortalPaths.operations, permission: 'analytics.view' },
   { label: 'Customers', path: adminPortalPaths.customers, permission: 'customers.view' },
   { label: 'Employees', path: adminPortalPaths.employees, permission: 'employees.view' },
   { label: 'Projects', path: adminPortalPaths.projects, permission: 'projects.view' },

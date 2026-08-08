@@ -8,6 +8,7 @@ import {
   notifyAdminsOfNewLead,
   recordLeadActivity,
 } from './crm.service.js'
+import { sendTransactionalEmail } from '../lib/email/send.js'
 
 export type CreateLeadResult = {
   id: string
@@ -59,6 +60,8 @@ export async function createLeadFromWebsite(input: CreateLeadInput): Promise<Cre
 
   await recordLeadActivity(lead.id, 'lead.created', null, { source })
   await notifyAdminsOfNewLead(lead.id, input.name)
+
+  await sendTransactionalEmail('inquiry_confirmation', input.email, { name: input.name })
 
   return {
     id: lead.id,

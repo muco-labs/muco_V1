@@ -5,9 +5,11 @@ import {
   customerProfiles,
   employeeProfiles,
   files,
+  invoiceLineItems,
   invoices,
   leads,
   messages,
+  notifications,
   payments,
   projectMembers,
   projects,
@@ -22,6 +24,7 @@ import { AppError } from '../lib/errors.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission, roleCanAccessPortal } from '../lib/auth/permissions.js'
 import { isDatabaseConfigured, isRazorpayConfigured, isSupabaseConfigured } from '../lib/env.js'
+import { emailConfigurationStatus, sendTransactionalEmail } from '../lib/email/send.js'
 
 export function requireAdminPortal(auth: AuthContext) {
   if (!roleCanAccessPortal(auth.roles, 'admin')) {
@@ -122,6 +125,7 @@ export function getIntegrationStatus() {
     supabase: { configured: isSupabaseConfigured() },
     database: { configured: isDatabaseConfigured() },
     razorpay: { configured: isRazorpayConfigured() },
+    email: emailConfigurationStatus(),
     note: 'Secrets are stored server-side only and are never returned to the browser.',
   }
 }
@@ -493,6 +497,29 @@ export async function sendProposalAdmin(actorUserId: string, proposalId: string)
     entity: 'proposals',
     entityId: proposalId,
   })
+
+  if (updated.customerId) {
+    const [customerUser] = await db
+      .select({ userId: customerProfiles.userId, email: users.email })
+      .from(customerProfiles)
+      .innerJoin(users, eq(customerProfiles.userId, users.id))
+      .where(eq(customerProfiles.id, updated.customerId))
+      .limit(1)
+    if (customerUser?.userId) {
+      await db.insert(notifications).values({
+        userId: customerUser.userId,
+        type: 'proposal.sent',
+        title: 'New proposal',
+        message: `Proposal "${updated.title ?? 'Proposal'}" is ready for your review.`,
+      })
+      if (customerUser.email) {
+        await sendTransactionalEmail('proposal_sent', customerUser.email, {
+          title: updated.title ?? 'Proposal',
+        })
+      }
+    }
+  }
+
   return updated
 }
 
@@ -534,6 +561,62 @@ export async function createInvoiceAdmin(
   return row
 }
 
+export async function createInvoiceWithLineItemsAdmin(
+  actorUserId: string,
+  input: {
+    customerId: string
+    projectId?: string
+    proposalId?: string
+    invoiceNumber: string
+    dueDate?: string
+    lineItems: Array<{ description: string; quantity: string; unitAmount: string }>
+  },
+) {
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+  if (input.lineItems.length === 0) {
+    throw new AppError('VALIDATION_ERROR', 'At least one line item is required.', 400)
+  }
+
+  const total = input.lineItems.reduce(
+    (sum, line) => sum + Number(line.quantity) * Number(line.unitAmount),
+    0,
+  )
+
+  const [row] = await db
+    .insert(invoices)
+    .values({
+      customerId: input.customerId,
+      projectId: input.projectId ?? null,
+      proposalId: input.proposalId ?? null,
+      invoiceNumber: input.invoiceNumber.trim(),
+      amount: total.toFixed(2),
+      status: 'draft',
+      dueDate: input.dueDate ? new Date(input.dueDate) : null,
+    })
+    .returning()
+
+  await db.insert(invoiceLineItems).values(
+    input.lineItems.map((line, index) => ({
+      invoiceId: row.id,
+      description: line.description.trim(),
+      quantity: line.quantity,
+      unitAmount: line.unitAmount,
+      sortOrder: index,
+    })),
+  )
+
+  await db.insert(auditLogs).values({
+    actorUserId,
+    action: 'invoice.created',
+    entity: 'invoices',
+    entityId: row.id,
+    metadata: JSON.stringify({ lineItemCount: input.lineItems.length }),
+  })
+
+  return row
+}
+
 export async function issueInvoiceAdmin(actorUserId: string, invoiceId: string) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
@@ -549,6 +632,28 @@ export async function issueInvoiceAdmin(actorUserId: string, invoiceId: string) 
     entity: 'invoices',
     entityId: invoiceId,
   })
+
+  const [customerUser] = await db
+    .select({ userId: customerProfiles.userId, email: users.email })
+    .from(customerProfiles)
+    .innerJoin(users, eq(customerProfiles.userId, users.id))
+    .where(eq(customerProfiles.id, updated.customerId))
+    .limit(1)
+
+  if (customerUser?.userId) {
+    await db.insert(notifications).values({
+      userId: customerUser.userId,
+      type: 'invoice.issued',
+      title: 'Invoice issued',
+      message: `Invoice ${updated.invoiceNumber} is ready in your portal.`,
+    })
+    if (customerUser.email) {
+      await sendTransactionalEmail('invoice_issued', customerUser.email, {
+        invoiceNumber: updated.invoiceNumber,
+      })
+    }
+  }
+
   return updated
 }
 

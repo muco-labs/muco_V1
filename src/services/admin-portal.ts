@@ -20,6 +20,9 @@ export const adminApi = {
     metrics: () => apiRequest<Record<string, unknown>>(`${base}/crm/metrics`),
     pipeline: () => apiRequest<Record<string, unknown>>(`${base}/crm/pipeline`),
   },
+  operations: {
+    report: () => apiRequest<Record<string, unknown>>(`${base}/operations/report`),
+  },
   analytics: () => apiRequest<Record<string, unknown>>(`${base}/analytics`),
   integrations: () => apiRequest<Record<string, unknown>>(`${base}/integrations`),
   search: (q: string) =>
