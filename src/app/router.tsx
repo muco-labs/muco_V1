@@ -2,6 +2,7 @@ import { lazy, type ComponentType } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { CustomerAppLayout } from '@/layouts/CustomerAppLayout'
+import { EmployeeAppLayout } from '@/layouts/EmployeeAppLayout'
 import { ProtectedPortal } from '@/components/auth/ProtectedPortal'
 
 function lazyPage<T extends Record<string, ComponentType<unknown>>>(
@@ -76,10 +77,29 @@ const CustomerSupportDetailPage = lazyCustomerPage('CustomerSupportDetailPage')
 const CustomerNotificationsPage = lazyCustomerPage('CustomerNotificationsPage')
 const CustomerProfilePage = lazyCustomerPage('CustomerProfilePage')
 const CustomerSettingsPage = lazyCustomerPage('CustomerSettingsPage')
-const TeamAppHomePage = lazyPage(
-  () => import('@/pages/portal/TeamAppHomePage'),
-  'TeamAppHomePage',
+const EmployeeDashboardPage = lazyPage(
+  () => import('@/pages/portal/employee/EmployeeDashboardPage'),
+  'EmployeeDashboardPage',
 )
+
+function lazyEmployeePage(exportName: string) {
+  return lazy(() =>
+    import('@/pages/portal/employee/EmployeePortalPages').then((module) => ({
+      default: module[exportName as keyof typeof module] as ComponentType<unknown>,
+    })),
+  )
+}
+
+const EmployeeTasksPage = lazyEmployeePage('EmployeeTasksPage')
+const EmployeeTaskDetailPage = lazyEmployeePage('EmployeeTaskDetailPage')
+const EmployeeProjectsPage = lazyEmployeePage('EmployeeProjectsPage')
+const EmployeeProjectDetailPage = lazyEmployeePage('EmployeeProjectDetailPage')
+const EmployeeFilesPage = lazyEmployeePage('EmployeeFilesPage')
+const EmployeeMessagesPage = lazyEmployeePage('EmployeeMessagesPage')
+const EmployeeNotificationsPage = lazyEmployeePage('EmployeeNotificationsPage')
+const EmployeeDeadlinesPage = lazyEmployeePage('EmployeeDeadlinesPage')
+const EmployeeProfilePage = lazyEmployeePage('EmployeeProfilePage')
+const EmployeeSettingsPage = lazyEmployeePage('EmployeeSettingsPage')
 const AdminAppHomePage = lazyPage(
   () => import('@/pages/portal/AdminAppHomePage'),
   'AdminAppHomePage',
@@ -146,9 +166,22 @@ export const router = createBrowserRouter([
         path: 'team',
         element: (
           <ProtectedPortal portal="employee">
-            <TeamAppHomePage />
+            <EmployeeAppLayout />
           </ProtectedPortal>
         ),
+        children: [
+          { index: true, element: <EmployeeDashboardPage /> },
+          { path: 'tasks', element: <EmployeeTasksPage /> },
+          { path: 'tasks/:id', element: <EmployeeTaskDetailPage /> },
+          { path: 'projects', element: <EmployeeProjectsPage /> },
+          { path: 'projects/:id', element: <EmployeeProjectDetailPage /> },
+          { path: 'files', element: <EmployeeFilesPage /> },
+          { path: 'messages', element: <EmployeeMessagesPage /> },
+          { path: 'notifications', element: <EmployeeNotificationsPage /> },
+          { path: 'deadlines', element: <EmployeeDeadlinesPage /> },
+          { path: 'profile', element: <EmployeeProfilePage /> },
+          { path: 'settings', element: <EmployeeSettingsPage /> },
+        ],
       },
       {
         path: 'admin',
