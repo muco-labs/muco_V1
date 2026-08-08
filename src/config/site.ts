@@ -7,7 +7,7 @@ export const site = {
     'MUCO LABS designs, builds, automates and grows digital businesses through technology, software, AI and digital solutions.',
   defaultTitle: 'MUCO LABS | Technology, Software, AI & Digital Solutions',
   defaultDescription:
-    'Founder-led software studio in Erode, Tamil Nadu—websites, apps, custom software, AI and digital marketing with clear public pricing.',
+    'Founder-led technology company in Erode, Tamil Nadu—websites, software, mobile apps, SaaS, CRM, ecommerce, AI and digital marketing with clear public pricing.',
   locale: 'en-IN',
   contactEmail: 'contact@mucolabs.com',
   contactPhone: '+916381809844',

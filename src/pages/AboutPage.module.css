@@ -50,10 +50,51 @@
   color: var(--color-text-muted);
 }
 
-.status {
-  color: var(--color-accent) !important;
-  font-weight: 600;
-  font-size: var(--text-small) !important;
+.process {
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-4);
+  max-width: 42rem;
+}
+
+.process li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.processIndex {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+  font-size: var(--text-small);
+}
+
+.process li p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.skills,
+.memberSkills {
+  margin: var(--space-3) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.skills li,
+.memberSkills li {
+  font-size: var(--text-caption);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
 }
 
 .vision {

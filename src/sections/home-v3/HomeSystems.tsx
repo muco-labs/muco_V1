@@ -6,15 +6,7 @@ import { erodePositioning, erodeServiceLinks, erodeServiceHref } from '@/data/er
 import { routePaths } from '@/config/routes'
 import styles from './HomeSystems.module.css'
 
-const process = [
-  { step: 'Discover', detail: 'Goals, constraints and success metrics—no fluff.' },
-  { step: 'Strategize', detail: 'Scope, architecture and delivery plan you can trust.' },
-  { step: 'Design', detail: 'UX, UI and content structure with conversion in mind.' },
-  { step: 'Build', detail: 'Engineering with reviews, tests and secure defaults.' },
-  { step: 'Test', detail: 'QA across devices, flows and performance budgets.' },
-  { step: 'Launch', detail: 'Deploy, monitor and hand off with documentation.' },
-  { step: 'Grow', detail: 'SEO, automation and iteration tied to outcomes.' },
-]
+import { deliveryProcess } from '@/content/process'
 
 const techGroups = [
   { title: 'Frontend', items: ['React', 'TypeScript', 'Vite', 'Design systems'] },
@@ -32,7 +24,7 @@ export function HomeSystemsSections() {
             <div>
               <p className="text-label">Work</p>
               <h2 id="work-title" className="text-h2">
-                Concept explorations—clearly labeled.
+                Internal builds and concept explorations—clearly labeled.
               </h2>
             </div>
             <Link className="link-underline" to={routePaths.work}>
@@ -58,7 +50,7 @@ export function HomeSystemsSections() {
             </h2>
           </Reveal>
           <ol className={styles.process}>
-            {process.map((item, index) => (
+            {deliveryProcess.map((item, index) => (
               <Reveal key={item.step} delayMs={index * 50}>
                 <li className={styles.processStep}>
                   <span className={styles.processIndex}>{String(index + 1).padStart(2, '0')}</span>

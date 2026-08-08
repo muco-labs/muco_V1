@@ -96,6 +96,15 @@ export function ContactPage() {
               </li>
             </ul>
             <p className={styles.response}>{contact.responseExpectation}</p>
+            <div className={`surface ${styles.guidance}`}>
+              <h2 className="text-h3">{contact.formGuidance.headline}</h2>
+              <ul>
+                {contact.formGuidance.bullets.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <p>{contact.formGuidance.afterSubmit}</p>
+            </div>
             <ul className={styles.social}>
               {socialLinkList.map((item) => (
                 <li key={item.id}>

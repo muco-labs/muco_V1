@@ -19,7 +19,7 @@ export function Footer() {
             <Link to={routePaths.home} className={styles.brand}>
               {site.name}
             </Link>
-            <p className={styles.desc}>{company.tagline}</p>
+            <p className={styles.desc}>{company.footerBlurb}</p>
             <a
               href={`mailto:${site.contactEmail}`}
               className={styles.email}

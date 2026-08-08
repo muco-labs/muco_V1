@@ -1,6 +1,8 @@
 import { pageSeo } from '@/config/seo'
 import { routePaths, serviceSlugs, servicePath } from '@/config/routes'
 import { insightArticles } from '@/data/insights'
+import { portfolioProjects } from '@/data/portfolio'
+import { workPath } from '@/data/portfolio'
 
 /** Public routes that should appear in sitemap and receive index,follow metadata. */
 export const indexablePaths: string[] = [
@@ -9,6 +11,7 @@ export const indexablePaths: string[] = [
   ...serviceSlugs.map(servicePath),
   pageSeo.solutions.path,
   pageSeo.work.path,
+  ...portfolioProjects.map((project) => workPath(project.id)),
   pageSeo.about.path,
   pageSeo.insights.path,
   ...insightArticles.map((article) => article.path),

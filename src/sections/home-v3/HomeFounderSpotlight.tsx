@@ -13,7 +13,12 @@ export function HomeFounderSpotlight() {
       <div className="shell">
         <div className={`surface ${styles.card}`}>
           <Reveal className={styles.grid}>
-            <FounderPortrait name={founder.name} imageSrc={founder.imageSrc} size="lg" />
+            <FounderPortrait
+              name={founder.name}
+              imageSrc={founder.imageSrc}
+              size="lg"
+              placeholderLabel="Founder photo"
+            />
             <div className={styles.copy}>
               <p className="text-label">Founder</p>
               <h2 id="home-founder-title" className="text-h2">

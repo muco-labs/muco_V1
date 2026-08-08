@@ -28,6 +28,7 @@ const SolutionsPage = lazyPage(
   'SolutionsPage',
 )
 const WorkPage = lazyPage(() => import('@/pages/WorkPage'), 'WorkPage')
+const WorkProjectPage = lazyPage(() => import('@/pages/WorkProjectPage'), 'WorkProjectPage')
 const AboutPage = lazyPage(() => import('@/pages/AboutPage'), 'AboutPage')
 const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPage')
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
@@ -163,6 +164,7 @@ export const router = createBrowserRouter([
       { path: 'services/:slug', element: <ServiceDetailPage /> },
       { path: 'solutions', element: <SolutionsPage /> },
       { path: 'work', element: <WorkPage /> },
+      { path: 'work/:slug', element: <WorkProjectPage /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'insights', element: <InsightsPage /> },
       { path: 'contact', element: <ContactPage /> },

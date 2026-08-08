@@ -23,12 +23,24 @@ const serviceSlugs = [
   'technology-consulting',
 ]
 
+const portfolioIds = [
+  'muco-labs-website',
+  'muco-business-platform',
+  'concept-commerce',
+  'concept-ai-dashboard',
+  'concept-saas',
+  'concept-premium-site',
+  'concept-mobile',
+  'concept-automation',
+]
+
 const indexablePaths = [
   '/',
   '/services',
   ...serviceSlugs.map((slug) => `/services/${slug}`),
   '/solutions',
   '/work',
+  ...portfolioIds.map((id) => `/work/${id}`),
   '/about',
   '/insights',
   '/contact',

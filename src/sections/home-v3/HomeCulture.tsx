@@ -87,7 +87,7 @@ export function HomeCultureSections() {
               </h2>
               <p className={styles.founderRole}>{founder.title}</p>
               <p className={styles.founderIntro}>{founder.introduction}</p>
-              <p className={styles.founderVision}>{founder.philosophy}</p>
+              <p className={styles.founderVision}>{founder.vision}</p>
               <ul className={styles.interests}>
                 {founder.interests.map((item) => (
                   <li key={item}>{item}</li>
@@ -98,7 +98,12 @@ export function HomeCultureSections() {
               </Link>
             </Reveal>
             <Reveal variant="slide-left" delayMs={120}>
-              <FounderPortrait name={founder.name} imageSrc={founder.imageSrc} />
+              <FounderPortrait
+                name={founder.name}
+                imageSrc={founder.imageSrc}
+                size="hero"
+                placeholderLabel="Founder photo"
+              />
             </Reveal>
           </div>
         </div>

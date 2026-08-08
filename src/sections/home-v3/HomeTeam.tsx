@@ -26,7 +26,12 @@ export function HomeTeamSection() {
           {teamMembers.map((member, index) => (
             <Reveal key={member.id} delayMs={index * 80}>
               <article className={`surface surface--lift ${styles.card}`}>
-                <FounderPortrait name={member.name} imageSrc={member.imageSrc} size="md" />
+                <FounderPortrait
+                  name={member.name}
+                  imageSrc={member.imageSrc}
+                  size="md"
+                  placeholderLabel="Team photo"
+                />
                 <div>
                   <h3 className="text-h3">{member.name}</h3>
                   <p className={styles.role}>{member.role}</p>

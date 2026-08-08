@@ -29,8 +29,8 @@ export function WorkPage() {
       <div className={styles.page}>
         <PageHero
           eyebrow="Portfolio"
-          title="Selected work & concepts"
-          lead="Every item is labeled by type. Concept and demo work is never presented as a verified client case study."
+          title="Internal builds, concepts & demos"
+          lead="Every item is labeled by type. Internal MUCO LABS work and concept explorations are never presented as unverified client case studies."
         />
         <section className="section">
           <div className="shell">

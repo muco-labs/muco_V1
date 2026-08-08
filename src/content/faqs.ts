@@ -76,6 +76,48 @@ export const faqs: FaqItem[] = [
     answer:
       'We are headquartered in Erode, Tamil Nadu, India and work with clients locally and internationally.',
   },
+  {
+    id: 'remote',
+    category: 'general',
+    question: 'Do you work with businesses outside Erode?',
+    answer:
+      'Yes. We serve clients across Tamil Nadu, India and remote engagements where async collaboration fits the project.',
+  },
+  {
+    id: 'quote',
+    category: 'process',
+    question: 'How do I request a quote?',
+    answer:
+      'Share your goals via the contact form or email. We follow up with clarifying questions, then a written scope and quote—no pressure to oversell.',
+  },
+  {
+    id: 'custom-software',
+    category: 'technology',
+    question: 'Can you build custom software or SaaS products?',
+    answer:
+      'Yes—when discovery shows a bespoke product is the right fit. We document architecture, milestones and ownership before development starts.',
+  },
+  {
+    id: 'apis',
+    category: 'technology',
+    question: 'Can you integrate APIs and third-party tools?',
+    answer:
+      'Yes. Integrations (payments, CRM, email, analytics and internal APIs) are a core part of most software and automation engagements.',
+  },
+  {
+    id: 'payment-flow',
+    category: 'pricing',
+    question: 'How does payment work?',
+    answer:
+      'Milestone billing is typical for larger projects; smaller packages may use agreed upfront schedules. Terms are confirmed in your proposal and invoice.',
+  },
+  {
+    id: 'seo-offer',
+    category: 'support',
+    question: 'Do you provide SEO services?',
+    answer:
+      'Yes—technical SEO, content structure and measurement. We tie SEO to your site and product, not isolated keyword lists.',
+  },
 ]
 
 export const homeFaqIds = [

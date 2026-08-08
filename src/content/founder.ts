@@ -8,8 +8,10 @@ export type FounderProfile = {
   name: string
   title: string
   introduction: string
+  vision: string
   philosophy: string
   role: string
+  skills: string[]
   interests: string[]
   /** Optional path under /public — add verified portrait when available. */
   imageSrc?: string
@@ -22,9 +24,17 @@ export const founder: FounderProfile = {
   title: 'Founder & Managing Director',
   introduction:
     'Srinivash Mahalingam leads MUCO LABS with hands-on responsibility for product direction, client delivery and technical standards. Clients work directly with leadership—from discovery through launch.',
+  vision:
+    'A technology company from Erode that competes on craft and clarity—where small teams ship serious software and growing businesses get a partner who stays accountable after launch.',
   philosophy:
     'Technology should reduce operational chaos. We favour small, accountable teams, maintainable codebases and designs that stay legible as products grow.',
-  role: 'Founder-led delivery across websites, software, mobile, AI and growth systems.',
+  role: 'Sets direction, owns delivery standards and remains the escalation path for client engagements.',
+  skills: [
+    'Product & technical direction',
+    'Full-stack software delivery',
+    'Client discovery and scoping',
+    'Applied AI and automation strategy',
+  ],
   interests: [
     'Product engineering',
     'Applied AI & automation',

@@ -4,6 +4,7 @@ export const routePaths = {
   serviceDetail: '/services/:slug',
   solutions: '/solutions',
   work: '/work',
+  workDetail: '/work/:slug',
   about: '/about',
   insights: '/insights',
   contact: '/contact',

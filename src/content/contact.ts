@@ -14,4 +14,16 @@ export const contact = {
     timezone: 'Asia/Kolkata',
   },
   languages: ['English', 'Tamil'],
+  formGuidance: {
+    headline: 'What to include',
+    bullets: [
+      'What you are building (website, app, software, AI, marketing, etc.)',
+      'Who it is for and the problem you are solving',
+      'Timeline or launch target, if you have one',
+      'Budget range or constraints, if known',
+      'Links to references, existing product or competitors (optional)',
+    ],
+    afterSubmit:
+      'We review your message and reply with a practical next step—usually a short call or a scoped follow-up—not a generic brochure.',
+  },
 } as const

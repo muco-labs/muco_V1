@@ -8,6 +8,7 @@ import { analyticsEvents } from '@/lib/analytics'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
 import { teamGroups, teamMembers, teamHiringNote } from '@/data/team'
+import { deliveryProcess } from '@/content/process'
 import { routePaths } from '@/config/routes'
 import styles from './AboutPage.module.css'
 
@@ -28,18 +29,56 @@ export function AboutPage() {
               <p className="text-label">About</p>
               <h1 className="text-display">Technology with founder-led accountability.</h1>
               <p className={styles.lead}>{company.tagline}</p>
+              <p className={styles.lead}>{company.whoWeServe}</p>
             </Reveal>
           </div>
         </section>
 
         <section className="section section--tight">
           <div className="shell">
+            <Reveal>
+              <h2 className="text-h2">Who we are</h2>
+            </Reveal>
             {company.story.map((paragraph, index) => (
               <Reveal key={paragraph.slice(0, 24)} delayMs={index * 60}>
                 <p className={styles.story}>{paragraph}</p>
               </Reveal>
             ))}
             <p className={styles.disambiguation}>{company.disambiguation}</p>
+          </div>
+        </section>
+
+        <section className="section section--tight">
+          <div className="shell">
+            <Reveal>
+              <h2 className="text-h2">What we build</h2>
+              <p className={styles.story}>{company.whyWeExist}</p>
+            </Reveal>
+            <ul className={styles.builds}>
+              {company.whatWeBuild.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="section section--tight">
+          <div className="shell">
+            <Reveal>
+              <h2 className="text-h2">How we work</h2>
+              <p className={styles.story}>{company.howWeWork}</p>
+            </Reveal>
+            <ol className={styles.process}>
+              {deliveryProcess.map((stage, index) => (
+                <li key={stage.step}>
+                  <span className={styles.processIndex}>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <strong>{stage.step}</strong>
+                    <p>{stage.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
@@ -58,6 +97,10 @@ export function AboutPage() {
                 <p>{company.vision}</p>
               </Reveal>
             </div>
+            <Reveal delayMs={120}>
+              <h3 className="text-label">Engineering philosophy</h3>
+              <p className={styles.story}>{company.engineeringPhilosophy}</p>
+            </Reveal>
           </div>
         </section>
 
@@ -81,13 +124,28 @@ export function AboutPage() {
           <div className="shell">
             <div className={styles.founder}>
               <Reveal>
-                <FounderPortrait name={founder.name} imageSrc={founder.imageSrc} />
+                <FounderPortrait
+                  name={founder.name}
+                  imageSrc={founder.imageSrc}
+                  size="hero"
+                  placeholderLabel="Founder photo"
+                />
               </Reveal>
               <Reveal delayMs={100}>
                 <p className="text-label">Founder</p>
                 <h2 className="text-h2">{founder.name}</h2>
                 <p className={styles.founderTitle}>{founder.title}</p>
                 <p>{founder.introduction}</p>
+                <h3 className="text-label">Vision</h3>
+                <p className={styles.vision}>{founder.vision}</p>
+                <h3 className="text-label">Role</h3>
+                <p>{founder.role}</p>
+                <h3 className="text-label">Focus areas</h3>
+                <ul className={styles.skills}>
+                  {founder.skills.map((skill) => (
+                    <li key={skill}>{skill}</li>
+                  ))}
+                </ul>
                 <p>{founder.philosophy}</p>
                 <ul className={styles.links}>
                   {founder.links.map((link) => (
@@ -112,11 +170,34 @@ export function AboutPage() {
             <div className={styles.teamGrid}>
               {teamMembers.map((member) => (
                 <article key={member.id} className={`surface ${styles.memberCard}`}>
-                  <FounderPortrait name={member.name} imageSrc={member.imageSrc} size="md" />
+                  <FounderPortrait
+                    name={member.name}
+                    imageSrc={member.imageSrc}
+                    size="md"
+                    placeholderLabel="Team photo"
+                  />
                   <div>
                     <h3 className="text-h3">{member.name}</h3>
                     <p className={styles.memberRole}>{member.role}</p>
                     {member.bio ? <p>{member.bio}</p> : null}
+                    {member.skills?.length ? (
+                      <ul className={styles.memberSkills}>
+                        {member.skills.map((skill) => (
+                          <li key={skill}>{skill}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {member.links?.length ? (
+                      <ul className={styles.links}>
+                        {member.links.map((link) => (
+                          <li key={link.href}>
+                            <a className="link-underline" href={link.href}>
+                              {link.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -146,7 +227,7 @@ export function AboutPage() {
                   Start a Project
                 </Button>
                 <Link className="link-underline" to={routePaths.work}>
-                  Concept work
+                  View work
                 </Link>
               </div>
             </Reveal>
