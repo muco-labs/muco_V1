@@ -8,7 +8,9 @@ export const env = {
   appUrl: trimTrailingSlash(
     import.meta.env.VITE_APP_URL ?? 'https://app.mucolabs.com',
   ),
-  contactApiUrl: import.meta.env.VITE_CONTACT_API_URL?.trim() || undefined,
+  apiBaseUrl: trimTrailingSlash(import.meta.env.VITE_API_BASE_URL ?? ''),
+  contactApiUrl:
+    import.meta.env.VITE_CONTACT_API_URL?.trim() || '/api/v1/leads',
   gaMeasurementId: import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() || undefined,
   gscVerification: import.meta.env.VITE_GSC_VERIFICATION?.trim() || undefined,
   isDev: import.meta.env.DEV,

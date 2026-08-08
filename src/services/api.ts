@@ -1,5 +1,7 @@
 import { env } from '@/config/env'
 import { isAllowedApiUrl } from '@/utils/url'
+import type { ApiBody } from '@/lib/api/types'
+import { isApiSuccess } from '@/lib/api/types'
 
 export class ApiError extends Error {
   status: number
@@ -26,6 +28,13 @@ function scheduleTimeout(callback: () => void, ms: number): () => void {
   return () => window.clearTimeout(id)
 }
 
+function resolveRequestUrl(path: string): string {
+  if (path.startsWith('/')) {
+    return path
+  }
+  return path
+}
+
 /**
  * Shared fetch wrapper for future app.mucolabs.com APIs.
  * Public marketing site should not embed secrets; use env-based origins only.
@@ -34,7 +43,8 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  if (!isAllowedApiUrl(path)) {
+  const target = resolveRequestUrl(path)
+  if (!isAllowedApiUrl(target)) {
     throw new ApiError('Invalid request URL', 0)
   }
 
@@ -46,7 +56,7 @@ export async function apiRequest<T>(
   signal?.addEventListener('abort', abortFromCaller, { once: true })
 
   try {
-    const response = await fetch(path, {
+    const response = await fetch(target, {
       ...rest,
       signal: controller.signal,
       headers: {
@@ -57,15 +67,28 @@ export async function apiRequest<T>(
       credentials: 'same-origin',
     })
 
-    if (!response.ok) {
-      throw new ApiError('Request failed', response.status)
-    }
-
     if (response.status === 204) {
       return undefined as T
     }
 
-    return (await response.json()) as T
+    const parsed = (await response.json().catch(() => null)) as ApiBody<T> | T | null
+
+    if (parsed && typeof parsed === 'object' && 'success' in parsed) {
+      const envelope = parsed as ApiBody<T>
+      if (!isApiSuccess(envelope)) {
+        throw new ApiError(envelope.error.message || 'Request failed', response.status)
+      }
+      if (!response.ok) {
+        throw new ApiError('Request failed', response.status)
+      }
+      return envelope.data
+    }
+
+    if (!response.ok) {
+      throw new ApiError('Request failed', response.status)
+    }
+
+    return parsed as T
   } catch (error) {
     if (error instanceof ApiError) throw error
     if (error instanceof DOMException && error.name === 'AbortError') {

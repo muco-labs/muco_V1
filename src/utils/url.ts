@@ -16,8 +16,11 @@ export function isSafeExternalHref(href: string): boolean {
   }
 }
 
-/** Contact and public API calls must use HTTPS in production. */
+/** Same-origin API paths and HTTPS URLs allowed for client requests. */
 export function isAllowedApiUrl(url: string): boolean {
+  if (url.startsWith('/api/')) {
+    return true
+  }
   try {
     const parsed = new URL(url)
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {

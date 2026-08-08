@@ -5,26 +5,40 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-seo.mjs && tsc -b && vite build",
+    "build": "node scripts/generate-seo.mjs && tsc -b && tsc -p tsconfig.server.json --noEmit && vite build",
     "generate:seo": "node scripts/generate-seo.mjs",
+    "dev:api": "tsx watch server/dev.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx server/db/migrate.ts",
+    "db:seed": "tsx server/db/seed.ts",
+    "test": "vitest run",
     "lint": "oxlint",
     "audit": "npm audit",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.0",
+    "drizzle-orm": "^0.45.2",
     "framer-motion": "^13.0.0",
+    "hono": "^4.13.1",
+    "postgres": "^3.4.9",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-icons": "^5.7.0",
-    "react-router-dom": "^7.18.2"
+    "react-router-dom": "^7.18.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
+    "@types/pg": "^8.21.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "drizzle-kit": "^0.31.10",
     "oxlint": "^1.75.0",
+    "tsx": "^4.23.11",
     "typescript": "~6.0.2",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
   }
 }

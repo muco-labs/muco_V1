@@ -1,5 +1,5 @@
 import { env } from '@/config/env'
-import { apiRequest } from '@/services/api'
+import { ApiError, apiRequest } from '@/services/api'
 import { validateContactPayload, type SanitizedContactPayload } from '@/utils/validate'
 
 export type ContactPayload = SanitizedContactPayload
@@ -25,20 +25,23 @@ export async function submitContact(
   const validation = validateContactPayload(input)
   if (!validation.ok) return validation
 
-  if (!env.contactApiUrl) {
-    return {
-      ok: false,
-      error: 'Contact delivery is not configured yet. Email us directly.',
-    }
-  }
-
   try {
-    await apiRequest<void>(env.contactApiUrl, {
+    await apiRequest<{ id: string; status: string }>(env.contactApiUrl, {
       method: 'POST',
-      json: validation.data,
+      json: {
+        name: validation.data.name,
+        email: validation.data.email,
+        company: validation.data.company,
+        message: validation.data.message,
+        website: input.website ?? '',
+        source: 'website_contact',
+      },
     })
     return { ok: true }
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { ok: false, error: error.message }
+    }
     return { ok: false, error: 'Unable to send your message. Try again later.' }
   }
 }
