@@ -5,6 +5,7 @@ import { authRoutes } from '@/config/auth'
 import { routePaths } from '@/config/routes'
 import { site } from '@/config/site'
 import { primaryNav } from '@/data/navigation'
+import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 import styles from './Navbar.module.css'
@@ -58,14 +59,27 @@ export function Navbar() {
 
         <div className={styles.actions}>
           <div className={styles.auth}>
-            <Link to={authRoutes.signIn} className={styles.authLink}>
+            <Link
+              to={authRoutes.signIn}
+              className={styles.authLink}
+              onClick={() => trackEvent(analyticsEvents.signInClick)}
+            >
               Sign in
             </Link>
-            <Link to={authRoutes.signUp} className={styles.authLink}>
+            <Link
+              to={authRoutes.signUp}
+              className={styles.authLink}
+              onClick={() => trackEvent(analyticsEvents.signUpClick)}
+            >
               Sign up
             </Link>
           </div>
-          <Button to={routePaths.contact} size="sm">
+          <Button
+            to={routePaths.contact}
+            size="sm"
+            trackEvent={analyticsEvents.startProjectClick}
+            trackParams={{ source: 'navbar' }}
+          >
             Start a Project
           </Button>
           <button
@@ -93,14 +107,32 @@ export function Navbar() {
             ))}
           </ul>
           <div className={styles.mobileAuth}>
-            <Link to={authRoutes.signIn} onClick={() => setOpen(false)}>
+            <Link
+              to={authRoutes.signIn}
+              onClick={() => {
+                setOpen(false)
+                trackEvent(analyticsEvents.signInClick)
+              }}
+            >
               Customer sign in
             </Link>
-            <Link to={authRoutes.signUp} onClick={() => setOpen(false)}>
+            <Link
+              to={authRoutes.signUp}
+              onClick={() => {
+                setOpen(false)
+                trackEvent(analyticsEvents.signUpClick)
+              }}
+            >
               Customer sign up
             </Link>
           </div>
-          <Button to={routePaths.contact} fullWidth onClick={() => setOpen(false)}>
+          <Button
+            to={routePaths.contact}
+            fullWidth
+            onClick={() => setOpen(false)}
+            trackEvent={analyticsEvents.startProjectClick}
+            trackParams={{ source: 'navbar_mobile' }}
+          >
             Start a Project
           </Button>
         </div>

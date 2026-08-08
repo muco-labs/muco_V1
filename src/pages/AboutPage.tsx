@@ -1,6 +1,9 @@
+import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
+import { pageSeo } from '@/config/seo'
+import { analyticsEvents } from '@/lib/analytics'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
 import { teamArchitectureNote, teamGroups, teamMembers } from '@/data/team'
@@ -22,12 +25,14 @@ const builds = [
 ]
 
 export function AboutPage() {
+  const about = pageSeo.about
+
   return (
     <>
       <PageMeta
-        title="About MUCO LABS"
-        description="MUCO LABS is a technology company from Erode building software, design and growth systems for ambitious teams."
-        path="/about"
+        documentTitle={about.documentTitle}
+        description={about.description}
+        path={about.path}
       />
       <div className={styles.page}>
         <section className={styles.hero}>
@@ -130,7 +135,19 @@ export function AboutPage() {
                 Build MUCO LABS into a durable technology company from {company.location.city}—trusted
                 locally and competitive globally.
               </p>
-              <Button to={routePaths.contact}>Start a Project</Button>
+              <Button
+                to={routePaths.contact}
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'about' }}
+              >
+                Start a Project
+              </Button>
+              <Link className="link-underline" to={routePaths.services}>
+                Our services
+              </Link>
+              <Link className="link-underline" to={routePaths.work}>
+                Concept work
+              </Link>
             </Reveal>
           </div>
         </section>

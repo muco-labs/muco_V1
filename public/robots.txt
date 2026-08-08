@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 
+Disallow: /app/
+Disallow: /admin/
+Disallow: /employee/
+Disallow: /customer/
+Disallow: /login/
+Disallow: /signup/
+Disallow: /auth/
+
 Sitemap: https://mucolabs.com/sitemap.xml

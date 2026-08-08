@@ -2,15 +2,18 @@ import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Reveal } from '@/components/motion/Reveal'
 import { serviceCategories, resolveOfferingHref } from '@/data/services'
+import { pageSeo } from '@/config/seo'
 import styles from './ServicesPage.module.css'
+
+const services = pageSeo.services
 
 export function ServicesPage() {
   return (
     <>
       <PageMeta
-        title="Services"
-        description="Build, design, automate, grow and operate—MUCO LABS services for product, platform and growth teams."
-        path="/services"
+        documentTitle={services.documentTitle}
+        description={services.description}
+        path={services.path}
       />
       <div className={styles.page}>
         <header className={styles.hero}>

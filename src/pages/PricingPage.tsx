@@ -1,18 +1,27 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { pricingNote, pricingTiers } from '@/data/pricing'
+import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
+import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import styles from './PricingPage.module.css'
 
+const pricing = pageSeo.pricing
+
 export function PricingPage() {
+  useEffect(() => {
+    trackEvent(analyticsEvents.pricingView)
+  }, [])
+
   return (
     <>
       <PageMeta
-        title="Pricing & Engagement"
-        description="MUCO LABS engagement tiers—Starter, Growth and Custom/Enterprise. Commercial values confirmed per proposal."
-        path="/pricing"
+        documentTitle={pricing.documentTitle}
+        description={pricing.description}
+        path={pricing.path}
       />
       <div className={styles.page}>
         <header className={styles.hero}>
@@ -46,7 +55,12 @@ export function PricingPage() {
               ))}
             </div>
             <div className={styles.footerCta}>
-              <Button to={routePaths.contact} size="lg">
+              <Button
+                to={routePaths.contact}
+                size="lg"
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'pricing' }}
+              >
                 Start a Project
               </Button>
             </div>

@@ -1,3 +1,5 @@
+import type { ServiceSlug } from '@/config/routes'
+
 export type PortfolioProject = {
   id: string
   title: string
@@ -8,6 +10,7 @@ export type PortfolioProject = {
   capabilities: string[]
   technology: string[]
   visual: 'commerce' | 'ai-dashboard' | 'saas' | 'premium-site'
+  relatedServiceSlug?: ServiceSlug
 }
 
 export const portfolioProjects: PortfolioProject[] = [
@@ -23,6 +26,7 @@ export const portfolioProjects: PortfolioProject[] = [
     capabilities: ['UX architecture', 'Headless commerce patterns', 'Performance budgeting'],
     technology: ['Web', 'Edge delivery', 'Design systems'],
     visual: 'commerce',
+    relatedServiceSlug: 'ecommerce-development',
   },
   {
     id: 'concept-ai-dashboard',
@@ -36,6 +40,7 @@ export const portfolioProjects: PortfolioProject[] = [
     capabilities: ['Data visualization', 'Workflow states', 'AI assist UX'],
     technology: ['Web', 'APIs', 'Applied AI'],
     visual: 'ai-dashboard',
+    relatedServiceSlug: 'ai-solutions',
   },
   {
     id: 'concept-saas',
@@ -49,6 +54,7 @@ export const portfolioProjects: PortfolioProject[] = [
     capabilities: ['Product design', 'Multi-tenant UX', 'Admin patterns'],
     technology: ['SaaS', 'Cloud', 'Security'],
     visual: 'saas',
+    relatedServiceSlug: 'software-development',
   },
   {
     id: 'concept-premium-site',
@@ -62,5 +68,6 @@ export const portfolioProjects: PortfolioProject[] = [
     capabilities: ['Brand narrative', 'Content architecture', 'SEO foundation'],
     technology: ['Web', 'CMS-ready structure'],
     visual: 'premium-site',
+    relatedServiceSlug: 'web-development',
   },
 ]

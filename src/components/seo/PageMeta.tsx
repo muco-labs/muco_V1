@@ -1,13 +1,18 @@
 import { useEffect } from 'react'
 import { env } from '@/config/env'
+import { absoluteOgImageUrl, defaultOgImagePath } from '@/config/seo'
 import { site } from '@/config/site'
 
 export type PageMetaProps = {
+  /** Full document title (preferred). */
+  documentTitle?: string
+  /** Short title segment; combined as `{title} | {site.name}` when documentTitle is omitted. */
   title?: string
   description?: string
   path?: string
   noIndex?: boolean
   ogType?: 'website' | 'article'
+  ogImagePath?: string
 }
 
 function upsertMeta(selector: string, attributes: Record<string, string>) {
@@ -33,15 +38,24 @@ function upsertLink(rel: string, href: string) {
   element.setAttribute('href', href)
 }
 
+function resolvePageTitle(documentTitle?: string, title?: string): string {
+  if (documentTitle) return documentTitle
+  if (title) return `${title} | ${site.name}`
+  return site.defaultTitle
+}
+
 export function PageMeta({
+  documentTitle,
   title,
   description = site.defaultDescription,
   path = '/',
   noIndex = false,
   ogType = 'website',
+  ogImagePath = defaultOgImagePath,
 }: PageMetaProps) {
-  const pageTitle = title ? `${title} | ${site.name}` : site.defaultTitle
+  const pageTitle = resolvePageTitle(documentTitle, title)
   const canonical = `${env.siteUrl}${path.startsWith('/') ? path : `/${path}`}`
+  const ogImage = absoluteOgImageUrl(env.siteUrl, ogImagePath)
 
   useEffect(() => {
     document.title = pageTitle
@@ -73,6 +87,15 @@ export function PageMeta({
       property: 'og:site_name',
       content: site.name,
     })
+    upsertMeta('meta[property="og:image"]', {
+      property: 'og:image',
+      content: ogImage,
+    })
+    upsertMeta('meta[property="og:image:alt"]', {
+      property: 'og:image:alt',
+      content: `${site.name} — technology, software, AI and digital solutions`,
+    })
+
     upsertMeta('meta[name="twitter:card"]', {
       name: 'twitter:card',
       content: 'summary_large_image',
@@ -85,12 +108,23 @@ export function PageMeta({
       name: 'twitter:description',
       content: description,
     })
+    upsertMeta('meta[name="twitter:image"]', {
+      name: 'twitter:image',
+      content: ogImage,
+    })
 
     upsertMeta('meta[name="robots"]', {
       name: 'robots',
       content: noIndex ? 'noindex, nofollow' : 'index, follow',
     })
-  }, [canonical, description, noIndex, ogType, pageTitle])
+
+    if (env.gscVerification) {
+      upsertMeta('meta[name="google-site-verification"]', {
+        name: 'google-site-verification',
+        content: env.gscVerification,
+      })
+    }
+  }, [canonical, description, noIndex, ogImage, ogType, pageTitle])
 
   return null
 }

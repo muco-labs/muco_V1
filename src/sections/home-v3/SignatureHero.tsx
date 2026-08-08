@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/motion/Reveal'
 import { routePaths } from '@/config/routes'
+import { analyticsEvents } from '@/lib/analytics'
 import styles from './SignatureHero.module.css'
 
 export function SignatureHero() {
@@ -19,7 +20,12 @@ export function SignatureHero() {
               technology partner—not another generic agency site.
             </p>
             <div className={styles.actions}>
-              <Button to={routePaths.contact} size="lg">
+              <Button
+                to={routePaths.contact}
+                size="lg"
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'home_hero' }}
+              >
                 Start a Project
               </Button>
               <Button to={routePaths.services} variant="ghost" size="lg">

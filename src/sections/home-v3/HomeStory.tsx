@@ -79,6 +79,9 @@ export function HomeStorySections() {
             <Link className="link-underline" to={routePaths.services}>
               View full ecosystem
             </Link>
+            <Link className="link-underline" to={routePaths.insights}>
+              Insights
+            </Link>
           </Reveal>
           <div className={styles.serviceColumns}>
             {serviceCategories.slice(0, 4).map((category) => (

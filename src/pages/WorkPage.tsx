@@ -1,18 +1,28 @@
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { ProjectPreview } from '@/components/visual/ProjectPreview'
 import { Reveal } from '@/components/motion/Reveal'
 import { portfolioProjects } from '@/data/portfolio'
-import { routePaths } from '@/config/routes'
+import { pageSeo } from '@/config/seo'
+import { routePaths, servicePath } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
+import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import styles from './WorkPage.module.css'
 
+const work = pageSeo.work
+
 export function WorkPage() {
+  useEffect(() => {
+    trackEvent(analyticsEvents.portfolioView)
+  }, [])
+
   return (
     <>
       <PageMeta
-        title="Concept Work"
-        description="MUCO LABS concept and demo projects—clearly labelled, designed to show capability without misrepresenting client work."
-        path="/work"
+        documentTitle={work.documentTitle}
+        description={work.description}
+        path={work.path}
       />
       <div className={styles.page}>
         <section className={styles.hero}>
@@ -45,13 +55,32 @@ export function WorkPage() {
                         <strong>Concept:</strong> {project.solution}
                       </p>
                       <p className={styles.tech}>{project.technology.join(' · ')}</p>
+                      {project.relatedServiceSlug ? (
+                        <p>
+                          <Link
+                            className="link-underline"
+                            to={servicePath(project.relatedServiceSlug)}
+                          >
+                            Related service
+                          </Link>
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 </Reveal>
               ))}
             </div>
             <div className={styles.cta}>
-              <Button to={routePaths.contact}>Discuss your project</Button>
+              <Button
+                to={routePaths.contact}
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'work' }}
+              >
+                Discuss your project
+              </Button>
+              <Link className="link-underline" to={routePaths.services}>
+                Explore services
+              </Link>
             </div>
           </div>
         </section>

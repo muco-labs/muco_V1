@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'framer-motion'
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom'
+import { RouteAnalytics } from '@/components/analytics/RouteAnalytics'
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { PageTransition } from '@/components/ui/PageTransition'
@@ -9,6 +10,7 @@ export function MainLayout() {
 
   return (
     <>
+      <RouteAnalytics />
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>

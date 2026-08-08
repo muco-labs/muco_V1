@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
 import { ProjectPreview } from '@/components/visual/ProjectPreview'
 import { portfolioProjects } from '@/data/portfolio'
-import { erodePositioning, erodeServices } from '@/data/erode'
+import { erodePositioning, erodeServiceLinks, erodeServiceHref } from '@/data/erode'
 import { routePaths } from '@/config/routes'
 import styles from './HomeSystems.module.css'
 
@@ -98,8 +98,10 @@ export function HomeSystemsSections() {
             </h2>
             <p>{erodePositioning.body}</p>
             <ul className={styles.erodeList}>
-              {erodeServices.map((item) => (
-                <li key={item}>{item}</li>
+              {erodeServiceLinks.map((item) => (
+                <li key={item.slug}>
+                  <Link to={erodeServiceHref(item.slug)}>{item.label}</Link>
+                </li>
               ))}
             </ul>
           </Reveal>

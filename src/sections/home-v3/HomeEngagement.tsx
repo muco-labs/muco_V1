@@ -3,6 +3,7 @@ import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { pricingNote, pricingTiers } from '@/data/pricing'
 import { routePaths } from '@/config/routes'
+import { analyticsEvents } from '@/lib/analytics'
 import styles from './HomeEngagement.module.css'
 
 export function HomeEngagementSections() {
@@ -54,10 +55,21 @@ export function HomeEngagementSections() {
             </h2>
             <p>Let&apos;s turn it into something real.</p>
             <div className={styles.ctaActions}>
-              <Button to={routePaths.contact} size="lg">
+              <Button
+                to={routePaths.contact}
+                size="lg"
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'home_cta' }}
+              >
                 Start a Project
               </Button>
-              <Button to={routePaths.contact} variant="secondary" size="lg">
+              <Button
+                to={routePaths.contact}
+                variant="secondary"
+                size="lg"
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'home_cta_secondary' }}
+              >
                 Talk to MUCO LABS
               </Button>
             </div>

@@ -3,6 +3,7 @@ import { company } from '@/data/company'
 import { footerNav } from '@/data/navigation'
 import { routePaths } from '@/config/routes'
 import { site } from '@/config/site'
+import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import styles from './Footer.module.css'
 
 export function Footer() {
@@ -17,7 +18,11 @@ export function Footer() {
               {site.name}
             </Link>
             <p className={styles.desc}>{company.tagline}</p>
-            <a href={`mailto:${site.contactEmail}`} className={styles.email}>
+            <a
+              href={`mailto:${site.contactEmail}`}
+              className={styles.email}
+              onClick={() => trackEvent(analyticsEvents.emailClick, { location: 'footer' })}
+            >
               {site.contactEmail}
             </a>
           </div>

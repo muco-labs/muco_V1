@@ -1,4 +1,5 @@
 import { company } from '@/data/company'
+import { founder } from '@/data/founder'
 import { env } from '@/config/env'
 import { site } from '@/config/site'
 
@@ -15,19 +16,43 @@ export function StructuredData({ data }: StructuredDataProps) {
   )
 }
 
-export function OrganizationSchema() {
-  return (
-    <StructuredData
-      data={{
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        name: site.legalName,
-        url: env.siteUrl,
-        description: site.defaultDescription,
-        email: site.contactEmail,
-      }}
-    />
+function verifiedSameAs(): string[] {
+  return [site.social.linkedin, site.social.github, site.social.x].filter(
+    (url) => typeof url === 'string' && url.trim().length > 0,
   )
+}
+
+export function OrganizationSchema() {
+  const sameAs = verifiedSameAs()
+  const data: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: site.legalName,
+    url: env.siteUrl,
+    logo: `${env.siteUrl}/favicon.svg`,
+    description: site.defaultDescription,
+    email: site.contactEmail,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: company.location.city,
+      addressRegion: company.location.region,
+      addressCountry: company.location.country,
+    },
+  }
+
+  if (sameAs.length > 0) {
+    data.sameAs = sameAs
+  }
+
+  if (founder.status === 'published' && founder.name) {
+    data.founder = {
+      '@type': 'Person',
+      name: founder.name,
+      ...(founder.title ? { jobTitle: founder.title } : {}),
+    }
+  }
+
+  return <StructuredData data={data} />
 }
 
 export function WebSiteSchema() {
@@ -57,6 +82,7 @@ export function LocalBusinessSchema() {
         url: env.siteUrl,
         email: site.contactEmail,
         description: site.defaultDescription,
+        image: `${env.siteUrl}/og/og-default.svg`,
         address: {
           '@type': 'PostalAddress',
           addressLocality: company.location.city,
@@ -88,8 +114,100 @@ export function ServiceSchema({
         provider: {
           '@type': 'Organization',
           name: site.legalName,
+          url: env.siteUrl,
+        },
+        areaServed: {
+          '@type': 'City',
+          name: company.location.city,
         },
         url,
+      }}
+    />
+  )
+}
+
+export function BreadcrumbSchema({
+  items,
+}: {
+  items: Array<{ name: string; path: string }>
+}) {
+  return (
+    <StructuredData
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: items.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: `${env.siteUrl}${item.path}`,
+        })),
+      }}
+    />
+  )
+}
+
+export function FaqPageSchema({
+  faqs,
+}: {
+  faqs: Array<{ question: string; answer: string }>
+}) {
+  if (faqs.length === 0) return null
+
+  return (
+    <StructuredData
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      }}
+    />
+  )
+}
+
+/** For future /insights articles — use only when real content exists. */
+export function ArticleSchema({
+  headline,
+  description,
+  path,
+  datePublished,
+  dateModified,
+}: {
+  headline: string
+  description: string
+  path: string
+  datePublished: string
+  dateModified?: string
+}) {
+  return (
+    <StructuredData
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline,
+        description,
+        author: {
+          '@type': 'Organization',
+          name: site.legalName,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: site.legalName,
+          logo: {
+            '@type': 'ImageObject',
+            url: `${env.siteUrl}/favicon.svg`,
+          },
+        },
+        mainEntityOfPage: `${env.siteUrl}${path}`,
+        datePublished,
+        dateModified: dateModified ?? datePublished,
       }}
     />
   )

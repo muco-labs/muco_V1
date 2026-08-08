@@ -1,17 +1,21 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, futureAppRoutes } from '@/config/auth'
+import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
+import { analyticsEvents } from '@/lib/analytics'
 import styles from './AuthPage.module.css'
+
+const signIn = pageSeo.authSignIn
 
 export function AuthSignInPage() {
   return (
     <>
       <PageMeta
-        title={authCopy.signInTitle}
-        description={authCopy.placeholder}
-        path="/auth/sign-in"
+        documentTitle={signIn.documentTitle}
+        description={signIn.description}
+        path={signIn.path}
         noIndex
       />
       <div className={styles.page}>
@@ -25,7 +29,15 @@ export function AuthSignInPage() {
             </p>
             <div className={styles.actions}>
               <Button to={routePaths.contact}>Contact MUCO LABS</Button>
-              <Link className="link-underline" to="/auth/sign-up">
+              <Link
+                className="link-underline"
+                to="/auth/sign-up"
+                onClick={() =>
+                  import('@/lib/analytics').then(({ trackEvent }) =>
+                    trackEvent(analyticsEvents.signUpClick),
+                  )
+                }
+              >
                 Create an account
               </Link>
             </div>

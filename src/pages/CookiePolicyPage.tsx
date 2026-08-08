@@ -1,11 +1,15 @@
 import { PageShell } from '@/layouts/PageShell'
+import { pageSeo } from '@/config/seo'
+
+const cookies = pageSeo.cookies
 
 export function CookiePolicyPage() {
   return (
     <PageShell
       title="Cookie policy"
-      path="/cookie-policy"
-      description="How cookies and similar technologies are used on mucolabs.com."
+      documentTitle={cookies.documentTitle}
+      path={cookies.path}
+      description={cookies.description}
     >
       <p>Structured legal content will be published in a dedicated compliance pass.</p>
     </PageShell>
