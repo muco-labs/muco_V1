@@ -1,0 +1,159 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  height: var(--header-height);
+  border-bottom: 1px solid transparent;
+  background: rgba(7, 8, 12, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.header:has(+ main a:focus-visible),
+.header:focus-within {
+  border-bottom-color: var(--color-border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--header-height);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-decoration: none;
+}
+
+.brand:hover {
+  color: var(--color-text);
+}
+
+.brandMark {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  box-shadow: 0 0 18px var(--color-accent-glow);
+}
+
+.desktopNav {
+  display: none;
+}
+
+.navList {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
+.navLinkActive {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.desktopCta {
+  display: none;
+}
+
+.menuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.menuButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.mobilePanel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--header-height);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(7, 8, 12, 0.96);
+  backdrop-filter: blur(10px);
+  padding-block: var(--space-4);
+}
+
+.mobilePanelOpen {
+  display: block;
+}
+
+.mobileList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.mobileLink {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: var(--text-lg);
+}
+
+.mobileCta {
+  margin-bottom: var(--space-2);
+}
+
+@media (min-width: 64rem) {
+  .desktopNav {
+    display: block;
+  }
+
+  .desktopCta {
+    display: inline-flex;
+  }
+
+  .menuButton,
+  .mobilePanel {
+    display: none;
+  }
+}
