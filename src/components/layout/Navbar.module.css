@@ -112,9 +112,14 @@
 }
 
 .mobile {
+  display: none;
   border-top: 1px solid var(--color-border);
   background: rgba(11, 11, 13, 0.98);
   padding-block: var(--space-4);
+}
+
+.mobileOpen {
+  display: block;
 }
 
 .mobileList {

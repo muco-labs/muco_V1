@@ -106,3 +106,10 @@
   color: var(--color-text-muted);
   max-width: 36rem;
 }
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}

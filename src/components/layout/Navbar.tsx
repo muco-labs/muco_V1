@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { HiBars3, HiXMark } from 'react-icons/hi2'
 import { authRoutes } from '@/config/auth'
 import { routePaths } from '@/config/routes'
@@ -13,6 +13,11 @@ import styles from './Navbar.module.css'
 export function Navbar() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -95,7 +100,12 @@ export function Navbar() {
         </div>
       </div>
 
-      <div id="mobile-nav" className={cn(styles.mobile, open && styles.mobileOpen)} hidden={!open}>
+      <div
+        id="mobile-nav"
+        className={cn(styles.mobile, open && styles.mobileOpen)}
+        aria-hidden={!open}
+        inert={!open ? true : undefined}
+      >
         <div className="shell">
           <ul className={styles.mobileList}>
             {primaryNav.map((item) => (

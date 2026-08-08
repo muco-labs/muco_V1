@@ -76,12 +76,14 @@ export function HomeStorySections() {
                 Everything you need to build and grow—organized.
               </h2>
             </div>
-            <Link className="link-underline" to={routePaths.services}>
-              View full ecosystem
-            </Link>
-            <Link className="link-underline" to={routePaths.insights}>
-              Insights
-            </Link>
+            <div className={styles.servicesHeadLinks}>
+              <Link className="link-underline" to={routePaths.services}>
+                View full ecosystem
+              </Link>
+              <Link className="link-underline" to={routePaths.insights}>
+                Insights
+              </Link>
+            </div>
           </Reveal>
           <div className={styles.serviceColumns}>
             {serviceCategories.slice(0, 4).map((category) => (

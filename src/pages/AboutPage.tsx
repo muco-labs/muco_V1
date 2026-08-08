@@ -135,19 +135,21 @@ export function AboutPage() {
                 Build MUCO LABS into a durable technology company from {company.location.city}—trusted
                 locally and competitive globally.
               </p>
-              <Button
-                to={routePaths.contact}
-                trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'about' }}
-              >
-                Start a Project
-              </Button>
-              <Link className="link-underline" to={routePaths.services}>
-                Our services
-              </Link>
-              <Link className="link-underline" to={routePaths.work}>
-                Concept work
-              </Link>
+              <div className={styles.ctaActions}>
+                <Button
+                  to={routePaths.contact}
+                  trackEvent={analyticsEvents.startProjectClick}
+                  trackParams={{ source: 'about' }}
+                >
+                  Start a Project
+                </Button>
+                <Link className="link-underline" to={routePaths.services}>
+                  Our services
+                </Link>
+                <Link className="link-underline" to={routePaths.work}>
+                  Concept work
+                </Link>
+              </div>
             </Reveal>
           </div>
         </section>

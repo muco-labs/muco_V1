@@ -78,14 +78,14 @@ export function ContactPage() {
           onFocus={markFormStart}
           aria-busy={status === 'submitting'}
         >
-          <div className={styles.honeypot} aria-hidden="true">
-            <label htmlFor="contact-website">Website</label>
+          <div className={styles.honeypot}>
             <input
               id="contact-website"
               name="website"
               type="text"
               tabIndex={-1}
               autoComplete="off"
+              aria-hidden="true"
             />
           </div>
           <Input
@@ -130,10 +130,10 @@ export function ContactPage() {
           ) : null}
           {status === 'success' ? (
             <p className={styles.formSuccess} role="status">
-              Thanks—your message is ready to send once the secure endpoint is connected.
+              Thanks—we received your message and will follow up with a practical next step.
             </p>
           ) : null}
-          <Button type="submit" disabled={status === 'submitting'}>
+          <Button type="submit" disabled={status === 'submitting' || status === 'success'}>
             {status === 'submitting' ? 'Sending…' : 'Send message'}
           </Button>
         </form>

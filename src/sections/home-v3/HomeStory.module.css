@@ -72,6 +72,12 @@
   }
 }
 
+.servicesHeadLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
 .serviceColumns {
   display: grid;
   gap: var(--space-8);

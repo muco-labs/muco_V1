@@ -27,7 +27,7 @@ export function Footer() {
             </a>
           </div>
           <div>
-            <h2 className={styles.title}>Explore</h2>
+            <p className={styles.title}>Explore</p>
             <ul>
               {footerNav.explore.map((item) => (
                 <li key={item.href}>
@@ -40,7 +40,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h2 className={styles.title}>Legal</h2>
+            <p className={styles.title}>Legal</p>
             <ul>
               {footerNav.legal.map((item) => (
                 <li key={item.href}>
