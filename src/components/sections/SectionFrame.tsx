@@ -7,6 +7,7 @@ type SectionFrameProps = {
   children: ReactNode
   className?: string
   tight?: boolean
+  hero?: boolean
   ariaLabelledBy?: string
 }
 
@@ -15,12 +16,18 @@ export function SectionFrame({
   children,
   className,
   tight,
+  hero,
   ariaLabelledBy,
 }: SectionFrameProps) {
   return (
     <section
       id={id}
-      className={cn('section-shell', tight && 'section-shell--tight', className)}
+      className={cn(
+        'section-shell',
+        tight && 'section-shell--tight',
+        hero && 'section-shell--hero',
+        className,
+      )}
       aria-labelledby={ariaLabelledBy}
     >
       <Container size="2xl">{children}</Container>

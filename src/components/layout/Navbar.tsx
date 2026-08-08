@@ -11,6 +11,14 @@ import styles from './Navbar.module.css'
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -26,7 +34,7 @@ export function Navbar() {
   }, [open])
 
   return (
-    <header className={styles.header}>
+    <header className={cn(styles.header, scrolled && styles.headerScrolled)}>
       <Container className={styles.inner} size="2xl">
         <Link to={routePaths.home} className={styles.brand} aria-label={`${site.name} home`}>
           <span className={styles.brandMark} aria-hidden="true" />

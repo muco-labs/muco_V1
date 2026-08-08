@@ -1,0 +1,94 @@
+.wrap {
+  position: relative;
+  margin-inline: auto;
+  width: min(100%, 28rem);
+  aspect-ratio: 1;
+}
+
+.orbit {
+  position: absolute;
+  inset: 0;
+  animation: orbit 48s linear infinite;
+}
+
+.node {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: rotate(calc(var(--index) * 60deg)) translateY(-9.5rem)
+    rotate(calc(var(--index) * -60deg));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: rgba(10, 15, 31, 0.85);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.center {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  gap: var(--space-2);
+  place-items: center;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-strong);
+  background: radial-gradient(
+    circle at 30% 20%,
+    rgba(37, 99, 235, 0.2),
+    var(--color-bg-elevated)
+  );
+  box-shadow: var(--shadow-md);
+}
+
+.centerMark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 16px var(--color-accent-glow);
+}
+
+.centerLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-align: center;
+  line-height: 1.2;
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 30rem) {
+  .node {
+    transform: rotate(calc(var(--index) * 60deg)) translateY(-7.5rem)
+      rotate(calc(var(--index) * -60deg));
+    font-size: 0.75rem;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .center {
+    width: 6.5rem;
+    height: 6.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit {
+    animation: none;
+  }
+}
+
+@media (min-width: 48rem) {
+  .wrap {
+    width: min(100%, 32rem);
+  }
+}

@@ -1,13 +1,14 @@
 export const homeSectionIds = {
   hero: 'hero',
-  whatWeDo: 'what-we-do',
+  intro: 'intro',
+  capabilities: 'capabilities',
   services: 'services',
   why: 'why-muco-labs',
   work: 'selected-work',
   process: 'process',
   technology: 'technology-ai',
   industries: 'industries',
-  proof: 'proof',
+  local: 'local',
   finalCta: 'start-project',
 } as const
 

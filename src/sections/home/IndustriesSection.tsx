@@ -1,25 +1,27 @@
 import { SectionFrame } from '@/components/sections/SectionFrame'
 import { SectionHeading } from '@/components/ui/SectionHeading'
+import { industries } from '@/data/home-content'
 import { homeSectionIds } from '@/data/home-sections'
-
-const industries = [
-  'SaaS & platforms',
-  'Commerce',
-  'Professional services',
-  'Operations-heavy businesses',
-]
+import styles from './IndustriesSection.module.css'
 
 export function IndustriesSection() {
   return (
-    <SectionFrame id={homeSectionIds.industries} ariaLabelledBy="industries-title" tight>
+    <SectionFrame
+      id={homeSectionIds.industries}
+      ariaLabelledBy="industries-title"
+      tight
+    >
       <SectionHeading
-        eyebrow="Markets"
-        title="Industries"
-        description="Flexible delivery models across product-led and operations-led organizations."
+        eyebrow="Industries"
+        title="Breadth without clutter"
+        titleId="industries-title"
+        description="We adapt delivery models across sectors—without forcing one-size-fits-all templates."
       />
-      <ul className="home-tag-grid">
-        {industries.map((item) => (
-          <li key={item}>{item}</li>
+      <ul className={styles.grid}>
+        {industries.map((industry) => (
+          <li key={industry} className={styles.chip}>
+            {industry}
+          </li>
         ))}
       </ul>
     </SectionFrame>

@@ -50,6 +50,15 @@
   transform: translateY(-1px);
 }
 
+.primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.secondary:active:not(:disabled),
+.ghost:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 .secondary {
   background: var(--color-bg-elevated);
   border-color: var(--color-border-strong);

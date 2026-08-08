@@ -1,0 +1,137 @@
+.visual {
+  --parallax-x: 0px;
+  --parallax-y: 0px;
+  position: relative;
+  min-height: 18rem;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  background: radial-gradient(
+      120% 80% at 50% 0%,
+      rgba(37, 99, 235, 0.14),
+      transparent 55%
+    ),
+    var(--color-bg-elevated);
+  overflow: hidden;
+  transform: translate(var(--parallax-x), var(--parallax-y));
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+@media (min-width: 64rem) {
+  .visual {
+    min-height: 22rem;
+  }
+}
+
+.glow {
+  position: absolute;
+  inset: 20% 15% auto;
+  height: 45%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.35), transparent 70%);
+  filter: blur(24px);
+  animation: pulse 8s ease-in-out infinite;
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at 50% 45%, black, transparent 78%);
+  animation: drift 28s linear infinite;
+}
+
+.ring {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  animation: spin 40s linear infinite;
+}
+
+.core {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin: -2.25rem 0 0 -2.25rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #93c5fd, var(--color-accent));
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.45);
+}
+
+.particles {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.particles li {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(147, 197, 253, 0.85);
+  left: calc(12% + (var(--i) * 7.5%));
+  top: calc(22% + (var(--i) * 5%));
+  animation: float 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.65s);
+  opacity: 0.55;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-32px, -24px, 0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-10px);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid,
+  .ring,
+  .glow,
+  .particles li {
+    animation: none;
+  }
+
+  .visual {
+    transform: none;
+  }
+}

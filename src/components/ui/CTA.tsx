@@ -30,6 +30,7 @@ export function CTA({
         <div className={styles.inner}>
           <SectionHeading
             title={title}
+            titleId="cta-title"
             description={description}
             align="center"
             className={styles.heading}

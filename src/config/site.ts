@@ -5,9 +5,9 @@ export const site = {
     'Technology, software, AI, and digital solutions for businesses that intend to grow.',
   positioning:
     'MUCO LABS designs, builds, automates and grows digital businesses through technology, software, AI and digital solutions.',
-  defaultTitle: 'MUCO LABS — Technology & Digital Solutions',
+  defaultTitle: 'MUCO LABS | Technology, Software, AI & Digital Solutions',
   defaultDescription:
-    'MUCO LABS designs, builds, automates and grows digital businesses through technology, software, AI and digital solutions.',
+    'MUCO LABS designs, builds and automates digital products with software, AI and growth systems for businesses that need a serious technology partner.',
   locale: 'en',
   contactEmail: 'hello@mucolabs.com',
   social: {

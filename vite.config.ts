@@ -13,4 +13,7 @@ export default defineConfig({
       '@': path.resolve(rootDir, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['framer-motion'],
+  },
 })

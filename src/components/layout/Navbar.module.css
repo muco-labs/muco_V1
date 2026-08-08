@@ -1,16 +1,23 @@
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: var(--z-header);
   height: var(--header-height);
   border-bottom: 1px solid transparent;
-  background: rgba(7, 8, 12, 0.72);
-  backdrop-filter: blur(12px);
+  background: rgba(5, 8, 22, 0.35);
+  backdrop-filter: blur(10px);
+  transition:
+    background var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
 }
 
-.header:has(+ main a:focus-visible),
-.header:focus-within {
+.headerScrolled {
+  background: rgba(5, 8, 22, 0.88);
   border-bottom-color: var(--color-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .inner {
@@ -28,6 +35,7 @@
   font-weight: 700;
   letter-spacing: var(--tracking-wide);
   text-decoration: none;
+  font-size: var(--text-small);
 }
 
 .brand:hover {
@@ -35,11 +43,11 @@
 }
 
 .brandMark {
-  width: 0.65rem;
-  height: 0.65rem;
+  width: 0.55rem;
+  height: 0.55rem;
   border-radius: var(--radius-full);
   background: var(--color-accent);
-  box-shadow: 0 0 18px var(--color-accent-glow);
+  box-shadow: 0 0 14px var(--color-accent-glow);
 }
 
 .desktopNav {
@@ -58,14 +66,16 @@
 .navLink {
   display: inline-flex;
   align-items: center;
-  min-height: 2.5rem;
+  min-height: 2.25rem;
   padding-inline: var(--space-3);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   text-decoration: none;
-  font-size: var(--text-sm);
+  font-size: var(--text-small);
   font-weight: 500;
-  transition: color var(--duration-fast) var(--ease-out);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
 }
 
 .navLink:hover {
@@ -74,7 +84,7 @@
 
 .navLinkActive {
   color: var(--color-text);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .actions {
@@ -91,18 +101,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-bg-elevated);
+  background: rgba(10, 15, 31, 0.65);
   color: var(--color-text);
   cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.menuButton:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-elevated);
 }
 
 .menuButton svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .mobilePanel {
@@ -111,8 +129,8 @@
   right: 0;
   top: var(--header-height);
   border-bottom: 1px solid var(--color-border);
-  background: rgba(7, 8, 12, 0.96);
-  backdrop-filter: blur(10px);
+  background: rgba(5, 8, 22, 0.97);
+  backdrop-filter: blur(12px);
   padding-block: var(--space-4);
 }
 
@@ -131,12 +149,12 @@
 .mobileLink {
   display: flex;
   align-items: center;
-  min-height: 3rem;
+  min-height: 2.75rem;
   padding-inline: var(--space-3);
   border-radius: var(--radius-md);
   color: var(--color-text);
   text-decoration: none;
-  font-size: var(--text-lg);
+  font-size: var(--text-body-lg);
 }
 
 .mobileCta {

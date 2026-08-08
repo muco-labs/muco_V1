@@ -1,4 +1,5 @@
 import { CTA } from '@/components/ui/CTA'
+import { finalCta } from '@/data/home-content'
 import { routePaths } from '@/config/routes'
 import { homeSectionIds } from '@/data/home-sections'
 
@@ -6,12 +7,12 @@ export function FinalCTASection() {
   return (
     <div id={homeSectionIds.finalCta}>
       <CTA
-        title="Start a project with MUCO LABS"
-        description="Share your goals and constraints. We will respond with a clear next step—not a generic pitch deck."
-        primaryLabel="Start a Project"
+        title={finalCta.headline}
+        description={finalCta.subcopy}
+        primaryLabel={finalCta.primary}
         primaryTo={routePaths.contact}
-        secondaryLabel="View services"
-        secondaryTo={routePaths.services}
+        secondaryLabel={finalCta.secondary}
+        secondaryTo={routePaths.contact}
       />
     </div>
   )

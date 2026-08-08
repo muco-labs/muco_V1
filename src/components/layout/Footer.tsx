@@ -16,27 +16,19 @@ export function Footer() {
             <Link to={routePaths.home} className={styles.brand}>
               {site.name}
             </Link>
-            <p className={styles.tagline}>{site.tagline}</p>
+            <p className={styles.description}>
+              {site.tagline} We partner with teams that need reliable engineering,
+              thoughtful design and applied AI.
+            </p>
             <a className={styles.email} href={`mailto:${site.contactEmail}`}>
               {site.contactEmail}
             </a>
           </div>
 
           <div>
-            <h2 className={styles.columnTitle}>Company</h2>
+            <h2 className={styles.columnTitle}>Explore</h2>
             <ul className={styles.links}>
-              {footerNav.company.map((item) => (
-                <li key={item.href}>
-                  <Link to={item.href}>{item.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h2 className={styles.columnTitle}>Services</h2>
-            <ul className={styles.links}>
-              {footerNav.services.map((item) => (
+              {footerNav.explore.map((item) => (
                 <li key={item.href}>
                   <Link to={item.href}>{item.label}</Link>
                 </li>
@@ -57,8 +49,9 @@ export function Footer() {
         </div>
 
         <div className={styles.bottom}>
-          <p>© {year} {site.legalName}. All rights reserved.</p>
-          <p className={styles.note}>Public website · Application portals planned separately.</p>
+          <p>
+            © {year} {site.legalName}. All rights reserved.
+          </p>
         </div>
       </Container>
     </footer>

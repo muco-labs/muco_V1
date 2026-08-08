@@ -1,22 +1,34 @@
 import { SectionFrame } from '@/components/sections/SectionFrame'
 import { SectionHeading } from '@/components/ui/SectionHeading'
+import { processStages } from '@/data/home-content'
 import { homeSectionIds } from '@/data/home-sections'
-
-const steps = ['Discover', 'Architect', 'Build', 'Automate', 'Grow']
+import styles from './ProcessSection.module.css'
 
 export function ProcessSection() {
   return (
-    <SectionFrame id={homeSectionIds.process} ariaLabelledBy="process-title" tight>
+    <SectionFrame
+      id={homeSectionIds.process}
+      ariaLabelledBy="process-title"
+      tight
+      className={styles.section}
+    >
       <SectionHeading
-        eyebrow="Delivery"
-        title="Process"
-        description="A repeatable operating model from discovery through launch and iteration."
+        eyebrow="How we work"
+        title="From idea to impact."
+        titleId="process-title"
+        description="A clear path from discovery through launch and growth."
       />
-      <ol className="home-process">
-        {steps.map((step, index) => (
-          <li key={step}>
-            <span className="home-process__index">{index + 1}</span>
-            <span>{step}</span>
+      <ol className={styles.timeline}>
+        {processStages.map((stage, index) => (
+          <li key={stage.index} className={styles.step}>
+            <div className={styles.marker} aria-hidden="true">
+              <span>{stage.index}</span>
+              {index < processStages.length - 1 ? <span className={styles.line} /> : null}
+            </div>
+            <div className={styles.content}>
+              <h3 className={styles.title}>{stage.title}</h3>
+              <p className={styles.body}>{stage.body}</p>
+            </div>
           </li>
         ))}
       </ol>

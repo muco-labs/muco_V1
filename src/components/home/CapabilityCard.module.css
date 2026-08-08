@@ -1,0 +1,47 @@
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-decoration: none;
+  color: inherit;
+  min-height: 11rem;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-accent-muted);
+  color: var(--color-accent-hover);
+  font-size: var(--text-body-lg);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-h3);
+  letter-spacing: var(--tracking-normal);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+}
+
+.action {
+  margin-top: auto;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-accent-hover);
+}
+
+@media (hover: hover) {
+  .card:hover .action {
+    text-decoration: underline;
+  }
+}
