@@ -11,7 +11,6 @@ import { adminRoutes } from './admin.js'
 import { customerRoutes } from './customer.js'
 import { employeeRoutes } from './employee.js'
 import { webhookRoutes } from './webhooks.js'
-import { authenticate, requirePermission } from '../../middleware/authenticate.js'
 
 export const v1 = new Hono()
 
@@ -62,10 +61,6 @@ v1.route('/webhooks', webhookRoutes)
 v1.route('/admin', adminRoutes)
 v1.route('/customer', customerRoutes)
 v1.route('/employee', employeeRoutes)
-
-v1.get('/projects', authenticate, requirePermission('projects.view'), async (c) => {
-  return jsonSuccess(c, { items: [], message: 'Project APIs will expand in a later phase.' })
-})
 
 export function createV1App() {
   const app = new Hono()

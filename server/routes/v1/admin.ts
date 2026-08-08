@@ -78,6 +78,17 @@ const bootstrapSchema = z.object({
 
 adminRoutes.post('/bootstrap/founder', async (c) => {
   try {
+    const limit = checkRateLimit(
+      rateLimitKeyFromRequest(
+        c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? c.req.header('x-real-ip'),
+        'POST /api/v1/admin/bootstrap/founder',
+      ),
+      { max: 5, windowMs: 60 * 60 * 1000 },
+    )
+    if (!limit.allowed) {
+      throw new AppError('RATE_LIMITED', 'Too many attempts. Try again later.', 429)
+    }
+
     if (!serverEnv.bootstrapSecret) {
       throw new AppError('NOT_FOUND', 'Not found.', 404)
     }
