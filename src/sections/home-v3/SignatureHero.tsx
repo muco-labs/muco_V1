@@ -18,20 +18,26 @@ export function SignatureHero() {
               We build digital products that move businesses forward.
             </h1>
             <p className={styles.lead}>
-              {company.positioning} We help founders and teams in India and abroad launch products,
-              platforms, and growth systems with clarity—not chaos.
+              <strong>For founders and growing businesses</strong> who need websites, software, AI and
+              growth systems with clear scope. {company.positioning}
             </p>
             <div className={styles.actions}>
               <Button
                 to={routePaths.contact}
                 size="lg"
-                trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'home_hero' }}
+                trackEvent={analyticsEvents.heroCtaClick}
+                trackParams={{ source: 'home_hero', cta: 'start_project' }}
               >
                 Start a Project
               </Button>
-              <Button to={routePaths.services} variant="secondary" size="lg">
-                View Services
+              <Button
+                to={routePaths.work}
+                variant="secondary"
+                size="lg"
+                trackEvent={analyticsEvents.heroCtaClick}
+                trackParams={{ source: 'home_hero', cta: 'view_work' }}
+              >
+                View Our Work
               </Button>
             </div>
           </Reveal>

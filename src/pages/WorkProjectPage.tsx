@@ -10,6 +10,7 @@ import {
   portfolioKindLabel,
   portfolioStatusLabel,
 } from '@/data/portfolio'
+import { contactHref } from '@/lib/conversion/contact-link'
 import { routePaths, servicePath } from '@/config/routes'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { useEffect } from 'react'
@@ -171,11 +172,15 @@ export function WorkProjectPage() {
               </Link>
             ) : null}
             <Button
-              to={routePaths.contact}
-              trackEvent={analyticsEvents.startProjectClick}
+              to={contactHref({
+                project: project.id,
+                service: project.relatedServiceSlug,
+                source: 'work_detail',
+              })}
+              trackEvent={analyticsEvents.portfolioCtaClick}
               trackParams={{ source: 'work_detail', project_id: project.id }}
             >
-              Start a similar project
+              {project.kind === 'concept' ? 'Discuss a similar concept' : 'Start a similar project'}
             </Button>
           </div>
         </div>

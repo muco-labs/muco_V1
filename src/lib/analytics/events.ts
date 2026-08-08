@@ -1,7 +1,10 @@
 /** GA4 event names used across the public site. */
 export const analyticsEvents = {
   pageView: 'page_view',
+  heroCtaClick: 'hero_cta_click',
   startProjectClick: 'start_project_click',
+  serviceCtaClick: 'service_cta_click',
+  portfolioCtaClick: 'portfolio_cta_click',
   contactFormStart: 'contact_form_start',
   contactFormSubmit: 'contact_form_submit',
   serviceView: 'service_view',

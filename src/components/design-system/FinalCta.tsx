@@ -1,5 +1,6 @@
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
+import { contactHref } from '@/lib/conversion/contact-link'
 import { routePaths } from '@/config/routes'
 import { analyticsEvents } from '@/lib/analytics'
 import styles from './FinalCta.module.css'
@@ -8,13 +9,20 @@ type FinalCtaProps = {
   title?: string
   body?: string
   source: string
+  service?: string
+  secondaryLabel?: string
+  secondaryHref?: string
 }
 
 export function FinalCta({
   title = 'Have an idea?',
   body = "Let's build it—with clarity, craft and a team that ships.",
   source,
+  service,
+  secondaryLabel = 'Explore Services',
+  secondaryHref = routePaths.services,
 }: FinalCtaProps) {
+  const primaryHref = contactHref({ source, service })
   return (
     <section className="section section--tight" aria-labelledby="final-cta-title">
       <div className="shell">
@@ -26,15 +34,15 @@ export function FinalCta({
           <p className={styles.body}>{body}</p>
           <div className={styles.actions}>
             <Button
-              to={routePaths.contact}
+              to={primaryHref}
               size="lg"
               trackEvent={analyticsEvents.startProjectClick}
               trackParams={{ source }}
             >
               Start a Project
             </Button>
-            <Button to={routePaths.services} variant="secondary" size="lg">
-              View Services
+            <Button to={secondaryHref} variant="secondary" size="lg">
+              {secondaryLabel}
             </Button>
           </div>
         </Reveal>

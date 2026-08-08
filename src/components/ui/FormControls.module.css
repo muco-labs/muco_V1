@@ -40,6 +40,10 @@
   resize: vertical;
 }
 
+.select {
+  cursor: pointer;
+}
+
 .hint {
   margin: 0;
   font-size: var(--text-sm);

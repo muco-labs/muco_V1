@@ -4,7 +4,11 @@ export const contactFieldLimits = {
   name: 120,
   email: 254,
   company: 160,
+  phone: 32,
   message: 4000,
+  serviceInterest: 120,
+  budget: 80,
+  timeline: 120,
 } as const
 
 function stripControlCharacters(value: string): string {
@@ -36,20 +40,35 @@ export type SanitizedContactPayload = {
   name: string
   email: string
   company: string
+  phone: string
   message: string
+  serviceInterest: string
+  budget: string
+  timeline: string
 }
 
 export function sanitizeContactPayload(payload: {
   name: string
   email: string
   company?: string
+  phone?: string
   message: string
+  serviceInterest?: string
+  budget?: string
+  timeline?: string
 }): SanitizedContactPayload {
   return {
     name: sanitizeTextInput(payload.name, contactFieldLimits.name),
     email: sanitizeTextInput(payload.email, contactFieldLimits.email),
     company: sanitizeTextInput(payload.company ?? '', contactFieldLimits.company),
+    phone: sanitizeTextInput(payload.phone ?? '', contactFieldLimits.phone),
     message: sanitizeTextInput(payload.message, contactFieldLimits.message),
+    serviceInterest: sanitizeTextInput(
+      payload.serviceInterest ?? '',
+      contactFieldLimits.serviceInterest,
+    ),
+    budget: sanitizeTextInput(payload.budget ?? '', contactFieldLimits.budget),
+    timeline: sanitizeTextInput(payload.timeline ?? '', contactFieldLimits.timeline),
   }
 }
 
@@ -61,7 +80,11 @@ export function validateContactPayload(payload: {
   name: string
   email: string
   company?: string
+  phone?: string
   message: string
+  serviceInterest?: string
+  budget?: string
+  timeline?: string
 }): ContactValidationResult {
   const data = sanitizeContactPayload(payload)
 

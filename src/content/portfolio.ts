@@ -63,6 +63,15 @@ export function getPortfolioProject(projectId: string): PortfolioProject | undef
   return portfolioProjects.find((project) => project.id === projectId)
 }
 
+export function portfolioForService(
+  serviceSlug: ServiceSlug,
+  limit = 3,
+): PortfolioProject[] {
+  return portfolioProjects
+    .filter((project) => project.relatedServiceSlug === serviceSlug)
+    .slice(0, limit)
+}
+
 export const portfolioProjects: PortfolioProject[] = [
   {
     id: 'muco-labs-website',

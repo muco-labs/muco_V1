@@ -1,58 +1,41 @@
-import { useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/Button'
-import { Input, Textarea } from '@/components/ui/FormControls'
+import { useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { PageShell } from '@/layouts/PageShell'
+import { InquiryForm } from '@/components/conversion/InquiryForm'
 import { pageSeo } from '@/config/seo'
 import { site } from '@/config/site'
 import { contact } from '@/content/contact'
 import { socialLinkList } from '@/content/social'
 import { company } from '@/content/company'
-import { submitContact } from '@/services/contact'
+import { serviceLabelForSlug } from '@/content/inquiry'
+import { readContactPrefill } from '@/lib/conversion/contact-link'
+import { getPortfolioProject } from '@/data/portfolio'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
-import { contactFieldLimits } from '@/utils/validate'
+import { routePaths } from '@/config/routes'
 import styles from './ContactPage.module.css'
 
 const contactSeo = pageSeo.contact
 
 export function ContactPage() {
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>(
-    'idle',
-  )
-  const [error, setError] = useState<string | null>(null)
-  const formStarted = useRef(false)
+  const [searchParams] = useSearchParams()
+  const prefill = readContactPrefill(searchParams.toString())
+  const pageSource = prefill.source ?? 'contact'
 
-  const markFormStart = () => {
-    if (formStarted.current) return
-    formStarted.current = true
-    trackEvent(analyticsEvents.contactFormStart)
-  }
+  const initialValues = useMemo(() => {
+    const project = prefill.project ? getPortfolioProject(prefill.project) : undefined
+    const serviceLine = prefill.service
+      ? `Service interest: ${serviceLabelForSlug(prefill.service) ?? prefill.service}.`
+      : ''
+    const projectLine = project
+      ? `Interested in something similar to: ${project.title} (${project.kind}).`
+      : ''
+    const message = [projectLine, serviceLine].filter(Boolean).join('\n')
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setStatus('submitting')
-    setError(null)
-
-    const form = new FormData(event.currentTarget)
-    const result = await submitContact({
-      name: String(form.get('name') ?? ''),
-      email: String(form.get('email') ?? ''),
-      company: String(form.get('company') ?? ''),
-      message: String(form.get('message') ?? ''),
-      website: String(form.get('website') ?? ''),
-    })
-
-    if (!result.ok) {
-      setStatus('error')
-      setError(result.error)
-      return
+    return {
+      serviceInterest: prefill.service ?? '',
+      message: message ? `${message}\n\n` : '',
     }
-
-    setStatus('success')
-    trackEvent(analyticsEvents.contactFormSubmit)
-    event.currentTarget.reset()
-    formStarted.current = false
-  }
+  }, [prefill.project, prefill.service])
 
   return (
     <PageShell
@@ -61,11 +44,12 @@ export function ContactPage() {
       path={contactSeo.path}
       description="Tell us what you are building. We respond with a practical next step—usually within one business day."
     >
+      <p className={styles.intro}>
+        Share your goals, timeline and budget range if you know them. We scope honestly—no pressure
+        to oversell.
+      </p>
       <div className={styles.layout}>
         <div className={styles.aside}>
-          <p className={styles.lead}>
-            Share your roadmap, timeline and constraints. We scope honestly—no pressure to oversell.
-          </p>
           <div className={`surface ${styles.contactCard}`}>
             <h2 className="text-h3">Direct contact</h2>
             <ul className={styles.contactList}>
@@ -80,7 +64,12 @@ export function ContactPage() {
               </li>
               <li>
                 <span>Phone</span>
-                <a href={`tel:${site.contactPhone}`}>{site.contactPhoneDisplay}</a>
+                <a
+                  href={`tel:${site.contactPhone}`}
+                  onClick={() => trackEvent(analyticsEvents.phoneClick, { location: 'contact' })}
+                >
+                  {site.contactPhoneDisplay}
+                </a>
               </li>
               <li>
                 <span>Location</span>
@@ -116,78 +105,20 @@ export function ContactPage() {
             </ul>
           </div>
           <p className={styles.pricingHint}>
-            <Link className="link-underline" to="/pricing">
+            <Link className="link-underline" to={routePaths.pricing}>
               View public starting prices
+            </Link>
+            {' · '}
+            <Link className="link-underline" to={routePaths.work}>
+              Explore work
             </Link>
           </p>
         </div>
 
-        <form
-          className={styles.form}
-          onSubmit={onSubmit}
-          noValidate
-          onFocus={markFormStart}
-          aria-busy={status === 'submitting'}
-        >
-          <div className={styles.honeypot}>
-            <input
-              id="contact-website"
-              name="website"
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden="true"
-            />
-          </div>
-          <Input
-            id="contact-name"
-            name="name"
-            label="Name"
-            autoComplete="name"
-            required
-            maxLength={contactFieldLimits.name}
-            onFocus={markFormStart}
-          />
-          <Input
-            id="contact-email"
-            name="email"
-            label="Email"
-            type="email"
-            autoComplete="email"
-            required
-            maxLength={contactFieldLimits.email}
-            onFocus={markFormStart}
-          />
-          <Input
-            id="contact-company"
-            name="company"
-            label="Company"
-            autoComplete="organization"
-            maxLength={contactFieldLimits.company}
-            onFocus={markFormStart}
-          />
-          <Textarea
-            id="contact-message"
-            name="message"
-            label="Project overview"
-            required
-            maxLength={contactFieldLimits.message}
-            onFocus={markFormStart}
-          />
-          {error ? (
-            <p className={styles.formError} role="alert">
-              {error}
-            </p>
-          ) : null}
-          {status === 'success' ? (
-            <p className={styles.formSuccess} role="status">
-              Thanks—we received your message and will follow up with a practical next step.
-            </p>
-          ) : null}
-          <Button type="submit" disabled={status === 'submitting' || status === 'success'}>
-            {status === 'submitting' ? 'Sending…' : 'Send message'}
-          </Button>
-        </form>
+        <div className={styles.formWrap}>
+          <h2 className="text-h3">Project inquiry</h2>
+          <InquiryForm pageSource={pageSource} initialValues={initialValues} />
+        </div>
       </div>
     </PageShell>
   )

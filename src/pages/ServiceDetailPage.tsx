@@ -12,6 +12,8 @@ import { getServiceSeo } from '@/config/seo'
 import { env } from '@/config/env'
 import { routePaths, servicePath } from '@/config/routes'
 import { getServiceContent } from '@/data/service-content'
+import { portfolioForService, workPath } from '@/data/portfolio'
+import { contactHref } from '@/lib/conversion/contact-link'
 import { serviceFaqs, serviceRelatedSlugs } from '@/data/service-seo'
 import { getServiceBySlug } from '@/data/services'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
@@ -125,6 +127,32 @@ export function ServiceDetailPage() {
             </ol>
           </Reveal>
 
+          {(() => {
+            const relatedWork = portfolioForService(content.slug, 2)
+            if (relatedWork.length === 0) return null
+            return (
+              <Reveal className={styles.relatedWork}>
+                <h2 className="text-h2">Related work</h2>
+                <p className={styles.relatedWorkLead}>
+                  Explore labeled internal builds and concepts connected to this service.
+                </p>
+                <ul>
+                  {relatedWork.map((project) => (
+                    <li key={project.id}>
+                      <Link className="link-underline" to={workPath(project.id)}>
+                        {project.title}
+                      </Link>
+                      <span className={styles.relatedWorkMeta}> — {project.tagline}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link className="link-underline" to={routePaths.work}>
+                  View all work
+                </Link>
+              </Reveal>
+            )
+          })()}
+
           {content.erodeNote ? (
             <Reveal>
               <p className={styles.erode}>{content.erodeNote}</p>
@@ -162,18 +190,18 @@ export function ServiceDetailPage() {
 
           <div className={styles.actions}>
             <Button
-              to={routePaths.contact}
+              to={contactHref({ service: content.slug, source: 'service_detail' })}
               size="lg"
-              trackEvent={analyticsEvents.startProjectClick}
+              trackEvent={analyticsEvents.serviceCtaClick}
               trackParams={{ source: 'service_detail', service_slug: content.slug }}
             >
               Start a Project
             </Button>
-            <Link className="link-underline" to={routePaths.work}>
-              View concept work
+            <Link className="link-underline" to={routePaths.pricing}>
+              View pricing
             </Link>
-            <Link className="link-underline" to={routePaths.services}>
-              All services
+            <Link className="link-underline" to={routePaths.work}>
+              View work
             </Link>
           </div>
         </div>

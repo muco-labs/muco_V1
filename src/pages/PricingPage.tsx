@@ -13,7 +13,8 @@ import {
 } from '@/data/pricing'
 import { faqs } from '@/content/faqs'
 import { pageSeo } from '@/config/seo'
-import { routePaths, servicePath } from '@/config/routes'
+import { contactHref } from '@/lib/conversion/contact-link'
+import { servicePath } from '@/config/routes'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import styles from './PricingPage.module.css'
 
@@ -94,21 +95,29 @@ export function PricingPage() {
                     {tier.limitations ? (
                       <p className={styles.limit}>{tier.limitations}</p>
                     ) : null}
-                    <Link className="link-underline" to={routePaths.contact}>
+                    <Button
+                      to={contactHref({ source: `pricing_${tier.id}` })}
+                      variant={tier.featured ? 'primary' : 'secondary'}
+                      trackEvent={analyticsEvents.startProjectClick}
+                      trackParams={{ source: 'pricing', tier: tier.id }}
+                    >
                       {tier.cta}
-                    </Link>
+                    </Button>
                   </article>
                 </Reveal>
               ))}
             </div>
             <div className={styles.footerCta}>
+              <p className={styles.nextStep}>
+                After you reach out, we confirm scope and send a written quote—no surprise fees.
+              </p>
               <Button
-                to={routePaths.contact}
+                to={contactHref({ source: 'pricing' })}
                 size="lg"
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'pricing' }}
               >
-                Start a Project
+                Get a quote
               </Button>
             </div>
           </div>

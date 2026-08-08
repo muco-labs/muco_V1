@@ -55,7 +55,7 @@ export function WorkPage() {
             </div>
           </div>
         </section>
-        <FinalCta source="work" title="Want something similar?" body="Share your problem—we will scope an honest path to build." />
+        <FinalCta source="work" title="Want something similar?" body="Share your problem—we will scope an honest path to build." secondaryLabel="View Our Work" secondaryHref={routePaths.work} />
       </div>
     </>
   )

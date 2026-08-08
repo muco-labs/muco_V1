@@ -3,6 +3,21 @@
   gap: var(--space-10);
 }
 
+.intro {
+  margin: 0 0 var(--space-8);
+  max-width: 42rem;
+  color: var(--color-text-muted);
+}
+
+.formWrap {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.formWrap h2 {
+  margin: 0;
+}
+
 @media (min-width: 64rem) {
   .layout {
     grid-template-columns: 0.9fr 1.1fr;

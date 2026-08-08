@@ -89,6 +89,7 @@ a {
 .page-main {
   flex: 1;
   padding-top: var(--header-height);
+  padding-bottom: calc(var(--space-16) + env(safe-area-inset-bottom, 0px));
 }
 
 .shell {

@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { cn } from '@/utils/cn'
 import styles from './FormControls.module.css'
 
@@ -48,6 +48,54 @@ export function Input({
         }
         {...props}
       />
+      {hint ? (
+        <p id={`${id}-hint`} className={styles.hint}>
+          {hint}
+        </p>
+      ) : null}
+      {error ? (
+        <p id={`${id}-error`} className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+type SelectOption = { value: string; label: string }
+
+export function Select({
+  label,
+  id,
+  hint,
+  error,
+  className,
+  options,
+  ...props
+}: FieldProps &
+  Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> & {
+    options: SelectOption[]
+  }) {
+  return (
+    <div className={cn(styles.field, className)}>
+      <Label htmlFor={id}>{label}</Label>
+      <select
+        id={id}
+        className={cn(styles.control, styles.select, error && styles.controlError)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={
+          [hint ? `${id}-hint` : undefined, error ? `${id}-error` : undefined]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
+        {...props}
+      >
+        {options.map((option) => (
+          <option key={option.value || 'empty'} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
       {hint ? (
         <p id={`${id}-hint`} className={styles.hint}>
           {hint}

@@ -7,6 +7,13 @@ export type FaqItem = {
 
 export const faqs: FaqItem[] = [
   {
+    id: 'website-cost',
+    category: 'pricing',
+    question: 'How much does a business website cost?',
+    answer:
+      'Public packages start from ₹9,999 on our pricing page. Final cost depends on pages, integrations and content readiness—we confirm in a written quote after discovery.',
+  },
+  {
     id: 'timeline-website',
     category: 'process',
     question: 'How long does a business website take?',
