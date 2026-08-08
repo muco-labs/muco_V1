@@ -6,6 +6,9 @@ import { handleRouteError, jsonSuccess } from '../../lib/response.js'
 import { createLeadFromWebsite } from '../../services/leads.service.js'
 import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
 import { serverEnv } from '../../lib/env.js'
+import { authRoutes } from './auth.js'
+import { adminRoutes } from './admin.js'
+import { authenticate, requirePermission } from '../../middleware/authenticate.js'
 
 export const v1 = new Hono()
 
@@ -49,6 +52,13 @@ v1.post('/leads', async (c) => {
   } catch (error) {
     return handleRouteError(c, error)
   }
+})
+
+v1.route('/auth', authRoutes)
+v1.route('/admin', adminRoutes)
+
+v1.get('/projects', authenticate, requirePermission('projects.view'), async (c) => {
+  return jsonSuccess(c, { items: [], message: 'Project APIs will expand in a later phase.' })
 })
 
 export function createV1App() {

@@ -4,10 +4,13 @@ type Bucket = { count: number; resetAt: number }
 
 const buckets = new Map<string, Bucket>()
 
-export function checkRateLimit(key: string): { allowed: boolean; retryAfterMs?: number } {
+export function checkRateLimit(
+  key: string,
+  options?: { max?: number; windowMs?: number },
+): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now()
-  const windowMs = serverEnv.leadRateLimitWindowMs
-  const max = serverEnv.leadRateLimitMax
+  const windowMs = options?.windowMs ?? serverEnv.leadRateLimitWindowMs
+  const max = options?.max ?? serverEnv.leadRateLimitMax
 
   const bucket = buckets.get(key)
   if (!bucket || bucket.resetAt <= now) {

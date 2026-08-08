@@ -13,7 +13,14 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
-export const userStatusEnum = pgEnum('user_status', ['pending', 'active', 'inactive', 'suspended'])
+export const userStatusEnum = pgEnum('user_status', [
+  'pending',
+  'invited',
+  'active',
+  'inactive',
+  'suspended',
+  'disabled',
+])
 export const leadStatusEnum = pgEnum('lead_status', [
   'new',
   'contacted',
@@ -78,14 +85,20 @@ export const users = pgTable(
   'users',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    authUserId: uuid('auth_user_id'),
     email: text('email').notNull(),
+    fullName: text('full_name'),
+    /** Deprecated: credentials live in Supabase Auth only. */
     passwordHash: text('password_hash'),
     authProvider: text('auth_provider'),
     status: userStatusEnum('status').notNull().default('pending'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [uniqueIndex('users_email_idx').on(table.email)],
+  (table) => [
+    uniqueIndex('users_email_idx').on(table.email),
+    uniqueIndex('users_auth_user_id_idx').on(table.authUserId),
+  ],
 )
 
 export const roles = pgTable(

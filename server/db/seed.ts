@@ -1,6 +1,11 @@
 import { eq } from 'drizzle-orm'
 import { getDb, closeDatabaseConnection } from './client.js'
 import { roles, users, userRoles } from './schema.js'
+import { permissionNames } from '../lib/auth/permissions.js'
+import { roleNames } from '../lib/auth/permissions.js'
+import { permissions } from './schema.js'
+import { ensureRolePermissionsSeeded } from '../services/auth.service.js'
+import type { RoleName } from '../lib/auth/permissions.js'
 
 async function seed() {
   if (process.env.NODE_ENV === 'production') {
@@ -14,12 +19,22 @@ async function seed() {
     process.exit(1)
   }
 
-  const roleNames = ['CUSTOMER', 'EMPLOYEE', 'ADMIN', 'SUPER_ADMIN'] as const
   for (const name of roleNames) {
     await db
       .insert(roles)
-      .values({ name, description: `Development role: ${name}` })
+      .values({ name, description: `Role: ${name}` })
       .onConflictDoNothing({ target: roles.name })
+  }
+
+  for (const name of permissionNames) {
+    await db
+      .insert(permissions)
+      .values({ name, description: name })
+      .onConflictDoNothing({ target: permissions.name })
+  }
+
+  for (const role of roleNames) {
+    await ensureRolePermissionsSeeded(role as RoleName)
   }
 
   const devEmail = 'dev.customer@muco.local'
@@ -31,6 +46,7 @@ async function seed() {
         email: devEmail,
         status: 'active',
         authProvider: 'development',
+        fullName: 'Development Customer',
       })
       .returning()
 
@@ -40,7 +56,7 @@ async function seed() {
     }
   }
 
-  console.log('Development seed completed (roles + optional dev user).')
+  console.log('Development seed completed (roles, permissions, optional dev user).')
   await closeDatabaseConnection()
 }
 

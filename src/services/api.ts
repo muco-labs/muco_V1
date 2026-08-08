@@ -2,6 +2,7 @@ import { env } from '@/config/env'
 import { isAllowedApiUrl } from '@/utils/url'
 import type { ApiBody } from '@/lib/api/types'
 import { isApiSuccess } from '@/lib/api/types'
+import { getAccessToken } from '@/lib/supabase/client'
 
 export class ApiError extends Error {
   status: number
@@ -56,11 +57,13 @@ export async function apiRequest<T>(
   signal?.addEventListener('abort', abortFromCaller, { once: true })
 
   try {
+    const accessToken = await getAccessToken()
     const response = await fetch(target, {
       ...rest,
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...headers,
       },
       body: json !== undefined ? JSON.stringify(json) : rest.body,

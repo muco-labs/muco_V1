@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
+import { ProtectedPortal } from '@/components/auth/ProtectedPortal'
 
 function lazyPage<T extends Record<string, ComponentType<unknown>>>(
   loader: () => Promise<T>,
@@ -30,6 +31,36 @@ const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
 const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
 const AuthSignInPage = lazyPage(() => import('@/pages/AuthSignInPage'), 'AuthSignInPage')
 const AuthSignUpPage = lazyPage(() => import('@/pages/AuthSignUpPage'), 'AuthSignUpPage')
+const AuthForgotPasswordPage = lazyPage(
+  () => import('@/pages/AuthForgotPasswordPage'),
+  'AuthForgotPasswordPage',
+)
+const AuthResetPasswordPage = lazyPage(
+  () => import('@/pages/AuthResetPasswordPage'),
+  'AuthResetPasswordPage',
+)
+const AuthVerifyEmailPage = lazyPage(
+  () => import('@/pages/AuthVerifyEmailPage'),
+  'AuthVerifyEmailPage',
+)
+const AuthUnauthorizedPage = lazyPage(
+  () => import('@/pages/AuthUnauthorizedPage'),
+  'AuthUnauthorizedPage',
+)
+const TeamSignInPage = lazyPage(() => import('@/pages/TeamSignInPage'), 'TeamSignInPage')
+const AdminSignInPage = lazyPage(() => import('@/pages/AdminSignInPage'), 'AdminSignInPage')
+const CustomerAppHomePage = lazyPage(
+  () => import('@/pages/portal/CustomerAppHomePage'),
+  'CustomerAppHomePage',
+)
+const TeamAppHomePage = lazyPage(
+  () => import('@/pages/portal/TeamAppHomePage'),
+  'TeamAppHomePage',
+)
+const AdminAppHomePage = lazyPage(
+  () => import('@/pages/portal/AdminAppHomePage'),
+  'AdminAppHomePage',
+)
 const PrivacyPolicyPage = lazyPage(
   () => import('@/pages/PrivacyPolicyPage'),
   'PrivacyPolicyPage',
@@ -57,6 +88,36 @@ export const router = createBrowserRouter([
       { path: 'pricing', element: <PricingPage /> },
       { path: 'auth/sign-in', element: <AuthSignInPage /> },
       { path: 'auth/sign-up', element: <AuthSignUpPage /> },
+      { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },
+      { path: 'auth/reset-password', element: <AuthResetPasswordPage /> },
+      { path: 'auth/verify-email', element: <AuthVerifyEmailPage /> },
+      { path: 'auth/unauthorized', element: <AuthUnauthorizedPage /> },
+      { path: 'team/sign-in', element: <TeamSignInPage /> },
+      { path: 'admin/sign-in', element: <AdminSignInPage /> },
+      {
+        path: 'app',
+        element: (
+          <ProtectedPortal portal="customer">
+            <CustomerAppHomePage />
+          </ProtectedPortal>
+        ),
+      },
+      {
+        path: 'team',
+        element: (
+          <ProtectedPortal portal="employee">
+            <TeamAppHomePage />
+          </ProtectedPortal>
+        ),
+      },
+      {
+        path: 'admin',
+        element: (
+          <ProtectedPortal portal="admin">
+            <AdminAppHomePage />
+          </ProtectedPortal>
+        ),
+      },
       { path: 'privacy-policy', element: <PrivacyPolicyPage /> },
       { path: 'terms', element: <TermsPage /> },
       { path: 'cookie-policy', element: <CookiePolicyPage /> },

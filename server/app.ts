@@ -7,6 +7,8 @@ import { createV1App } from './routes/v1/index.js'
 declare module 'hono' {
   interface ContextVariableMap {
     requestId: string
+    auth: import('./middleware/authenticate.js').AuthContext
+    supabaseIdentity: import('./middleware/authenticate.js').SupabaseIdentity
   }
 }
 

@@ -10,7 +10,18 @@ export const serverEnv = {
     .filter(Boolean),
   leadRateLimitWindowMs: Number(process.env.LEAD_RATE_LIMIT_WINDOW_MS ?? 60_000),
   leadRateLimitMax: Number(process.env.LEAD_RATE_LIMIT_MAX ?? 5),
+  authRateLimitWindowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? 60_000),
+  authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 20),
+  supabaseUrl: trim(process.env.SUPABASE_URL),
+  supabaseServiceRoleKey: trim(process.env.SUPABASE_SERVICE_ROLE_KEY),
+  supabaseJwtSecret: trim(process.env.SUPABASE_JWT_SECRET),
+  authRedirectUrl: trim(process.env.AUTH_REDIRECT_URL),
+  bootstrapSecret: trim(process.env.FOUNDER_BOOTSTRAP_SECRET),
 } as const
+
+export function isSupabaseConfigured(): boolean {
+  return Boolean(serverEnv.supabaseUrl && serverEnv.supabaseServiceRoleKey)
+}
 
 export function isDatabaseConfigured(): boolean {
   return Boolean(serverEnv.databaseUrl)

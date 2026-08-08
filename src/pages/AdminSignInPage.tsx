@@ -1,8 +1,7 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes, portalRoutes } from '@/config/auth'
-import { pageSeo } from '@/config/seo'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthProvider'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
@@ -10,18 +9,13 @@ import { signInWithPassword } from '@/services/auth'
 import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
 
-const signIn = pageSeo.authSignIn
-
-export function AuthSignInPage() {
+export function AdminSignInPage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { refreshProfile } = useAuth()
+  const { refreshProfile, canAccessPortal } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  const configured = isSupabaseConfigured()
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -30,14 +24,13 @@ export function AuthSignInPage() {
     try {
       await signInWithPassword(email, password)
       await refreshProfile()
-      const from = (location.state as { from?: string } | null)?.from
-      if (from) {
-        navigate(from, { replace: true })
+      if (!canAccessPortal('admin')) {
+        navigate(portalRoutes.unauthorized, { replace: true })
         return
       }
-      navigate(portalRoutes.customer, { replace: true })
+      navigate(portalRoutes.admin, { replace: true })
     } catch {
-      setError('Sign in failed. Check your email and password.')
+      setError('Sign in failed. Check your credentials.')
     } finally {
       setSubmitting(false)
     }
@@ -46,17 +39,17 @@ export function AuthSignInPage() {
   return (
     <>
       <PageMeta
-        documentTitle={signIn.documentTitle}
-        description={signIn.description}
-        path={signIn.path}
+        documentTitle="Admin sign in | MUCO LABS"
+        description="Sign in to MUCO LABS administration."
+        path={authRoutes.adminSignIn}
         noIndex
       />
       <div className={styles.page}>
         <div className="shell">
           <div className={`surface ${styles.card}`}>
-            <p className="text-label">Customer portal</p>
-            <h1 className="text-h1">{authCopy.signInTitle}</h1>
-            {!configured ? (
+            <p className="text-label">admin.mucolabs.com</p>
+            <h1 className="text-h1">{authCopy.adminSignInTitle}</h1>
+            {!isSupabaseConfigured() ? (
               <p>{authCopy.supabaseMissing}</p>
             ) : (
               <form className={formStyles.form} onSubmit={onSubmit}>
@@ -65,7 +58,6 @@ export function AuthSignInPage() {
                   <input
                     id="email"
                     type="email"
-                    autoComplete="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +68,6 @@ export function AuthSignInPage() {
                   <input
                     id="password"
                     type="password"
-                    autoComplete="current-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -84,20 +75,13 @@ export function AuthSignInPage() {
                 </div>
                 {error ? <p className={formStyles.error}>{error}</p> : null}
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Signing in…' : 'Sign in'}
+                  Sign in
                 </Button>
               </form>
             )}
-            <p className={formStyles.hint}>
-              <Link className="link-underline" to={authRoutes.forgotPassword}>
-                Forgot password?
-              </Link>
-            </p>
-            <div className={styles.actions}>
-              <Link className="link-underline" to={authRoutes.signUp}>
-                Create an account
-              </Link>
-            </div>
+            <Link className="link-underline" to={authRoutes.forgotPassword}>
+              Forgot password?
+            </Link>
           </div>
         </div>
       </div>

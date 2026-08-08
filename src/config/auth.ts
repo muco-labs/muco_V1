@@ -1,26 +1,35 @@
 import { env } from '@/config/env'
+import { portalOrigins } from '@/config/hosts'
 
 export const authRoutes = {
   signIn: '/auth/sign-in',
   signUp: '/auth/sign-up',
+  forgotPassword: '/auth/forgot-password',
+  resetPassword: '/auth/reset-password',
+  verifyEmail: '/auth/verify-email',
+  teamSignIn: '/team/sign-in',
+  adminSignIn: '/admin/sign-in',
 } as const
 
-/** Future protected app areas (app.mucolabs.com) */
-export const futureAppRoutes = {
-  customer: '/app/customer',
-  employee: '/app/employee',
-  admin: '/app/admin',
+export const portalRoutes = {
+  customer: '/app',
+  employee: '/team',
+  admin: '/admin',
+  unauthorized: '/auth/unauthorized',
 } as const
 
 export const authCopy = {
   signInTitle: 'Customer sign in',
   signUpTitle: 'Create your account',
-  placeholder:
-    'Authentication is not live on the marketing site yet. This route reserves UX and URLs for the upcoming customer portal.',
+  teamSignInTitle: 'Team sign in',
+  adminSignInTitle: 'Admin sign in',
+  forgotTitle: 'Reset your password',
+  resetTitle: 'Choose a new password',
+  verifyTitle: 'Verify your email',
+  unauthorizedTitle: 'Access denied',
+  supabaseMissing:
+    'Authentication is not configured yet. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.',
   appOrigin: env.appUrl,
+  teamOrigin: portalOrigins.employee,
+  adminOrigin: portalOrigins.admin,
 } as const
-
-/**
- * Auth security (future): httpOnly session cookies or short-lived tokens issued by the API;
- * password hashing and MFA on server; no long-lived secrets in localStorage.
- */
