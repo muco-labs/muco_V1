@@ -4,6 +4,7 @@
   --color-secondary: #c8c4bc;
   --color-accent: #d4ff5c;
   --color-accent-soft: rgba(212, 255, 92, 0.14);
+  --color-accent-muted: rgba(212, 255, 92, 0.1);
   --color-accent-ink: #1a1f0f;
 
   --color-bg: #0b0b0d;
@@ -20,6 +21,7 @@
   --color-text-subtle: #6f6f7a;
 
   --color-focus: #e8ff9a;
+  --color-accent-hover: #e8ff9a;
   --color-success: #5ee9a8;
   --color-warning: #f5c84c;
   --color-danger: #ff7b7b;
@@ -37,6 +39,7 @@
   --text-body-lg: 1.125rem;
   --text-small: 0.875rem;
   --text-caption: 0.6875rem;
+  --text-button: 0.8125rem;
   --text-stat: clamp(2rem, 4vw, 3rem);
 
   --text-xs: var(--text-caption);
@@ -88,6 +91,9 @@
   --duration-fast: 160ms;
   --duration-base: 320ms;
   --duration-slow: 560ms;
+  --motion-distance-sm: 8px;
+  --motion-distance-md: 18px;
+  --motion-stagger: 80ms;
 
   --container-sm: 40rem;
   --container-md: 48rem;

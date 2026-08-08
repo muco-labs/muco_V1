@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { ProjectPreview } from '@/components/visual/ProjectPreview'
 import { Reveal } from '@/components/motion/Reveal'
-import { portfolioProjects } from '@/data/portfolio'
+import { portfolioProjects, portfolioKindLabel } from '@/data/portfolio'
+import { Badge } from '@/components/ui/Badge'
 import { pageSeo } from '@/config/seo'
 import { routePaths, servicePath } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
@@ -29,10 +30,10 @@ export function WorkPage() {
           <div className="shell">
             <Reveal>
               <p className="text-label">Portfolio</p>
-              <h1 className="text-h1">MUCO LABS concept work</h1>
+              <h1 className="text-h1">Selected work &amp; concepts</h1>
               <p className={styles.lead}>
-                Demonstrations and internal explorations—never presented as client case studies until
-                verified stories are ready to publish.
+                Every item is labeled by type. Concept and demo work is never presented as a verified
+                client case study.
               </p>
             </Reveal>
           </div>
@@ -49,7 +50,7 @@ export function WorkPage() {
                       category={project.category}
                     />
                     <div className={styles.body}>
-                      <p className={styles.label}>{project.label}</p>
+                      <Badge>{portfolioKindLabel(project.kind)}</Badge>
                       <h2 className="text-h3">{project.title}</h2>
                       <p className={styles.category}>{project.category}</p>
                       <p className={styles.tagline}>{project.tagline}</p>

@@ -1,0 +1,46 @@
+.card {
+  padding: clamp(var(--space-8), 5vw, var(--space-12));
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-bg-elevated) 100%);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+@media (min-width: 56rem) {
+  .grid {
+    grid-template-columns: auto 1fr;
+    gap: var(--space-12);
+  }
+}
+
+.copy {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.role {
+  margin: 0;
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: var(--text-small);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.intro,
+.philosophy {
+  margin: 0;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}

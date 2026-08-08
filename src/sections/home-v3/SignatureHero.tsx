@@ -1,7 +1,9 @@
 import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
+import { HeroSignalPanel } from '@/components/home/HeroSignalPanel'
 import { Reveal } from '@/components/motion/Reveal'
 import { company } from '@/content/company'
+import { site } from '@/config/site'
 import { analyticsEvents } from '@/lib/analytics'
 import styles from './SignatureHero.module.css'
 
@@ -11,12 +13,15 @@ export function SignatureHero() {
       <div className="shell">
         <div className={styles.grid}>
           <Reveal className={styles.copy}>
-            <p className="eyebrow-line">MUCO LABS · Technology company</p>
+            <p className="eyebrow-line">{site.name} · Technology company</p>
             <h1 id="home-hero-title" className="text-display">
-              Build what&apos;s next—
-              <span className={styles.accent}> with intent.</span>
+              Websites, software &amp; AI—
+              <span className={styles.accent}> built to ship.</span>
             </h1>
-            <p className={styles.lead}>{company.tagline}</p>
+            <p className={styles.lead}>
+              {company.positioning} We help founders and teams in India and abroad launch products,
+              platforms, and growth systems with clarity—not chaos.
+            </p>
             <div className={styles.actions}>
               <Button
                 to={routePaths.contact}
@@ -26,26 +31,14 @@ export function SignatureHero() {
               >
                 Start a Project
               </Button>
-              <Button to={routePaths.services} variant="ghost" size="lg">
-                Explore Services
+              <Button to={routePaths.services} variant="secondary" size="lg">
+                View Services
               </Button>
             </div>
           </Reveal>
 
           <Reveal className={styles.visual} variant="slide-left" delayMs={120}>
-            <div className={styles.visualInner} aria-hidden="true">
-              <div className={styles.beam} />
-              <div className={styles.panel}>
-                <span className={styles.panelLabel}>Systems</span>
-                <ul>
-                  <li>Product</li>
-                  <li>Platform</li>
-                  <li>Automation</li>
-                  <li>Growth</li>
-                </ul>
-              </div>
-              <div className={styles.orbit} />
-            </div>
+            <HeroSignalPanel />
           </Reveal>
         </div>
       </div>

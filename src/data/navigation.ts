@@ -11,7 +11,8 @@ export const primaryNav: NavItem[] = [
   { label: 'Solutions', href: routePaths.solutions },
   { label: 'Work', href: routePaths.work },
   { label: 'About', href: routePaths.about },
-  { label: 'Insights', href: routePaths.insights },
+  { label: 'Pricing', href: routePaths.pricing },
+  { label: 'Contact', href: routePaths.contact },
 ]
 
 export const footerNav = {

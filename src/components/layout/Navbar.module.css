@@ -155,6 +155,11 @@
     display: block;
   }
 
+  .desktopNav .link {
+    padding: var(--space-2);
+    font-size: var(--text-caption);
+  }
+
   .auth {
     display: flex;
   }

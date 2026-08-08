@@ -1,0 +1,42 @@
+.strip {
+  padding-block: var(--space-12);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 40%, transparent);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-8);
+}
+
+@media (min-width: 48rem) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.item {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.item p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  text-wrap: pretty;
+}
+
+.foot {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.foot p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  max-width: 42rem;
+}

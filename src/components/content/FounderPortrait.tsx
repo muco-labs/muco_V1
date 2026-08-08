@@ -21,7 +21,7 @@ export function FounderPortrait({ name, imageSrc, size = 'lg' }: FounderPortrait
   if (imageSrc) {
     return (
       <div className={`${styles.frame} ${styles[size]}`}>
-        <img src={imageSrc} alt="" className={styles.photo} loading="lazy" decoding="async" />
+        <img src={imageSrc} alt={name} className={styles.photo} loading="lazy" decoding="async" />
       </div>
     )
   }

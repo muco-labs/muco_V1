@@ -1,10 +1,12 @@
 import type { ServiceSlug } from '@/config/routes'
 
+export type PortfolioKind = 'client' | 'internal' | 'concept' | 'demo' | 'case_study'
+
 export type PortfolioProject = {
   id: string
   title: string
   category: string
-  label: 'MUCO LABS CONCEPT WORK'
+  kind: PortfolioKind
   tagline: string
   problem: string
   solution: string
@@ -12,6 +14,19 @@ export type PortfolioProject = {
   technology: string[]
   visual: 'commerce' | 'ai-dashboard' | 'saas' | 'premium-site' | 'mobile' | 'automation'
   relatedServiceSlug?: ServiceSlug
+  /** Verified outcome only — omit when not confirmed. */
+  outcome?: string
+}
+
+export function portfolioKindLabel(kind: PortfolioKind): string {
+  const labels: Record<PortfolioKind, string> = {
+    client: 'Client project',
+    internal: 'Internal project',
+    concept: 'Concept',
+    demo: 'Demo',
+    case_study: 'Case study',
+  }
+  return labels[kind]
 }
 
 export const portfolioProjects: PortfolioProject[] = [
@@ -19,7 +34,7 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'concept-commerce',
     title: 'Modular commerce experience',
     category: 'E-commerce',
-    label: 'MUCO LABS CONCEPT WORK',
+    kind: 'concept',
     tagline: 'Headless storefront patterns for seasonal merchandising.',
     problem:
       'Retail teams need fast storefront iteration without rebuilding the entire stack each season.',
@@ -34,7 +49,7 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'concept-ai-dashboard',
     title: 'Operations intelligence surface',
     category: 'AI & dashboards',
-    label: 'MUCO LABS CONCEPT WORK',
+    kind: 'concept',
     tagline: 'Human-in-the-loop operations for real teams.',
     problem:
       'Operations leaders lack a single trustworthy view across workflows, alerts and approvals.',
@@ -49,7 +64,7 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'concept-saas',
     title: 'Vertical SaaS control plane',
     category: 'SaaS product',
-    label: 'MUCO LABS CONCEPT WORK',
+    kind: 'concept',
     tagline: 'Admin, billing and tenant tooling from day one.',
     problem:
       'B2B SaaS teams need onboarding, billing and admin tools that feel cohesive from launch.',
@@ -64,7 +79,7 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'concept-premium-site',
     title: 'Editorial brand platform',
     category: 'Premium website',
-    label: 'MUCO LABS CONCEPT WORK',
+    kind: 'concept',
     tagline: 'Credibility-first marketing for professional firms.',
     problem:
       'Professional firms need a digital presence that signals credibility without generic agency tropes.',
@@ -79,7 +94,7 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'concept-mobile',
     title: 'Field operations companion',
     category: 'Mobile app',
-    label: 'MUCO LABS CONCEPT WORK',
+    kind: 'concept',
     tagline: 'Offline-aware mobile workflows.',
     problem: 'Field teams lose productivity when apps fail offline or hide critical actions.',
     solution:
@@ -93,7 +108,7 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'concept-automation',
     title: 'Revenue operations automation',
     category: 'Automation',
-    label: 'MUCO LABS CONCEPT WORK',
+    kind: 'concept',
     tagline: 'Connect CRM, billing and support without spreadsheet glue.',
     problem: 'Revenue teams waste hours copying data between tools with no audit trail.',
     solution:

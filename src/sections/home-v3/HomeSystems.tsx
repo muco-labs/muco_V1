@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
 import { ProjectPreview } from '@/components/visual/ProjectPreview'
-import { portfolioProjects } from '@/data/portfolio'
+import { portfolioProjects, portfolioKindLabel } from '@/data/portfolio'
 import { erodePositioning, erodeServiceLinks, erodeServiceHref } from '@/data/erode'
 import { routePaths } from '@/config/routes'
 import styles from './HomeSystems.module.css'
@@ -39,7 +39,7 @@ export function HomeSystemsSections() {
                 <article className={`surface surface--lift ${styles.workCard}`}>
                   <ProjectPreview visual={project.visual} title={project.title} />
                   <div className={styles.workBody}>
-                    <p className={styles.workLabel}>{project.label}</p>
+                    <p className={styles.workLabel}>{portfolioKindLabel(project.kind)}</p>
                     <h3 className="text-h3">{project.title}</h3>
                     <p>{project.problem}</p>
                   </div>
