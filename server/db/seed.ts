@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { getDb, closeDatabaseConnection } from './client.js'
-import { roles, users, userRoles } from './schema.js'
+import { roles, users, userRoles, customerProfiles } from './schema.js'
 import { permissionNames } from '../lib/auth/permissions.js'
 import { roleNames } from '../lib/auth/permissions.js'
 import { permissions } from './schema.js'
@@ -54,6 +54,15 @@ async function seed() {
     if (customerRole) {
       await db.insert(userRoles).values({ userId: user.id, roleId: customerRole.id })
     }
+
+    await db
+      .insert(customerProfiles)
+      .values({
+        userId: user.id,
+        companyName: 'Development Co.',
+        phone: null,
+      })
+      .onConflictDoNothing({ target: customerProfiles.userId })
   }
 
   console.log('Development seed completed (roles, permissions, optional dev user).')

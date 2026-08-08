@@ -4,11 +4,13 @@ import type { PermissionName, RoleName } from './permissions.js'
 export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
   CUSTOMER: [
     'files.view',
+    'files.upload',
     'messages.view',
     'messages.send',
     'support.view',
     'projects.view',
     'proposals.view',
+    'proposals.approve',
     'invoices.view',
     'payments.view',
   ],

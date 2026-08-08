@@ -48,8 +48,10 @@ export const milestoneStatusEnum = pgEnum('milestone_status', [
 export const proposalStatusEnum = pgEnum('proposal_status', [
   'draft',
   'sent',
+  'viewed',
   'accepted',
   'declined',
+  'changes_requested',
   'expired',
 ])
 export const invoiceStatusEnum = pgEnum('invoice_status', [
@@ -161,7 +163,9 @@ export const customerProfiles = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     companyName: text('company_name'),
     phone: text('phone'),
+    jobTitle: text('job_title'),
     billingAddress: text('billing_address'),
+    avatarStorageKey: text('avatar_storage_key'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -295,9 +299,16 @@ export const proposals = pgTable(
     leadId: uuid('lead_id').references(() => leads.id, { onDelete: 'set null' }),
     customerId: uuid('customer_id').references(() => customerProfiles.id, { onDelete: 'set null' }),
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    title: text('title'),
+    scope: text('scope'),
+    deliverables: text('deliverables'),
+    timeline: text('timeline'),
+    terms: text('terms'),
     status: proposalStatusEnum('status').notNull().default('draft'),
     amount: numeric('amount', { precision: 12, scale: 2 }),
     validUntil: timestamp('valid_until', { withTimezone: true }),
+    customerDecidedAt: timestamp('customer_decided_at', { withTimezone: true }),
+    customerDecisionNote: text('customer_decision_note'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -324,6 +335,21 @@ export const invoices = pgTable(
     index('invoices_customer_id_idx').on(table.customerId),
     index('invoices_status_idx').on(table.status),
   ],
+)
+
+export const invoiceLineItems = pgTable(
+  'invoice_line_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoices.id, { onDelete: 'cascade' }),
+    description: text('description').notNull(),
+    quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull().default('1'),
+    unitAmount: numeric('unit_amount', { precision: 12, scale: 2 }).notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [index('invoice_line_items_invoice_id_idx').on(table.invoiceId)],
 )
 
 export const payments = pgTable(
@@ -362,6 +388,7 @@ export const files = pgTable(
     fileName: text('file_name').notNull(),
     mimeType: text('mime_type').notNull(),
     fileSizeBytes: integer('file_size_bytes').notNull(),
+    category: text('category').default('other'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -420,6 +447,41 @@ export const supportTickets = pgTable(
     index('support_tickets_customer_id_idx').on(table.customerId),
     index('support_tickets_status_idx').on(table.status),
   ],
+)
+
+export const supportTicketReplies = pgTable(
+  'support_ticket_replies',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    ticketId: uuid('ticket_id')
+      .notNull()
+      .references(() => supportTickets.id, { onDelete: 'cascade' }),
+    authorUserId: uuid('author_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    body: text('body').notNull(),
+    isStaff: boolean('is_staff').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('support_ticket_replies_ticket_id_idx').on(table.ticketId)],
+)
+
+export const proposalApprovals = pgTable(
+  'proposal_approvals',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    proposalId: uuid('proposal_id')
+      .notNull()
+      .references(() => proposals.id, { onDelete: 'cascade' }),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id, { onDelete: 'cascade' }),
+    decision: text('decision').notNull(),
+    note: text('note'),
+    proposalStatusAtDecision: text('proposal_status_at_decision').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('proposal_approvals_proposal_id_idx').on(table.proposalId)],
 )
 
 export const auditLogs = pgTable(

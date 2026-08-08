@@ -1,0 +1,212 @@
+.empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: var(--text-h3);
+}
+
+.emptyDesc {
+  margin: var(--space-2) auto 0;
+  max-width: 28rem;
+  color: var(--color-text-muted);
+}
+
+.emptyAction {
+  margin-top: var(--space-4);
+}
+
+.skeletonList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.skeletonRow {
+  height: 3.5rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    var(--color-bg-elevated) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: portalShimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes portalShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonRow {
+    animation: none;
+  }
+}
+
+.error {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+}
+
+.retryBtn {
+  margin-top: var(--space-3);
+  font: inherit;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.retryBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.pill {
+  display: inline-block;
+  font-size: var(--text-small);
+  text-transform: capitalize;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.pageIntro {
+  margin-bottom: var(--space-6);
+}
+
+.pageDesc {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  max-width: 40rem;
+}
+
+.cardGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.dataCard {
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.dataCard h3 {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.meta {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 28rem;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field label {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.field input,
+.field textarea,
+.field select {
+  font: inherit;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.field textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.messageList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.messageItem {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.messageItem time {
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+}
+
+.timeline {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-border);
+}
+
+.progressBar {
+  height: 0.35rem;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.progressBar span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+}

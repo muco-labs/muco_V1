@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
+import { CustomerAppLayout } from '@/layouts/CustomerAppLayout'
 import { ProtectedPortal } from '@/components/auth/ProtectedPortal'
 
 function lazyPage<T extends Record<string, ComponentType<unknown>>>(
@@ -49,10 +50,32 @@ const AuthUnauthorizedPage = lazyPage(
 )
 const TeamSignInPage = lazyPage(() => import('@/pages/TeamSignInPage'), 'TeamSignInPage')
 const AdminSignInPage = lazyPage(() => import('@/pages/AdminSignInPage'), 'AdminSignInPage')
-const CustomerAppHomePage = lazyPage(
-  () => import('@/pages/portal/CustomerAppHomePage'),
-  'CustomerAppHomePage',
+const CustomerDashboardPage = lazyPage(
+  () => import('@/pages/portal/customer/CustomerDashboardPage'),
+  'CustomerDashboardPage',
 )
+function lazyCustomerPage(exportName: string) {
+  return lazy(() =>
+    import('@/pages/portal/customer/CustomerPortalPages').then((module) => ({
+      default: module[exportName as keyof typeof module] as ComponentType<unknown>,
+    })),
+  )
+}
+
+const CustomerProjectsPage = lazyCustomerPage('CustomerProjectsPage')
+const CustomerProjectDetailPage = lazyCustomerPage('CustomerProjectDetailPage')
+const CustomerProposalsPage = lazyCustomerPage('CustomerProposalsPage')
+const CustomerProposalDetailPage = lazyCustomerPage('CustomerProposalDetailPage')
+const CustomerInvoicesPage = lazyCustomerPage('CustomerInvoicesPage')
+const CustomerInvoiceDetailPage = lazyCustomerPage('CustomerInvoiceDetailPage')
+const CustomerPaymentsPage = lazyCustomerPage('CustomerPaymentsPage')
+const CustomerFilesPage = lazyCustomerPage('CustomerFilesPage')
+const CustomerMessagesPage = lazyCustomerPage('CustomerMessagesPage')
+const CustomerSupportPage = lazyCustomerPage('CustomerSupportPage')
+const CustomerSupportDetailPage = lazyCustomerPage('CustomerSupportDetailPage')
+const CustomerNotificationsPage = lazyCustomerPage('CustomerNotificationsPage')
+const CustomerProfilePage = lazyCustomerPage('CustomerProfilePage')
+const CustomerSettingsPage = lazyCustomerPage('CustomerSettingsPage')
 const TeamAppHomePage = lazyPage(
   () => import('@/pages/portal/TeamAppHomePage'),
   'TeamAppHomePage',
@@ -98,9 +121,26 @@ export const router = createBrowserRouter([
         path: 'app',
         element: (
           <ProtectedPortal portal="customer">
-            <CustomerAppHomePage />
+            <CustomerAppLayout />
           </ProtectedPortal>
         ),
+        children: [
+          { index: true, element: <CustomerDashboardPage /> },
+          { path: 'projects', element: <CustomerProjectsPage /> },
+          { path: 'projects/:id', element: <CustomerProjectDetailPage /> },
+          { path: 'proposals', element: <CustomerProposalsPage /> },
+          { path: 'proposals/:id', element: <CustomerProposalDetailPage /> },
+          { path: 'invoices', element: <CustomerInvoicesPage /> },
+          { path: 'invoices/:id', element: <CustomerInvoiceDetailPage /> },
+          { path: 'payments', element: <CustomerPaymentsPage /> },
+          { path: 'files', element: <CustomerFilesPage /> },
+          { path: 'messages', element: <CustomerMessagesPage /> },
+          { path: 'support', element: <CustomerSupportPage /> },
+          { path: 'support/:id', element: <CustomerSupportDetailPage /> },
+          { path: 'notifications', element: <CustomerNotificationsPage /> },
+          { path: 'profile', element: <CustomerProfilePage /> },
+          { path: 'settings', element: <CustomerSettingsPage /> },
+        ],
       },
       {
         path: 'team',

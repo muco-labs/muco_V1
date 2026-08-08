@@ -1,0 +1,150 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.topbarInner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand {
+  font-family: var(--font-display);
+  text-decoration: none;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+}
+
+.brand span {
+  color: var(--color-accent);
+  margin-left: var(--space-1);
+}
+
+.menuBtn {
+  margin-left: auto;
+  font: inherit;
+  font-size: var(--text-small);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+@media (min-width: 64rem) {
+  .menuBtn {
+    display: none;
+  }
+}
+
+.topActions {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (min-width: 64rem) {
+  .topActions {
+    display: flex;
+    margin-left: auto;
+  }
+
+  .menuBtn {
+    display: none;
+  }
+}
+
+.userChip {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  flex: 1;
+  max-width: 72rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 64rem) {
+  .body {
+    grid-template-columns: 14rem 1fr;
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+.nav {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.navOpen {
+  display: flex;
+}
+
+@media (min-width: 64rem) {
+  .nav {
+    display: flex;
+  }
+}
+
+.nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.navLink {
+  display: block;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.navLink:hover {
+  color: var(--color-text);
+  background: var(--color-bg-elevated);
+}
+
+.navLinkActive {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.marketingLink {
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+}
+
+.main {
+  min-width: 0;
+}
+
+.hint {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}

@@ -17,7 +17,15 @@ export const serverEnv = {
   supabaseJwtSecret: trim(process.env.SUPABASE_JWT_SECRET),
   authRedirectUrl: trim(process.env.AUTH_REDIRECT_URL),
   bootstrapSecret: trim(process.env.FOUNDER_BOOTSTRAP_SECRET),
+  razorpayKeyId: trim(process.env.RAZORPAY_KEY_ID),
+  razorpayKeySecret: trim(process.env.RAZORPAY_KEY_SECRET),
+  razorpayWebhookSecret: trim(process.env.RAZORPAY_WEBHOOK_SECRET),
+  storageBucket: trim(process.env.SUPABASE_STORAGE_BUCKET) || 'customer-files',
 } as const
+
+export function isRazorpayConfigured(): boolean {
+  return Boolean(serverEnv.razorpayKeyId && serverEnv.razorpayKeySecret)
+}
 
 export function isSupabaseConfigured(): boolean {
   return Boolean(serverEnv.supabaseUrl && serverEnv.supabaseServiceRoleKey)
