@@ -6,6 +6,7 @@ import { pageSeo } from '@/config/seo'
 import { site } from '@/config/site'
 import { submitContact } from '@/services/contact'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { contactFieldLimits } from '@/utils/validate'
 import styles from './ContactPage.module.css'
 
 const contact = pageSeo.contact
@@ -34,6 +35,7 @@ export function ContactPage() {
       email: String(form.get('email') ?? ''),
       company: String(form.get('company') ?? ''),
       message: String(form.get('message') ?? ''),
+      website: String(form.get('website') ?? ''),
     })
 
     if (!result.ok) {
@@ -69,13 +71,30 @@ export function ContactPage() {
           </p>
         </div>
 
-        <form className={styles.form} onSubmit={onSubmit} noValidate onFocus={markFormStart}>
+        <form
+          className={styles.form}
+          onSubmit={onSubmit}
+          noValidate
+          onFocus={markFormStart}
+          aria-busy={status === 'submitting'}
+        >
+          <div className={styles.honeypot} aria-hidden="true">
+            <label htmlFor="contact-website">Website</label>
+            <input
+              id="contact-website"
+              name="website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
           <Input
             id="contact-name"
             name="name"
             label="Name"
             autoComplete="name"
             required
+            maxLength={contactFieldLimits.name}
             onFocus={markFormStart}
           />
           <Input
@@ -85,6 +104,7 @@ export function ContactPage() {
             type="email"
             autoComplete="email"
             required
+            maxLength={contactFieldLimits.email}
             onFocus={markFormStart}
           />
           <Input
@@ -92,6 +112,7 @@ export function ContactPage() {
             name="company"
             label="Company"
             autoComplete="organization"
+            maxLength={contactFieldLimits.company}
             onFocus={markFormStart}
           />
           <Textarea
@@ -99,6 +120,7 @@ export function ContactPage() {
             name="message"
             label="Project overview"
             required
+            maxLength={contactFieldLimits.message}
             onFocus={markFormStart}
           />
           {error ? (

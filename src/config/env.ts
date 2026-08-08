@@ -1,5 +1,6 @@
 const trimTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
+/** Values exposed to the browser bundle — never put server secrets in VITE_*. */
 export const env = {
   siteUrl: trimTrailingSlash(
     import.meta.env.VITE_SITE_URL ?? 'https://mucolabs.com',

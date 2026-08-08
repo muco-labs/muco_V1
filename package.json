@@ -8,6 +8,7 @@
     "build": "node scripts/generate-seo.mjs && tsc -b && vite build",
     "generate:seo": "node scripts/generate-seo.mjs",
     "lint": "oxlint",
+    "audit": "npm audit",
     "preview": "vite preview"
   },
   "dependencies": {

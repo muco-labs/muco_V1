@@ -19,3 +19,8 @@ export const authCopy = {
     'Authentication is not live on the marketing site yet. This route reserves UX and URLs for the upcoming customer portal.',
   appOrigin: env.appUrl,
 } as const
+
+/**
+ * Auth security (future): httpOnly session cookies or short-lived tokens issued by the API;
+ * password hashing and MFA on server; no long-lived secrets in localStorage.
+ */

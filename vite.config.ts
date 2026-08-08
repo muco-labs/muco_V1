@@ -34,4 +34,23 @@ export default defineConfig({
   optimizeDeps: {
     include: ['framer-motion'],
   },
+  build: {
+    target: 'es2022',
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/framer-motion')) {
+            return 'vendor-motion'
+          }
+          if (id.includes('node_modules/react-icons')) {
+            return 'vendor-icons'
+          }
+          if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
+            return 'vendor-router'
+          }
+        },
+      },
+    },
+  },
 })

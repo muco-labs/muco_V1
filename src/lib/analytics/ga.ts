@@ -33,6 +33,9 @@ export function initGoogleAnalytics(): void {
   const script = document.createElement('script')
   script.async = true
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`
+  script.onerror = () => {
+    initialized = false
+  }
   document.head.appendChild(script)
 }
 

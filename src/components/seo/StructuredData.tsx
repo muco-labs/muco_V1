@@ -1,3 +1,4 @@
+import { serializeJsonLd } from '@/utils/json-ld'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
 import { env } from '@/config/env'
@@ -11,7 +12,7 @@ export function StructuredData({ data }: StructuredDataProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   )
 }

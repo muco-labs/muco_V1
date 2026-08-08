@@ -1,4 +1,5 @@
 import { env } from '@/config/env'
+import { isAllowedApiUrl } from '@/utils/url'
 
 export class ApiError extends Error {
   status: number
@@ -12,6 +13,17 @@ export class ApiError extends Error {
 
 type RequestOptions = RequestInit & {
   json?: unknown
+  timeoutMs?: number
+}
+
+const DEFAULT_TIMEOUT_MS = 15_000
+
+function scheduleTimeout(callback: () => void, ms: number): () => void {
+  if (typeof window === 'undefined') {
+    return () => undefined
+  }
+  const id = window.setTimeout(callback, ms)
+  return () => window.clearTimeout(id)
 }
 
 /**
@@ -22,26 +34,48 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { json, headers, ...rest } = options
-  const response = await fetch(path, {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: json !== undefined ? JSON.stringify(json) : rest.body,
-    credentials: 'same-origin',
-  })
-
-  if (!response.ok) {
-    throw new ApiError(response.statusText || 'Request failed', response.status)
+  if (!isAllowedApiUrl(path)) {
+    throw new ApiError('Invalid request URL', 0)
   }
 
-  if (response.status === 204) {
-    return undefined as T
-  }
+  const { json, headers, timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...rest } = options
+  const controller = new AbortController()
+  const clearSchedule = scheduleTimeout(() => controller.abort(), timeoutMs)
 
-  return (await response.json()) as T
+  const abortFromCaller = () => controller.abort()
+  signal?.addEventListener('abort', abortFromCaller, { once: true })
+
+  try {
+    const response = await fetch(path, {
+      ...rest,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: json !== undefined ? JSON.stringify(json) : rest.body,
+      credentials: 'same-origin',
+    })
+
+    if (!response.ok) {
+      throw new ApiError('Request failed', response.status)
+    }
+
+    if (response.status === 204) {
+      return undefined as T
+    }
+
+    return (await response.json()) as T
+  } catch (error) {
+    if (error instanceof ApiError) throw error
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError('Request timed out', 408)
+    }
+    throw new ApiError('Network error', 0)
+  } finally {
+    clearSchedule()
+    signal?.removeEventListener('abort', abortFromCaller)
+  }
 }
 
 export const api = {

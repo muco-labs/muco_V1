@@ -16,6 +16,16 @@
   line-height: var(--leading-snug);
 }
 
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .form {
   display: grid;
   gap: var(--space-4);
