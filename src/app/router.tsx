@@ -34,6 +34,10 @@ const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPag
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
 const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
 const ErodePage = lazyPage(() => import('@/pages/ErodePage'), 'ErodePage')
+const ErodeLocalServicePage = lazyPage(
+  () => import('@/pages/erode/ErodeLocalServicePage'),
+  'ErodeLocalServicePage',
+)
 const AuthSignInPage = lazyPage(() => import('@/pages/AuthSignInPage'), 'AuthSignInPage')
 const AuthSignUpPage = lazyPage(() => import('@/pages/AuthSignUpPage'), 'AuthSignUpPage')
 const AuthForgotPasswordPage = lazyPage(
@@ -135,6 +139,8 @@ const AdminNotificationsPage = lazyAdminPage('AdminNotificationsPage')
 const AdminAuditLogsPage = lazyAdminPage('AdminAuditLogsPage')
 const AdminSettingsPage = lazyAdminPage('AdminSettingsPage')
 const AdminSecurityPage = lazyAdminPage('AdminSecurityPage')
+const AdminLocalMarketPage = lazyAdminPage('AdminLocalMarketPage')
+const AdminLeadsPage = lazyAdminPage('AdminLeadsPage')
 
 function lazyCrmPage(exportName: string) {
   return lazy(() =>
@@ -173,6 +179,7 @@ export const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'pricing', element: <PricingPage /> },
       { path: 'erode', element: <ErodePage /> },
+      { path: 'erode/:serviceSlug', element: <ErodeLocalServicePage /> },
       { path: 'auth/sign-in', element: <AuthSignInPage /> },
       { path: 'auth/sign-up', element: <AuthSignUpPage /> },
       { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },
@@ -237,6 +244,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminDashboardPage /> },
           { path: 'crm', element: <CrmHomePage /> },
+          { path: 'crm/list', element: <AdminLeadsPage /> },
+          { path: 'local/erode', element: <AdminLocalMarketPage /> },
           { path: 'operations', element: <AdminOperationsPage /> },
           { path: 'sales', element: <AdminSalesPage /> },
           { path: 'revenue', element: <AdminRevenuePage /> },

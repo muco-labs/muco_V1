@@ -8,7 +8,7 @@ import {
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { pageSeo } from '@/config/seo'
-import { routePaths, servicePath } from '@/config/routes'
+import { routePaths } from '@/config/routes'
 import { erodeLocalFaqs, erodeLocalPage, erodeServiceLinks } from '@/content/erode-local'
 import { company } from '@/content/company'
 import { analyticsEvents } from '@/lib/analytics'
@@ -81,7 +81,7 @@ export function ErodePage() {
             <ul className={styles.serviceLinks}>
               {erodeServiceLinks.map((item) => (
                 <li key={item.slug}>
-                  <Link className="link-underline" to={servicePath(item.slug)}>
+                  <Link className="link-underline" to={item.href}>
                     {item.label}
                   </Link>
                 </li>
@@ -89,7 +89,7 @@ export function ErodePage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'erode_local' })}
+                to={contactHref({ source: 'erode_local', city: 'Erode' })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'erode_local' }}
               >

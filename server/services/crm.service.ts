@@ -35,6 +35,7 @@ import {
   normalizeLeadSource,
   storageSourceValue,
 } from '../lib/crm/constants.js'
+import { ERODE_LOCAL_PAGE_PREFIX } from '../lib/local/constants.js'
 import { inviteCustomerFromLead } from './auth.service.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
@@ -257,6 +258,7 @@ export async function listLeadsForCrm(
     assignedEmployeeId?: string
     q?: string
     followUp?: 'overdue' | 'upcoming'
+    locality?: 'erode' | 'tamil_nadu'
     limit?: number
     offset?: number
     sort?: 'newest' | 'oldest' | 'priority' | 'follow_up' | 'updated'
@@ -300,6 +302,28 @@ export async function listLeadsForCrm(
       and(
         lt(leads.followUpAt, new Date()),
         inArray(leads.followUpStatus, ['pending', 'due']),
+      )!,
+    )
+  }
+  if (query.locality === 'erode') {
+    conditions.push(
+      or(
+        ilike(leads.businessCity, '%erode%'),
+        ilike(leads.landingPath, `${ERODE_LOCAL_PAGE_PREFIX}%`),
+        ilike(leads.pageSource, '%erode%'),
+        ilike(leads.referralSource, '%erode%'),
+      )!,
+    )
+  }
+  if (query.locality === 'tamil_nadu') {
+    conditions.push(
+      or(
+        ilike(leads.businessCity, '%erode%'),
+        ilike(leads.businessCity, '%coimbatore%'),
+        ilike(leads.businessCity, '%salem%'),
+        ilike(leads.businessCity, '%tamil%'),
+        ilike(leads.businessCity, '%chennai%'),
+        ilike(leads.businessCity, '%tiruppur%'),
       )!,
     )
   }
@@ -462,6 +486,7 @@ export async function updateLeadCrm(
     expectedCloseAt: string | null
     salesNextAction: string
     referralSource: string
+    businessCity: string
   }>,
 ) {
   await assertCanAccessLead(auth, leadId)
@@ -518,6 +543,7 @@ export async function updateLeadCrm(
           : undefined,
       salesNextAction: input.salesNextAction,
       referralSource: input.referralSource,
+      businessCity: input.businessCity,
       updatedAt: new Date(),
     })
     .where(eq(leads.id, leadId))

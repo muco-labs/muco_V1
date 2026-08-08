@@ -77,6 +77,7 @@ import {
   getSalesDashboard,
 } from '../../services/sales.service.js'
 import { normalizeLeadSource } from '../../lib/crm/constants.js'
+import { getErodeMarketDashboard } from '../../services/local.service.js'
 
 export const adminRoutes = new Hono()
 
@@ -284,6 +285,14 @@ adminRoutes.get('/crm/pipeline', requirePermission('leads.view'), async (c) => {
   }
 })
 
+adminRoutes.get('/local/erode-dashboard', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getErodeMarketDashboard(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
   try {
     const auth = c.get('auth')
@@ -293,6 +302,7 @@ adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
       source: c.req.query('source'),
       assignedEmployeeId: c.req.query('assignedEmployeeId'),
       q: c.req.query('q'),
+      locality: c.req.query('locality') as 'erode' | 'tamil_nadu' | undefined,
       followUp: c.req.query('followUp') as 'overdue' | undefined,
       sort: (c.req.query('sort') as 'newest') ?? 'newest',
       limit: Number(c.req.query('limit') || 50),

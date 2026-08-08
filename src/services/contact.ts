@@ -18,8 +18,8 @@ export type ContactSubmitInput = {
   serviceInterest?: string
   budget?: string
   timeline?: string
-  /** Page-level source slug for CRM (e.g. service_detail, pricing). */
   pageSource?: string
+  businessCity?: string
   /** Honeypot — must stay empty; bots often fill hidden fields. */
   website?: string
 }
@@ -59,6 +59,7 @@ export async function submitContact(input: ContactSubmitInput): Promise<ContactR
           serviceInterest: validation.data.serviceInterest || undefined,
           budget: validation.data.budget || undefined,
           timeline: validation.data.timeline || undefined,
+          businessCity: validation.data.businessCity || undefined,
           website: input.website ?? '',
           source,
           ...attribution,

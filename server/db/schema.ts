@@ -327,6 +327,7 @@ export const leads = pgTable(
     expectedCloseAt: timestamp('expected_close_at', { withTimezone: true }),
     salesNextAction: text('sales_next_action'),
     referralSource: text('referral_source'),
+    businessCity: text('business_city'),
     qualificationBusinessType: text('qualification_business_type'),
     qualificationProjectSize: text('qualification_project_size'),
     qualificationUrgency: text('qualification_urgency'),
@@ -344,6 +345,7 @@ export const leads = pgTable(
     index('leads_customer_id_idx').on(table.customerId),
     index('leads_page_source_idx').on(table.pageSource),
     index('leads_service_interest_idx').on(table.serviceInterest),
+    index('leads_business_city_idx').on(table.businessCity),
   ],
 )
 

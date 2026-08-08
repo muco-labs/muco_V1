@@ -24,6 +24,9 @@ export const adminApi = {
     metrics: () => apiRequest<Record<string, unknown>>(`${base}/crm/metrics`),
     pipeline: () => apiRequest<Record<string, unknown>>(`${base}/crm/pipeline`),
   },
+  local: {
+    erodeDashboard: () => apiRequest<Record<string, unknown>>(`${base}/local/erode-dashboard`),
+  },
   operations: {
     report: () => apiRequest<Record<string, unknown>>(`${base}/operations/report`),
   },
@@ -39,10 +42,11 @@ export const adminApi = {
   auditLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs`),
   automationLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs/automation`),
   leads: {
-    list: (params?: { status?: string; q?: string }) => {
+    list: (params?: { status?: string; q?: string; locality?: 'erode' | 'tamil_nadu' }) => {
       const search = new URLSearchParams()
       if (params?.status) search.set('status', params.status)
       if (params?.q) search.set('q', params.q)
+      if (params?.locality) search.set('locality', params.locality)
       const qs = search.toString()
       return apiRequest<{ items: unknown[] }>(`${base}/leads${qs ? `?${qs}` : ''}`)
     },

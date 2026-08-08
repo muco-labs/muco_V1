@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   EmptyState,
   ListSkeleton,
@@ -28,11 +28,21 @@ function asRecords(data: { items?: unknown[] } | null | undefined) {
 }
 
 export function AdminLeadsPage() {
+  const [searchParams] = useSearchParams()
   const [status, setStatus] = useState('')
   const [q, setQ] = useState('')
+  const [locality, setLocality] = useState<'' | 'erode' | 'tamil_nadu'>(() => {
+    const v = searchParams.get('locality')
+    return v === 'erode' || v === 'tamil_nadu' ? v : ''
+  })
   const { data, error, loading, reload } = useFetch(
-    () => adminApi.leads.list({ status: status || undefined, q: q || undefined }),
-    [status, q],
+    () =>
+      adminApi.leads.list({
+        status: status || undefined,
+        q: q || undefined,
+        locality: locality || undefined,
+      }),
+    [status, q, locality],
   )
   const items = asRecords(data)
 
@@ -58,6 +68,15 @@ export function AdminLeadsPage() {
             </option>
           ))}
         </select>
+        <select
+          aria-label="Filter by location segment"
+          value={locality}
+          onChange={(e) => setLocality(e.target.value as '' | 'erode' | 'tamil_nadu')}
+        >
+          <option value="">All locations</option>
+          <option value="erode">Erode segment</option>
+          <option value="tamil_nadu">Tamil Nadu (city provided)</option>
+        </select>
       </div>
       {items.length === 0 ? (
         <EmptyState title="No enquiries" description="No enquiries have arrived yet." />
@@ -69,6 +88,9 @@ export function AdminLeadsPage() {
                 {String(lead.name)}
               </Link>
               <span className={ui.meta}>{String(lead.email)}</span>
+              {lead.businessCity ? (
+                <span className={ui.meta}>{String(lead.businessCity)}</span>
+              ) : null}
               <StatusPill status={String(lead.status)} />
             </li>
           ))}
@@ -882,6 +904,110 @@ export function AdminSecurityPage() {
           API keys and webhook secrets are never shown in the browser. {String(data?.note ?? '')}
         </p>
       </article>
+    </>
+  )
+}
+
+function formatInrNullable(amount: string | null | undefined) {
+  if (amount == null || amount === '') return '—'
+  return formatInr(amount)
+}
+
+export function AdminLocalMarketPage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.local.erodeDashboard(), [])
+
+  if (loading) return <ListSkeleton rows={6} />
+  if (error) return <PortalError message={error} onRetry={reload} />
+
+  const byService = (data?.byService as Array<{ service: string; count: number }>) ?? []
+  const bySource = (data?.bySource as Array<{ source: string; count: number }>) ?? []
+  const recent =
+    (data?.recentLeads as Array<Record<string, unknown>>) ?? []
+
+  return (
+    <>
+      <PageIntro
+        label="Local market"
+        title="Erode segment"
+        description="Counts use voluntary city, /erode pages, or explicit page context—not IP geolocation."
+      />
+      <p className={ui.meta}>{String(data?.attributionNote ?? '')}</p>
+
+      <div className={ui.cardGrid} style={{ marginTop: 'var(--space-4)' }}>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Leads</h2>
+          <p className="text-h2">{Number(data?.totalLeads ?? 0)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Qualified+</h2>
+          <p className="text-h2">{Number(data?.qualifiedLeads ?? 0)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Won</h2>
+          <p className="text-h2">{Number(data?.wonLeads ?? 0)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Pipeline (proposals)</h2>
+          <p className="text-h2">{formatInrNullable(data?.pipelineValue as string)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Accepted proposals</h2>
+          <p className="text-h2">{formatInrNullable(data?.wonProposalValue as string)}</p>
+        </article>
+      </div>
+
+      {byService.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">By service</h2>
+          <ul className={ui.stack}>
+            {byService.map((row) => (
+              <li key={row.service} className={`surface ${ui.dataCard}`}>
+                {row.service} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {bySource.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">By source</h2>
+          <ul className={ui.stack}>
+            {bySource.map((row) => (
+              <li key={row.source} className={`surface ${ui.dataCard}`}>
+                {row.source} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={layout.filterRow}>
+          <h2 className="text-h3">Recent Erode-segment leads</h2>
+          <Link className="link-underline" to={`${adminPortalPaths.crmLeadsList}?locality=erode`}>
+            View all with filter
+          </Link>
+        </div>
+        {recent.length === 0 ? (
+          <EmptyState title="No leads yet" description="Erode-segment leads will appear as enquiries arrive." />
+        ) : (
+          <ul className={ui.stack}>
+            {recent.map((lead) => (
+              <li key={String(lead.id)} className={`surface ${ui.dataCard}`}>
+                <Link className="link-underline" to={adminPortalPaths.crmLeadDetail(String(lead.id))}>
+                  {String(lead.name)}
+                </Link>
+                <span className={ui.meta}>
+                  {String(lead.serviceInterest ?? 'Service TBD')}
+                  {lead.businessCity ? ` · ${String(lead.businessCity)}` : ''}
+                </span>
+                <StatusPill status={String(lead.status)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </>
   )
 }

@@ -1,5 +1,6 @@
 import { pageSeo } from '@/config/seo'
 import { routePaths, serviceSlugs, servicePath } from '@/config/routes'
+import { erodeLocalServiceSlugs, erodeLocalServicePath } from '@/content/erode/local-services'
 import { portfolioProjects } from '@/data/portfolio'
 import { workPath } from '@/data/portfolio'
 
@@ -11,6 +12,7 @@ export const indexablePaths: string[] = [
   pageSeo.work.path,
   ...portfolioProjects.map((project) => workPath(project.id)),
   pageSeo.erode.path,
+  ...erodeLocalServiceSlugs.map((slug) => erodeLocalServicePath(slug)),
   pageSeo.about.path,
   pageSeo.contact.path,
   pageSeo.pricing.path,

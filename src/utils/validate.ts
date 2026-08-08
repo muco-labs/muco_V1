@@ -9,6 +9,7 @@ export const contactFieldLimits = {
   serviceInterest: 120,
   budget: 80,
   timeline: 120,
+  businessCity: 80,
 } as const
 
 function stripControlCharacters(value: string): string {
@@ -45,6 +46,7 @@ export type SanitizedContactPayload = {
   serviceInterest: string
   budget: string
   timeline: string
+  businessCity: string
 }
 
 export function sanitizeContactPayload(payload: {
@@ -56,6 +58,7 @@ export function sanitizeContactPayload(payload: {
   serviceInterest?: string
   budget?: string
   timeline?: string
+  businessCity?: string
 }): SanitizedContactPayload {
   return {
     name: sanitizeTextInput(payload.name, contactFieldLimits.name),
@@ -69,6 +72,7 @@ export function sanitizeContactPayload(payload: {
     ),
     budget: sanitizeTextInput(payload.budget ?? '', contactFieldLimits.budget),
     timeline: sanitizeTextInput(payload.timeline ?? '', contactFieldLimits.timeline),
+    businessCity: sanitizeTextInput(payload.businessCity ?? '', contactFieldLimits.businessCity),
   }
 }
 
@@ -85,6 +89,7 @@ export function validateContactPayload(payload: {
   serviceInterest?: string
   budget?: string
   timeline?: string
+  businessCity?: string
 }): ContactValidationResult {
   const data = sanitizeContactPayload(payload)
 

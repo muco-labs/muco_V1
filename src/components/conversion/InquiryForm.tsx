@@ -22,6 +22,7 @@ export type InquiryFormValues = {
   serviceInterest: string
   budget: string
   timeline: string
+  businessCity: string
   message: string
 }
 
@@ -40,6 +41,7 @@ const emptyValues: InquiryFormValues = {
   serviceInterest: '',
   budget: '',
   timeline: '',
+  businessCity: '',
   message: '',
 }
 
@@ -88,6 +90,7 @@ export function InquiryForm({
       serviceInterest: values.serviceInterest,
       budget: values.budget,
       timeline: values.timeline,
+      businessCity: values.businessCity,
       pageSource,
       website: String(honeypot ?? ''),
     })
@@ -186,6 +189,16 @@ export function InquiryForm({
           {...field('company')}
         />
       </div>
+      <Input
+        id={`${idPrefix}-city`}
+        name="businessCity"
+        label="Business city (optional)"
+        autoComplete="address-level2"
+        placeholder="E.g. Erode"
+        maxLength={contactFieldLimits.businessCity}
+        hint="Helps us route local enquiries—only if you choose to share it."
+        {...field('businessCity')}
+      />
       <Select
         id={`${idPrefix}-service`}
         name="serviceInterest"

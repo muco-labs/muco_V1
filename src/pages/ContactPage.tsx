@@ -33,9 +33,10 @@ export function ContactPage() {
 
     return {
       serviceInterest: prefill.service ?? '',
+      businessCity: prefill.city ?? (prefill.source?.includes('erode') ? 'Erode' : ''),
       message: message ? `${message}\n\n` : '',
     }
-  }, [prefill.project, prefill.service])
+  }, [prefill.project, prefill.service, prefill.city, prefill.source])
 
   return (
     <PageShell

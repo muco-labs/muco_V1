@@ -1,6 +1,7 @@
 /** GA4 event names used across the public site. */
 export const analyticsEvents = {
   organicLanding: 'organic_landing',
+  erodeServiceView: 'erode_service_view',
   heroCtaClick: 'hero_cta_click',
   startProjectClick: 'start_project_click',
   serviceCtaClick: 'service_cta_click',

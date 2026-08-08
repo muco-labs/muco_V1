@@ -40,6 +40,7 @@ export const createLeadSchema = z.object({
   utmContent: z.string().trim().max(120).optional(),
   referrerHost: z.string().trim().max(120).optional(),
   pageSource: z.string().trim().max(64).optional(),
+  businessCity: z.string().trim().max(80).optional(),
 })
 
 export type CreateLeadInput = z.infer<typeof createLeadSchema>

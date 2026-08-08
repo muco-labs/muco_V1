@@ -1,6 +1,8 @@
 export const adminPortalPaths = {
   root: '/admin',
   crm: '/admin/crm',
+  crmLeadsList: '/admin/crm/list',
+  localErode: '/admin/local/erode',
   operations: '/admin/operations',
   sales: '/admin/sales',
   revenue: '/admin/revenue',
@@ -35,6 +37,7 @@ export type AdminNavItem = {
 export const adminNav: AdminNavItem[] = [
   { label: 'Dashboard', path: adminPortalPaths.root, end: true, permission: null },
   { label: 'CRM', path: adminPortalPaths.crm, permission: 'leads.view' },
+  { label: 'Erode market', path: adminPortalPaths.localErode, permission: 'leads.view' },
   { label: 'Operations', path: adminPortalPaths.operations, permission: 'analytics.view' },
   { label: 'Sales', path: adminPortalPaths.sales, permission: 'leads.view' },
   { label: 'Revenue', path: adminPortalPaths.revenue, permission: 'invoices.view' },
