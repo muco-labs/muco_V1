@@ -34,9 +34,13 @@ const portfolioIds = [
   'concept-automation',
 ]
 
+const industrySlugs = ['manufacturing', 'ecommerce', 'healthcare', 'education', 'startups']
+
 const indexablePaths = [
   '/',
   '/services',
+  '/solutions',
+  ...industrySlugs.map((slug) => `/solutions/${slug}`),
   ...serviceSlugs.map((slug) => `/services/${slug}`),
   '/work',
   ...portfolioIds.map((id) => `/work/${id}`),
@@ -45,6 +49,8 @@ const indexablePaths = [
   '/erode/web-development',
   '/erode/software-development',
   '/erode/seo',
+  '/tamil-nadu',
+  '/india',
   '/contact',
   '/pricing',
   '/privacy-policy',

@@ -27,6 +27,10 @@ const SolutionsPage = lazyPage(
   () => import('@/pages/SolutionsPage'),
   'SolutionsPage',
 )
+const IndustrySolutionPage = lazyPage(
+  () => import('@/pages/solutions/IndustrySolutionPage'),
+  'IndustrySolutionPage',
+)
 const WorkPage = lazyPage(() => import('@/pages/WorkPage'), 'WorkPage')
 const WorkProjectPage = lazyPage(() => import('@/pages/WorkProjectPage'), 'WorkProjectPage')
 const AboutPage = lazyPage(() => import('@/pages/AboutPage'), 'AboutPage')
@@ -34,6 +38,8 @@ const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPag
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
 const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
 const ErodePage = lazyPage(() => import('@/pages/ErodePage'), 'ErodePage')
+const TamilNaduPage = lazyPage(() => import('@/pages/TamilNaduPage'), 'TamilNaduPage')
+const IndiaPage = lazyPage(() => import('@/pages/IndiaPage'), 'IndiaPage')
 const ErodeLocalServicePage = lazyPage(
   () => import('@/pages/erode/ErodeLocalServicePage'),
   'ErodeLocalServicePage',
@@ -140,6 +146,7 @@ const AdminAuditLogsPage = lazyAdminPage('AdminAuditLogsPage')
 const AdminSettingsPage = lazyAdminPage('AdminSettingsPage')
 const AdminSecurityPage = lazyAdminPage('AdminSecurityPage')
 const AdminLocalMarketPage = lazyAdminPage('AdminLocalMarketPage')
+const AdminNationalMarketPage = lazyAdminPage('AdminNationalMarketPage')
 const AdminLeadsPage = lazyAdminPage('AdminLeadsPage')
 
 function lazyCrmPage(exportName: string) {
@@ -172,6 +179,7 @@ export const router = createBrowserRouter([
       { path: 'services', element: <ServicesPage /> },
       { path: 'services/:slug', element: <ServiceDetailPage /> },
       { path: 'solutions', element: <SolutionsPage /> },
+      { path: 'solutions/:industrySlug', element: <IndustrySolutionPage /> },
       { path: 'work', element: <WorkPage /> },
       { path: 'work/:slug', element: <WorkProjectPage /> },
       { path: 'about', element: <AboutPage /> },
@@ -180,6 +188,8 @@ export const router = createBrowserRouter([
       { path: 'pricing', element: <PricingPage /> },
       { path: 'erode', element: <ErodePage /> },
       { path: 'erode/:serviceSlug', element: <ErodeLocalServicePage /> },
+      { path: 'tamil-nadu', element: <TamilNaduPage /> },
+      { path: 'india', element: <IndiaPage /> },
       { path: 'auth/sign-in', element: <AuthSignInPage /> },
       { path: 'auth/sign-up', element: <AuthSignUpPage /> },
       { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },
@@ -246,6 +256,7 @@ export const router = createBrowserRouter([
           { path: 'crm', element: <CrmHomePage /> },
           { path: 'crm/list', element: <AdminLeadsPage /> },
           { path: 'local/erode', element: <AdminLocalMarketPage /> },
+          { path: 'local/india', element: <AdminNationalMarketPage /> },
           { path: 'operations', element: <AdminOperationsPage /> },
           { path: 'sales', element: <AdminSalesPage /> },
           { path: 'revenue', element: <AdminRevenuePage /> },

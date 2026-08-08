@@ -35,7 +35,7 @@ import {
   normalizeLeadSource,
   storageSourceValue,
 } from '../lib/crm/constants.js'
-import { ERODE_LOCAL_PAGE_PREFIX } from '../lib/local/constants.js'
+import { erodeLeadCondition, indiaLeadCondition, tamilNaduLeadCondition } from '../lib/market/conditions.js'
 import { inviteCustomerFromLead } from './auth.service.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
@@ -258,7 +258,7 @@ export async function listLeadsForCrm(
     assignedEmployeeId?: string
     q?: string
     followUp?: 'overdue' | 'upcoming'
-    locality?: 'erode' | 'tamil_nadu'
+    locality?: 'erode' | 'tamil_nadu' | 'india'
     limit?: number
     offset?: number
     sort?: 'newest' | 'oldest' | 'priority' | 'follow_up' | 'updated'
@@ -306,26 +306,13 @@ export async function listLeadsForCrm(
     )
   }
   if (query.locality === 'erode') {
-    conditions.push(
-      or(
-        ilike(leads.businessCity, '%erode%'),
-        ilike(leads.landingPath, `${ERODE_LOCAL_PAGE_PREFIX}%`),
-        ilike(leads.pageSource, '%erode%'),
-        ilike(leads.referralSource, '%erode%'),
-      )!,
-    )
+    conditions.push(erodeLeadCondition())
   }
   if (query.locality === 'tamil_nadu') {
-    conditions.push(
-      or(
-        ilike(leads.businessCity, '%erode%'),
-        ilike(leads.businessCity, '%coimbatore%'),
-        ilike(leads.businessCity, '%salem%'),
-        ilike(leads.businessCity, '%tamil%'),
-        ilike(leads.businessCity, '%chennai%'),
-        ilike(leads.businessCity, '%tiruppur%'),
-      )!,
-    )
+    conditions.push(tamilNaduLeadCondition())
+  }
+  if (query.locality === 'india') {
+    conditions.push(indiaLeadCondition())
   }
 
   const orderByClause =
@@ -487,6 +474,7 @@ export async function updateLeadCrm(
     salesNextAction: string
     referralSource: string
     businessCity: string
+    businessState: string
   }>,
 ) {
   await assertCanAccessLead(auth, leadId)
@@ -544,6 +532,7 @@ export async function updateLeadCrm(
       salesNextAction: input.salesNextAction,
       referralSource: input.referralSource,
       businessCity: input.businessCity,
+      businessState: input.businessState,
       updatedAt: new Date(),
     })
     .where(eq(leads.id, leadId))

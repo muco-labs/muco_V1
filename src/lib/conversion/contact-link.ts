@@ -6,6 +6,7 @@ export type ContactLinkParams = {
   source?: string
   project?: string
   city?: string
+  state?: string
 }
 
 /** Builds contact URL with optional qualification prefill (no PII). */
@@ -16,6 +17,7 @@ export function contactHref(params?: ContactLinkParams): string {
   if (params.source) search.set('source', params.source.slice(0, 40))
   if (params.project) search.set('project', params.project.slice(0, 80))
   if (params.city) search.set('city', params.city.slice(0, 80))
+  if (params.state) search.set('state', params.state.slice(0, 80))
   const query = search.toString()
   return query ? `${routePaths.contact}?${query}` : routePaths.contact
 }
@@ -27,5 +29,6 @@ export function readContactPrefill(search: string): ContactLinkParams {
     source: params.get('source') ?? undefined,
     project: params.get('project') ?? undefined,
     city: params.get('city') ?? undefined,
+    state: params.get('state') ?? undefined,
   }
 }

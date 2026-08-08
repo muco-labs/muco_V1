@@ -23,6 +23,7 @@ export type InquiryFormValues = {
   budget: string
   timeline: string
   businessCity: string
+  businessState: string
   message: string
 }
 
@@ -42,6 +43,7 @@ const emptyValues: InquiryFormValues = {
   budget: '',
   timeline: '',
   businessCity: '',
+  businessState: '',
   message: '',
 }
 
@@ -91,6 +93,7 @@ export function InquiryForm({
       budget: values.budget,
       timeline: values.timeline,
       businessCity: values.businessCity,
+      businessState: values.businessState,
       pageSource,
       website: String(honeypot ?? ''),
     })
@@ -198,6 +201,15 @@ export function InquiryForm({
         maxLength={contactFieldLimits.businessCity}
         hint="Helps us route local enquiries—only if you choose to share it."
         {...field('businessCity')}
+      />
+      <Input
+        id={`${idPrefix}-state`}
+        name="businessState"
+        label="State / region (optional)"
+        autoComplete="address-level1"
+        placeholder="E.g. Tamil Nadu"
+        maxLength={contactFieldLimits.businessState}
+        {...field('businessState')}
       />
       <Select
         id={`${idPrefix}-service`}

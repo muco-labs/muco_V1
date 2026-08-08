@@ -328,6 +328,7 @@ export const leads = pgTable(
     salesNextAction: text('sales_next_action'),
     referralSource: text('referral_source'),
     businessCity: text('business_city'),
+    businessState: text('business_state'),
     qualificationBusinessType: text('qualification_business_type'),
     qualificationProjectSize: text('qualification_project_size'),
     qualificationUrgency: text('qualification_urgency'),
@@ -346,6 +347,7 @@ export const leads = pgTable(
     index('leads_page_source_idx').on(table.pageSource),
     index('leads_service_interest_idx').on(table.serviceInterest),
     index('leads_business_city_idx').on(table.businessCity),
+    index('leads_business_state_idx').on(table.businessState),
   ],
 )
 

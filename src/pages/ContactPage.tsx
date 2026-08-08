@@ -34,9 +34,12 @@ export function ContactPage() {
     return {
       serviceInterest: prefill.service ?? '',
       businessCity: prefill.city ?? (prefill.source?.includes('erode') ? 'Erode' : ''),
+      businessState:
+        prefill.state ??
+        (prefill.source?.includes('tamil_nadu') ? 'Tamil Nadu' : ''),
       message: message ? `${message}\n\n` : '',
     }
-  }, [prefill.project, prefill.service, prefill.city, prefill.source])
+  }, [prefill.project, prefill.service, prefill.city, prefill.state, prefill.source])
 
   return (
     <PageShell

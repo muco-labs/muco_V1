@@ -195,7 +195,8 @@ export function CrmLeadDetailPage() {
       lead.pageSource ||
       lead.utmSource ||
       lead.referrerHost ||
-      lead.businessCity ? (
+      lead.businessCity ||
+      lead.businessState ? (
         <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
           <h2 className="text-h3">Attribution</h2>
           <ul className={ui.stack}>
@@ -211,6 +212,9 @@ export function CrmLeadDetailPage() {
             {lead.referrerHost ? <li className={ui.meta}>Referrer: {String(lead.referrerHost)}</li> : null}
             {lead.businessCity ? (
               <li className={ui.meta}>Business city (provided): {String(lead.businessCity)}</li>
+            ) : null}
+            {lead.businessState ? (
+              <li className={ui.meta}>State / region (provided): {String(lead.businessState)}</li>
             ) : null}
           </ul>
         </section>

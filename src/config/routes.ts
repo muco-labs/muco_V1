@@ -15,6 +15,8 @@ export const routePaths = {
   terms: '/terms',
   cookies: '/cookie-policy',
   erode: '/erode',
+  tamilNadu: '/tamil-nadu',
+  india: '/india',
 } as const
 
 export type ServiceSlug =
@@ -57,6 +59,8 @@ export const staticRoutes = [
   routePaths.contact,
   routePaths.pricing,
   routePaths.erode,
+  routePaths.tamilNadu,
+  routePaths.india,
   '/auth/sign-in',
   '/auth/sign-up',
   routePaths.privacy,

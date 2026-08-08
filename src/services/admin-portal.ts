@@ -26,6 +26,7 @@ export const adminApi = {
   },
   local: {
     erodeDashboard: () => apiRequest<Record<string, unknown>>(`${base}/local/erode-dashboard`),
+    indiaDashboard: () => apiRequest<Record<string, unknown>>(`${base}/local/india-dashboard`),
   },
   operations: {
     report: () => apiRequest<Record<string, unknown>>(`${base}/operations/report`),
@@ -42,7 +43,7 @@ export const adminApi = {
   auditLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs`),
   automationLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs/automation`),
   leads: {
-    list: (params?: { status?: string; q?: string; locality?: 'erode' | 'tamil_nadu' }) => {
+    list: (params?: { status?: string; q?: string; locality?: 'erode' | 'tamil_nadu' | 'india' }) => {
       const search = new URLSearchParams()
       if (params?.status) search.set('status', params.status)
       if (params?.q) search.set('q', params.q)

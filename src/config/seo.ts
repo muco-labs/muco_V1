@@ -28,10 +28,9 @@ export const pageSeo = {
   },
   solutions: {
     path: '/solutions',
-    documentTitle: `Solutions | ${brand}`,
+    documentTitle: `Solutions by industry | ${brand}`,
     description:
-      'Outcome-based technology solutions from MUCO LABS—mapped to business problems, not a generic service grid.',
-    noIndex: true,
+      'Industry-focused technology solutions from MUCO LABS—manufacturing, ecommerce, healthcare, education and startups across India.',
   },
   work: {
     path: '/work',
@@ -57,6 +56,18 @@ export const pageSeo = {
     documentTitle: `MUCO LABS Erode | Web, Software & AI Development`,
     description:
       'MUCO LABS in Erode, Tamil Nadu—website development, custom software, mobile apps, AI, SEO and digital marketing with founder-led delivery.',
+  },
+  tamilNadu: {
+    path: '/tamil-nadu',
+    documentTitle: `MUCO LABS Tamil Nadu | Web, Software & AI`,
+    description:
+      'Technology partner for Tamil Nadu businesses—websites, software, mobile, AI and growth programs with Erode headquarters and remote delivery.',
+  },
+  india: {
+    path: '/india',
+    documentTitle: `MUCO LABS India | Software, Web & AI Development`,
+    description:
+      'India-wide delivery from MUCO LABS—custom software, websites, mobile apps, AI, automation and SEO with transparent proposals.',
   },
   contact: {
     path: '/contact',

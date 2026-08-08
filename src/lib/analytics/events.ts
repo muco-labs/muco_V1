@@ -2,6 +2,9 @@
 export const analyticsEvents = {
   organicLanding: 'organic_landing',
   erodeServiceView: 'erode_service_view',
+  tamilNaduPageView: 'tamil_nadu_page_view',
+  indiaPageView: 'india_page_view',
+  solutionIndustryView: 'solution_industry_view',
   heroCtaClick: 'hero_cta_click',
   startProjectClick: 'start_project_click',
   serviceCtaClick: 'service_cta_click',

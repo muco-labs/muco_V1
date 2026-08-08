@@ -2,6 +2,12 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://mucolabs.com</loc></url>
   <url><loc>https://mucolabs.com/services</loc></url>
+  <url><loc>https://mucolabs.com/solutions</loc></url>
+  <url><loc>https://mucolabs.com/solutions/manufacturing</loc></url>
+  <url><loc>https://mucolabs.com/solutions/ecommerce</loc></url>
+  <url><loc>https://mucolabs.com/solutions/healthcare</loc></url>
+  <url><loc>https://mucolabs.com/solutions/education</loc></url>
+  <url><loc>https://mucolabs.com/solutions/startups</loc></url>
   <url><loc>https://mucolabs.com/services/web-development</loc></url>
   <url><loc>https://mucolabs.com/services/software-development</loc></url>
   <url><loc>https://mucolabs.com/services/mobile-app-development</loc></url>
@@ -26,6 +32,8 @@
   <url><loc>https://mucolabs.com/erode/web-development</loc></url>
   <url><loc>https://mucolabs.com/erode/software-development</loc></url>
   <url><loc>https://mucolabs.com/erode/seo</loc></url>
+  <url><loc>https://mucolabs.com/tamil-nadu</loc></url>
+  <url><loc>https://mucolabs.com/india</loc></url>
   <url><loc>https://mucolabs.com/contact</loc></url>
   <url><loc>https://mucolabs.com/pricing</loc></url>
   <url><loc>https://mucolabs.com/privacy-policy</loc></url>

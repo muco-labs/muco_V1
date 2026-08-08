@@ -22,6 +22,8 @@ export const footerNav = {
     { label: 'Work', href: routePaths.work },
     { label: 'About', href: routePaths.about },
     { label: 'Erode', href: routePaths.erode },
+    { label: 'Tamil Nadu', href: routePaths.tamilNadu },
+    { label: 'India', href: routePaths.india },
     { label: 'Insights', href: routePaths.insights },
     { label: 'Contact', href: routePaths.contact },
     { label: 'Pricing', href: routePaths.pricing },

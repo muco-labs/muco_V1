@@ -1,8 +1,9 @@
-import { and, count, desc, eq, ilike, inArray, or, sum } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, sum } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
 import { leads, proposals } from '../db/schema.js'
 import { AppError } from '../lib/errors.js'
-import { ERODE_LOCAL_PAGE_PREFIX, isErodeAttributedLead } from '../lib/local/constants.js'
+import { erodeLeadCondition } from '../lib/market/conditions.js'
+import { isErodeAttributedLead } from '../lib/local/constants.js'
 import { isFullCrmAccessor, getEmployeeProfileId } from './crm.service.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 
@@ -13,13 +14,8 @@ async function localLeadScope(auth: AuthContext) {
   return eq(leads.assignedEmployeeId, employeeId)
 }
 
-function erodeLeadCondition() {
-  return or(
-    ilike(leads.businessCity, '%erode%'),
-    ilike(leads.landingPath, `${ERODE_LOCAL_PAGE_PREFIX}%`),
-    ilike(leads.pageSource, '%erode%'),
-    ilike(leads.referralSource, '%erode%'),
-  )!
+function erodeLeadConditionLocal() {
+  return erodeLeadCondition()
 }
 
 export async function getErodeMarketDashboard(auth: AuthContext) {
@@ -27,7 +23,7 @@ export async function getErodeMarketDashboard(auth: AuthContext) {
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
 
   const scope = await localLeadScope(auth)
-  const erodeCond = erodeLeadCondition()
+  const erodeCond = erodeLeadConditionLocal()
   const base = scope ? and(scope, erodeCond) : erodeCond
 
   const [totalLeads] = await db.select({ c: count() }).from(leads).where(base)

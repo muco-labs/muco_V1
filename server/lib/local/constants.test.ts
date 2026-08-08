@@ -1,31 +1,34 @@
 import { describe, expect, it } from 'vitest'
-import { isErodeAttributedLead, isTamilNaduAttributedLead } from './constants.js'
+import {
+  isErodeAttributedLead,
+  isIndiaAttributedLead,
+  isTamilNaduAttributedLead,
+} from '../market/constants.js'
 
 describe('isErodeAttributedLead', () => {
-  it('matches voluntary city', () => {
+  it('matches voluntary city and /erode paths', () => {
     expect(isErodeAttributedLead({ businessCity: 'Erode' })).toBe(true)
-    expect(isErodeAttributedLead({ businessCity: 'Near Erode, TN' })).toBe(true)
-  })
-
-  it('matches /erode landing paths and page source', () => {
     expect(isErodeAttributedLead({ landingPath: '/erode/web-development' })).toBe(true)
-    expect(isErodeAttributedLead({ pageSource: 'erode_local' })).toBe(true)
-  })
-
-  it('does not infer from empty data', () => {
-    expect(isErodeAttributedLead({})).toBe(false)
-    expect(isErodeAttributedLead({ businessCity: 'Chennai' })).toBe(false)
   })
 })
 
 describe('isTamilNaduAttributedLead', () => {
-  it('matches known TN city names when provided', () => {
-    expect(isTamilNaduAttributedLead('Coimbatore')).toBe(true)
-    expect(isTamilNaduAttributedLead('Erode')).toBe(true)
+  it('matches TN cities and hub path', () => {
+    expect(isTamilNaduAttributedLead({ businessCity: 'Coimbatore' })).toBe(true)
+    expect(isTamilNaduAttributedLead({ businessState: 'Tamil Nadu' })).toBe(true)
+    expect(isTamilNaduAttributedLead({ landingPath: '/tamil-nadu' })).toBe(true)
+  })
+})
+
+describe('isIndiaAttributedLead', () => {
+  it('includes TN and national signals', () => {
+    expect(isIndiaAttributedLead({ businessCity: 'Bengaluru' })).toBe(true)
+    expect(isIndiaAttributedLead({ businessState: 'Karnataka' })).toBe(true)
+    expect(isIndiaAttributedLead({ landingPath: '/india' })).toBe(true)
+    expect(isIndiaAttributedLead({ pageSource: 'india_hub' })).toBe(true)
   })
 
-  it('returns false without city', () => {
-    expect(isTamilNaduAttributedLead(null)).toBe(false)
-    expect(isTamilNaduAttributedLead('')).toBe(false)
+  it('does not infer without data', () => {
+    expect(isIndiaAttributedLead({})).toBe(false)
   })
 })

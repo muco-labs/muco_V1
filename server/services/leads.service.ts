@@ -29,6 +29,7 @@ function attributionFields(input: CreateLeadInput) {
     referrerHost: input.referrerHost,
     pageSource: input.pageSource,
     businessCity: input.businessCity,
+    businessState: input.businessState,
   }
 }
 

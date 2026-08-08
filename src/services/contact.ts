@@ -20,7 +20,7 @@ export type ContactSubmitInput = {
   timeline?: string
   pageSource?: string
   businessCity?: string
-  /** Honeypot — must stay empty; bots often fill hidden fields. */
+  businessState?: string
   website?: string
 }
 
@@ -60,6 +60,7 @@ export async function submitContact(input: ContactSubmitInput): Promise<ContactR
           budget: validation.data.budget || undefined,
           timeline: validation.data.timeline || undefined,
           businessCity: validation.data.businessCity || undefined,
+          businessState: validation.data.businessState || undefined,
           website: input.website ?? '',
           source,
           ...attribution,

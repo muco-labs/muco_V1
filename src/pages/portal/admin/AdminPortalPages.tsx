@@ -31,9 +31,9 @@ export function AdminLeadsPage() {
   const [searchParams] = useSearchParams()
   const [status, setStatus] = useState('')
   const [q, setQ] = useState('')
-  const [locality, setLocality] = useState<'' | 'erode' | 'tamil_nadu'>(() => {
+  const [locality, setLocality] = useState<'' | 'erode' | 'tamil_nadu' | 'india'>(() => {
     const v = searchParams.get('locality')
-    return v === 'erode' || v === 'tamil_nadu' ? v : ''
+    return v === 'erode' || v === 'tamil_nadu' || v === 'india' ? v : ''
   })
   const { data, error, loading, reload } = useFetch(
     () =>
@@ -71,11 +71,12 @@ export function AdminLeadsPage() {
         <select
           aria-label="Filter by location segment"
           value={locality}
-          onChange={(e) => setLocality(e.target.value as '' | 'erode' | 'tamil_nadu')}
+          onChange={(e) => setLocality(e.target.value as '' | 'erode' | 'tamil_nadu' | 'india')}
         >
           <option value="">All locations</option>
           <option value="erode">Erode segment</option>
-          <option value="tamil_nadu">Tamil Nadu (city provided)</option>
+          <option value="tamil_nadu">Tamil Nadu</option>
+          <option value="india">India (national segment)</option>
         </select>
       </div>
       {items.length === 0 ? (
@@ -1001,6 +1002,122 @@ export function AdminLocalMarketPage() {
                 <span className={ui.meta}>
                   {String(lead.serviceInterest ?? 'Service TBD')}
                   {lead.businessCity ? ` · ${String(lead.businessCity)}` : ''}
+                </span>
+                <StatusPill status={String(lead.status)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  )
+}
+
+type SegmentMetrics = {
+  totalLeads?: number
+  qualifiedLeads?: number
+  wonLeads?: number
+  pipelineValue?: string | null
+}
+
+function SegmentCard({ title, segment }: { title: string; segment?: SegmentMetrics }) {
+  return (
+    <article className={`surface ${ui.dataCard}`}>
+      <h2 className="text-h3">{title}</h2>
+      <p className={ui.meta}>Leads: {Number(segment?.totalLeads ?? 0)}</p>
+      <p className={ui.meta}>Qualified+: {Number(segment?.qualifiedLeads ?? 0)}</p>
+      <p className={ui.meta}>Won: {Number(segment?.wonLeads ?? 0)}</p>
+      <p className={ui.meta}>Pipeline: {formatInrNullable(segment?.pipelineValue)}</p>
+    </article>
+  )
+}
+
+export function AdminNationalMarketPage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.local.indiaDashboard(), [])
+
+  if (loading) return <ListSkeleton rows={8} />
+  if (error) return <PortalError message={error} onRetry={reload} />
+
+  const segments = (data?.segments as Record<string, SegmentMetrics>) ?? {}
+  const topStates = (data?.topStates as Array<{ state: string; count: number }>) ?? []
+  const topCities = (data?.topCities as Array<{ city: string; count: number }>) ?? []
+  const byService = (data?.byService as Array<{ service: string; count: number }>) ?? []
+  const recent = (data?.recentLeads as Array<Record<string, unknown>>) ?? []
+
+  return (
+    <>
+      <PageIntro
+        label="National market"
+        title="India segment"
+        description="Erode → Tamil Nadu → India-wide attribution from voluntary geo and hub pages."
+      />
+      <p className={ui.meta}>{String(data?.attributionNote ?? '')}</p>
+
+      <div className={ui.cardGrid} style={{ marginTop: 'var(--space-4)' }}>
+        <SegmentCard title="Erode" segment={segments.erode} />
+        <SegmentCard title="Tamil Nadu" segment={segments.tamilNadu} />
+        <SegmentCard title="India (all signals)" segment={segments.india} />
+      </div>
+
+      {topStates.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Top states (provided)</h2>
+          <ul className={ui.stack}>
+            {topStates.map((row) => (
+              <li key={row.state} className={`surface ${ui.dataCard}`}>
+                {row.state} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {topCities.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">Top cities (provided)</h2>
+          <ul className={ui.stack}>
+            {topCities.map((row) => (
+              <li key={row.city} className={`surface ${ui.dataCard}`}>
+                {row.city} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {byService.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">By service (India segment)</h2>
+          <ul className={ui.stack}>
+            {byService.map((row) => (
+              <li key={row.service} className={`surface ${ui.dataCard}`}>
+                {row.service} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={layout.filterRow}>
+          <h2 className="text-h3">Recent India-segment leads</h2>
+          <Link className="link-underline" to={`${adminPortalPaths.crmLeadsList}?locality=india`}>
+            View all with filter
+          </Link>
+        </div>
+        {recent.length === 0 ? (
+          <EmptyState title="No leads yet" description="India-segment leads appear when attribution is captured." />
+        ) : (
+          <ul className={ui.stack}>
+            {recent.map((lead) => (
+              <li key={String(lead.id)} className={`surface ${ui.dataCard}`}>
+                <Link className="link-underline" to={adminPortalPaths.crmLeadDetail(String(lead.id))}>
+                  {String(lead.name)}
+                </Link>
+                <span className={ui.meta}>
+                  {String(lead.serviceInterest ?? 'Service TBD')}
+                  {lead.businessCity ? ` · ${String(lead.businessCity)}` : ''}
+                  {lead.businessState ? ` · ${String(lead.businessState)}` : ''}
                 </span>
                 <StatusPill status={String(lead.status)} />
               </li>

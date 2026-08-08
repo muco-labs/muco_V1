@@ -1,50 +1,54 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
-import {
-  BreadcrumbSchema,
-  FaqPageSchema,
-  LocalBusinessSchema,
-} from '@/components/seo/StructuredData'
+import { BreadcrumbSchema, FaqPageSchema } from '@/components/seo/StructuredData'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
-import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
-import { erodeLocalFaqs, erodeLocalPage, erodeServiceLinks } from '@/content/erode-local'
-import { company } from '@/content/company'
+import {
+  tamilNaduContactBlurb,
+  tamilNaduFaqs,
+  tamilNaduHub,
+  tamilNaduHubSeo,
+  tamilNaduRelatedLinks,
+  tamilNaduServiceLinks,
+} from '@/content/market/tamil-nadu'
 import { analyticsEvents } from '@/lib/analytics'
 import { contactHref } from '@/lib/conversion/contact-link'
+import { useEffect } from 'react'
+import { trackEvent } from '@/lib/analytics'
 import styles from './ErodePage.module.css'
 
-const erode = pageSeo.erode
+export function TamilNaduPage() {
+  useEffect(() => {
+    trackEvent(analyticsEvents.tamilNaduPageView, {})
+  }, [])
 
-export function ErodePage() {
   return (
     <>
       <PageMeta
-        documentTitle={erode.documentTitle}
-        description={erode.description}
-        path={erode.path}
+        documentTitle={tamilNaduHubSeo.documentTitle}
+        description={tamilNaduHubSeo.description}
+        path={tamilNaduHubSeo.path}
       />
       <BreadcrumbSchema
         items={[
           { name: 'Home', path: '/' },
-          { name: 'Erode', path: erode.path },
+          { name: 'Tamil Nadu', path: tamilNaduHub.path },
         ]}
       />
-      <FaqPageSchema faqs={[...erodeLocalFaqs]} />
-      <LocalBusinessSchema />
+      <FaqPageSchema faqs={[...tamilNaduFaqs]} />
       <div className={styles.page}>
         <header className={styles.hero}>
           <div className="shell">
             <nav className={styles.breadcrumb} aria-label="Breadcrumb">
               <Link to={routePaths.home}>Home</Link>
               <span aria-hidden="true">/</span>
-              <span aria-current="page">Erode</span>
+              <span aria-current="page">Tamil Nadu</span>
             </nav>
             <Reveal>
-              <p className="text-label">Erode, Tamil Nadu</p>
-              <h1 className="text-display">{erodeLocalPage.h1}</h1>
-              <p className={styles.lead}>{erodeLocalPage.lead}</p>
+              <p className="text-label">Tamil Nadu, India</p>
+              <h1 className="text-display">{tamilNaduHub.h1}</h1>
+              <p className={styles.lead}>{tamilNaduHub.lead}</p>
             </Reveal>
           </div>
         </header>
@@ -52,35 +56,39 @@ export function ErodePage() {
         <section className="section section--tight">
           <div className="shell">
             <Reveal>
-              <h2 className="text-h2">Local presence, wider delivery</h2>
+              <h2 className="text-h2">How we cover Tamil Nadu</h2>
               <ul className={styles.list}>
-                {erodeLocalPage.coverage.map((item) => (
+                {tamilNaduHub.coverage.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
             </Reveal>
-            <Reveal delayMs={80}>
-              <h2 className="text-h2">Who we work with</h2>
-              <p className={styles.body}>{erodeLocalPage.industries}</p>
+            <Reveal delayMs={60}>
+              <h2 className="text-h2">Remote delivery</h2>
+              <p className={styles.body}>{tamilNaduHub.remote}</p>
             </Reveal>
-            <p className={styles.address}>
-              {company.location.city}, {company.location.region} {company.location.postalCode},{' '}
-              {company.location.country}
-            </p>
+            <Reveal delayMs={80}>
+              <h2 className="text-h2">Industries</h2>
+              <p className={styles.body}>{tamilNaduHub.industries}</p>
+            </Reveal>
           </div>
         </section>
 
         <section className="section">
           <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">Services for Erode businesses</h2>
-              <p className={styles.body}>
-                Explore capability pages—each describes problems, deliverables and how we work.
-              </p>
-            </Reveal>
+            <h2 className="text-h2">Core services</h2>
             <ul className={styles.serviceLinks}>
-              {erodeServiceLinks.map((item) => (
+              {tamilNaduServiceLinks.map((item) => (
                 <li key={item.slug}>
+                  <Link className="link-underline" to={item.href}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <ul className={styles.serviceLinks}>
+              {tamilNaduRelatedLinks.map((item) => (
+                <li key={item.href}>
                   <Link className="link-underline" to={item.href}>
                     {item.label}
                   </Link>
@@ -89,23 +97,14 @@ export function ErodePage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'erode_local', city: 'Erode' })}
+                to={contactHref({ source: 'tamil_nadu_hub' })}
                 trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'erode_local' }}
+                trackParams={{ source: 'tamil_nadu_hub' }}
               >
-                Start a project
+                Discuss your project
               </Button>
               <Link className="link-underline" to={routePaths.work}>
                 View work
-              </Link>
-              <Link className="link-underline" to={routePaths.pricing}>
-                Pricing
-              </Link>
-              <Link className="link-underline" to={routePaths.tamilNadu}>
-                Tamil Nadu
-              </Link>
-              <Link className="link-underline" to={routePaths.india}>
-                India
               </Link>
             </div>
           </div>
@@ -113,16 +112,16 @@ export function ErodePage() {
 
         <section className="section section--tight">
           <div className="shell">
-            <h2 className="text-h2">Common questions</h2>
+            <h2 className="text-h2">Questions</h2>
             <dl className={styles.faq}>
-              {erodeLocalFaqs.map((faq) => (
+              {tamilNaduFaqs.map((faq) => (
                 <div key={faq.question}>
                   <dt className="text-h3">{faq.question}</dt>
                   <dd>{faq.answer}</dd>
                 </div>
               ))}
             </dl>
-            <p className={styles.contact}>{erodeLocalPage.contactBlurb}</p>
+            <p className={styles.contact}>{tamilNaduContactBlurb}</p>
           </div>
         </section>
       </div>
