@@ -22,17 +22,26 @@
       "when": 1786218100000,
       "tag": "0002_row_level_security",
       "breakpoints": true
+    },
     {
       "idx": 3,
       "version": "7",
       "when": 1786218200000,
       "tag": "0003_customer_portal",
       "breakpoints": true
+    },
     {
       "idx": 4,
       "version": "7",
       "when": 1786218300000,
       "tag": "0004_employee_portal",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786218400000,
+      "tag": "0005_admin_lead_followup",
       "breakpoints": true
     }
   ]

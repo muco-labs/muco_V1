@@ -282,6 +282,7 @@ export const leads = pgTable(
       onDelete: 'set null',
     }),
     notes: text('notes'),
+    followUpAt: timestamp('follow_up_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

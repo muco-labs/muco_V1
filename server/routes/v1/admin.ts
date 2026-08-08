@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
+import { z } from 'zod'
 import { AppError } from '../../lib/errors.js'
 import { handleRouteError, jsonSuccess } from '../../lib/response.js'
 import {
   authenticate,
   requirePermission,
+  requirePortal,
 } from '../../middleware/authenticate.js'
 import {
   formatZodErrors,
@@ -14,75 +16,41 @@ import { inviteEmployee, setUserStatus } from '../../services/auth.service.js'
 import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
 import { serverEnv } from '../../lib/env.js'
 import { bootstrapFounderAccount } from '../../services/auth.service.js'
-import { z } from 'zod'
+import {
+  adminSearch,
+  assignProjectMemberAdmin,
+  assertCanChangeUserStatus,
+  createInvoiceAdmin,
+  createLeadAdmin,
+  createProjectAdmin,
+  createProposalAdmin,
+  createTaskAdmin,
+  getAdminAnalytics,
+  getAdminDashboard,
+  getCustomerAdmin,
+  getIntegrationStatus,
+  getLeadAdmin,
+  issueInvoiceAdmin,
+  listAuditLogsAdmin,
+  listFilesAdmin,
+  listMessagesAdmin,
+  listCustomersAdmin,
+  listEmployeesAdmin,
+  listInvoicesAdmin,
+  listLeadsAdmin,
+  listPaymentsAdmin,
+  listProjectsAdmin,
+  listProposalsAdmin,
+  listSupportAdmin,
+  listTasksAdmin,
+  requireFinancialPermission,
+  sendProposalAdmin,
+  updateLeadAdmin,
+  updateSupportAdmin,
+  updateTaskAdmin,
+} from '../../services/admin.service.js'
 
 export const adminRoutes = new Hono()
-
-adminRoutes.use('*', authenticate)
-
-adminRoutes.post('/employees/invite', requirePermission('employees.create'), async (c) => {
-  try {
-    const limit = checkRateLimit(
-      rateLimitKeyFromRequest(
-        c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? c.req.header('x-real-ip'),
-        'POST /api/v1/admin/employees/invite',
-      ),
-    )
-    if (!limit.allowed) {
-      throw new AppError('RATE_LIMITED', 'Too many requests. Please wait and try again.', 429)
-    }
-
-    const body = await c.req.json().catch(() => null)
-    const parsed = inviteEmployeeSchema.safeParse(body)
-    if (!parsed.success) {
-      throw new AppError(
-        'VALIDATION_ERROR',
-        'Please check the form and try again.',
-        400,
-        formatZodErrors(parsed.error),
-      )
-    }
-
-    const auth = c.get('auth')
-    const result = await inviteEmployee({
-      ...parsed.data,
-      invitedByUserId: auth.userId,
-    })
-
-    return jsonSuccess(c, result, 201)
-  } catch (error) {
-    return handleRouteError(c, error)
-  }
-})
-
-adminRoutes.patch('/users/:userId/status', requirePermission('users.disable'), async (c) => {
-  try {
-    const userId = c.req.param('userId')
-    if (!userId) {
-      throw new AppError('VALIDATION_ERROR', 'User id is required.', 400)
-    }
-    const body = await c.req.json().catch(() => null)
-    const parsed = updateUserStatusSchema.safeParse(body)
-    if (!parsed.success) {
-      throw new AppError(
-        'VALIDATION_ERROR',
-        'Invalid status.',
-        400,
-        formatZodErrors(parsed.error),
-      )
-    }
-
-    const auth = c.get('auth')
-    if (auth.userId === userId && parsed.data.status !== 'active') {
-      throw new AppError('FORBIDDEN', 'You cannot deactivate your own account.', 403)
-    }
-
-    await setUserStatus(userId, parsed.data.status, auth.userId)
-    return jsonSuccess(c, { userId, status: parsed.data.status })
-  } catch (error) {
-    return handleRouteError(c, error)
-  }
-})
 
 const bootstrapSchema = z.object({
   email: z.string().trim().email(),
@@ -95,19 +63,422 @@ adminRoutes.post('/bootstrap/founder', async (c) => {
     if (!serverEnv.bootstrapSecret) {
       throw new AppError('NOT_FOUND', 'Not found.', 404)
     }
-
     const body = await c.req.json().catch(() => null)
     const parsed = bootstrapSchema.safeParse(body)
     if (!parsed.success) {
       throw new AppError('VALIDATION_ERROR', 'Invalid request.', 400, formatZodErrors(parsed.error))
     }
-
     if (parsed.data.bootstrapSecret !== serverEnv.bootstrapSecret) {
       throw new AppError('FORBIDDEN', 'Not allowed.', 403)
     }
-
     const result = await bootstrapFounderAccount(parsed.data.email, parsed.data.fullName)
     return jsonSuccess(c, { invited: true, userId: result.userId }, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.use('*', authenticate)
+adminRoutes.use('*', requirePortal('admin'))
+
+function paramId(c: { req: { param: (name: string) => string | undefined } }, name = 'id') {
+  const value = c.req.param(name)
+  if (!value) throw new AppError('VALIDATION_ERROR', 'Missing resource id.', 400)
+  return value
+}
+
+adminRoutes.get('/dashboard', async (c) => {
+  try {
+    return jsonSuccess(c, await getAdminDashboard())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/analytics', requirePermission('analytics.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getAdminAnalytics())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/integrations', async (c) => {
+  try {
+    return jsonSuccess(c, getIntegrationStatus())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/search', async (c) => {
+  try {
+    const q = c.req.query('q') ?? ''
+    return jsonSuccess(c, await adminSearch(q))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/audit-logs', requirePermission('audit_logs.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listAuditLogsAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, {
+      items: await listLeadsAdmin({
+        status: c.req.query('status'),
+        q: c.req.query('q'),
+      }),
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/leads/:id', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getLeadAdmin(paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const leadCreateSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  company: z.string().optional(),
+  serviceInterest: z.string().optional(),
+  projectDescription: z.string().min(10),
+  source: z.string().optional(),
+  budget: z.string().optional(),
+  timeline: z.string().optional(),
+  notes: z.string().optional(),
+})
+
+adminRoutes.post('/leads', requirePermission('leads.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = leadCreateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid lead.', 400)
+    const row = await createLeadAdmin(auth.userId, parsed.data)
+    return jsonSuccess(c, row, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const leadUpdateSchema = z.object({
+  status: z.string().optional(),
+  notes: z.string().optional(),
+  assignedEmployeeId: z.string().uuid().nullable().optional(),
+  followUpAt: z.string().nullable().optional(),
+})
+
+adminRoutes.patch('/leads/:id', requirePermission('leads.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = leadUpdateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid update.', 400)
+    return jsonSuccess(c, await updateLeadAdmin(auth.userId, paramId(c), parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/customers', requirePermission('customers.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listCustomersAdmin(c.req.query('q')) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/customers/:id', requirePermission('customers.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getCustomerAdmin(paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/employees', requirePermission('employees.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listEmployeesAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/employees/invite', requirePermission('employees.create'), async (c) => {
+  try {
+    const limit = checkRateLimit(
+      rateLimitKeyFromRequest(
+        c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? c.req.header('x-real-ip'),
+        'POST /api/v1/admin/employees/invite',
+      ),
+    )
+    if (!limit.allowed) {
+      throw new AppError('RATE_LIMITED', 'Too many requests. Please wait and try again.', 429)
+    }
+    const body = await c.req.json().catch(() => null)
+    const parsed = inviteEmployeeSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Please check the form.', 400, formatZodErrors(parsed.error))
+    }
+    const auth = c.get('auth')
+    const result = await inviteEmployee({ ...parsed.data, invitedByUserId: auth.userId })
+    return jsonSuccess(c, result, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/users/:userId/status', requirePermission('users.disable'), async (c) => {
+  try {
+    const userId = paramId(c, 'userId')
+    const body = await c.req.json().catch(() => null)
+    const parsed = updateUserStatusSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid status.', 400, formatZodErrors(parsed.error))
+    }
+    const auth = c.get('auth')
+    if (auth.userId === userId && parsed.data.status !== 'active') {
+      throw new AppError('FORBIDDEN', 'You cannot deactivate your own account.', 403)
+    }
+    await assertCanChangeUserStatus(auth, userId)
+    await setUserStatus(userId, parsed.data.status, auth.userId)
+    return jsonSuccess(c, { userId, status: parsed.data.status })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/projects', requirePermission('projects.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listProjectsAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const projectCreateSchema = z.object({
+  customerId: z.string().uuid(),
+  name: z.string().min(2),
+  description: z.string().optional(),
+  status: z.string().optional(),
+  startDate: z.string().optional(),
+  expectedCompletion: z.string().optional(),
+})
+
+adminRoutes.post('/projects', requirePermission('projects.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = projectCreateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid project.', 400)
+    return jsonSuccess(c, await createProjectAdmin(auth.userId, parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const assignSchema = z.object({
+  employeeId: z.string().uuid(),
+  role: z.string().min(1).max(80),
+})
+
+adminRoutes.post('/projects/:id/members', requirePermission('projects.assign'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = assignSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid assignment.', 400)
+    await assignProjectMemberAdmin(auth.userId, paramId(c), parsed.data.employeeId, parsed.data.role)
+    return jsonSuccess(c, { ok: true })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/tasks', requirePermission('tasks.view'), async (c) => {
+  try {
+    return jsonSuccess(c, {
+      items: await listTasksAdmin({ projectId: c.req.query('projectId') }),
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const taskCreateSchema = z.object({
+  projectId: z.string().uuid(),
+  title: z.string().min(2),
+  description: z.string().optional(),
+  assignedEmployeeId: z.string().uuid().optional(),
+  priority: z.string().optional(),
+  dueDate: z.string().optional(),
+})
+
+adminRoutes.post('/tasks', requirePermission('tasks.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = taskCreateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid task.', 400)
+    return jsonSuccess(c, await createTaskAdmin(auth.userId, parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const taskUpdateSchema = z.object({
+  status: z.enum(['todo', 'in_progress', 'blocked', 'done']).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  assignedEmployeeId: z.string().uuid().nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+})
+
+adminRoutes.patch('/tasks/:id', requirePermission('tasks.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = taskUpdateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid task update.', 400)
+    return jsonSuccess(c, await updateTaskAdmin(auth.userId, paramId(c), parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/proposals', requirePermission('proposals.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listProposalsAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const proposalCreateSchema = z.object({
+  customerId: z.string().uuid(),
+  title: z.string().optional(),
+  amount: z.string().optional(),
+  scope: z.string().optional(),
+  projectId: z.string().uuid().optional(),
+})
+
+adminRoutes.post('/proposals', requirePermission('proposals.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = proposalCreateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid proposal.', 400)
+    return jsonSuccess(c, await createProposalAdmin(auth.userId, parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/proposals/:id/send', requirePermission('proposals.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await sendProposalAdmin(auth.userId, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/invoices', requirePermission('invoices.view'), async (c) => {
+  try {
+    requireFinancialPermission(c.get('auth'))
+    return jsonSuccess(c, { items: await listInvoicesAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const invoiceCreateSchema = z.object({
+  customerId: z.string().uuid(),
+  projectId: z.string().uuid().optional(),
+  invoiceNumber: z.string().min(2),
+  amount: z.string(),
+  dueDate: z.string().optional(),
+})
+
+adminRoutes.post('/invoices', requirePermission('invoices.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = invoiceCreateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid invoice.', 400)
+    return jsonSuccess(c, await createInvoiceAdmin(auth.userId, parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/invoices/:id/issue', requirePermission('invoices.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await issueInvoiceAdmin(auth.userId, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/payments', requirePermission('payments.view'), async (c) => {
+  try {
+    requireFinancialPermission(c.get('auth'))
+    return jsonSuccess(c, { items: await listPaymentsAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/support', requirePermission('support.manage'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listSupportAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const supportUpdateSchema = z.object({
+  status: z.enum(['open', 'in_progress', 'waiting', 'resolved', 'closed']).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+})
+
+adminRoutes.patch('/support/:id', requirePermission('support.manage'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = supportUpdateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid update.', 400)
+    return jsonSuccess(c, await updateSupportAdmin(auth.userId, paramId(c), parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/files', requirePermission('files.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listFilesAdmin(c.req.query('projectId')) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/messages', requirePermission('messages.view'), async (c) => {
+  try {
+    return jsonSuccess(c, { items: await listMessagesAdmin(c.req.query('projectId')) })
   } catch (error) {
     return handleRouteError(c, error)
   }

@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { CustomerAppLayout } from '@/layouts/CustomerAppLayout'
 import { EmployeeAppLayout } from '@/layouts/EmployeeAppLayout'
+import { AdminAppLayout } from '@/layouts/AdminAppLayout'
 import { ProtectedPortal } from '@/components/auth/ProtectedPortal'
 
 function lazyPage<T extends Record<string, ComponentType<unknown>>>(
@@ -100,10 +101,37 @@ const EmployeeNotificationsPage = lazyEmployeePage('EmployeeNotificationsPage')
 const EmployeeDeadlinesPage = lazyEmployeePage('EmployeeDeadlinesPage')
 const EmployeeProfilePage = lazyEmployeePage('EmployeeProfilePage')
 const EmployeeSettingsPage = lazyEmployeePage('EmployeeSettingsPage')
-const AdminAppHomePage = lazyPage(
-  () => import('@/pages/portal/AdminAppHomePage'),
-  'AdminAppHomePage',
+
+function lazyAdminPage(exportName: string) {
+  return lazy(() =>
+    import('@/pages/portal/admin/AdminPortalPages').then((module) => ({
+      default: module[exportName as keyof typeof module] as ComponentType<unknown>,
+    })),
+  )
+}
+
+const AdminDashboardPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminDashboardPage'),
+  'AdminDashboardPage',
 )
+const AdminLeadsPage = lazyAdminPage('AdminLeadsPage')
+const AdminLeadDetailPage = lazyAdminPage('AdminLeadDetailPage')
+const AdminCustomersPage = lazyAdminPage('AdminCustomersPage')
+const AdminCustomerDetailPage = lazyAdminPage('AdminCustomerDetailPage')
+const AdminEmployeesPage = lazyAdminPage('AdminEmployeesPage')
+const AdminProjectsPage = lazyAdminPage('AdminProjectsPage')
+const AdminTasksPage = lazyAdminPage('AdminTasksPage')
+const AdminProposalsPage = lazyAdminPage('AdminProposalsPage')
+const AdminInvoicesPage = lazyAdminPage('AdminInvoicesPage')
+const AdminPaymentsPage = lazyAdminPage('AdminPaymentsPage')
+const AdminFilesPage = lazyAdminPage('AdminFilesPage')
+const AdminMessagesPage = lazyAdminPage('AdminMessagesPage')
+const AdminSupportPage = lazyAdminPage('AdminSupportPage')
+const AdminAnalyticsPage = lazyAdminPage('AdminAnalyticsPage')
+const AdminNotificationsPage = lazyAdminPage('AdminNotificationsPage')
+const AdminAuditLogsPage = lazyAdminPage('AdminAuditLogsPage')
+const AdminSettingsPage = lazyAdminPage('AdminSettingsPage')
+const AdminSecurityPage = lazyAdminPage('AdminSecurityPage')
 const PrivacyPolicyPage = lazyPage(
   () => import('@/pages/PrivacyPolicyPage'),
   'PrivacyPolicyPage',
@@ -187,9 +215,30 @@ export const router = createBrowserRouter([
         path: 'admin',
         element: (
           <ProtectedPortal portal="admin">
-            <AdminAppHomePage />
+            <AdminAppLayout />
           </ProtectedPortal>
         ),
+        children: [
+          { index: true, element: <AdminDashboardPage /> },
+          { path: 'leads', element: <AdminLeadsPage /> },
+          { path: 'leads/:id', element: <AdminLeadDetailPage /> },
+          { path: 'customers', element: <AdminCustomersPage /> },
+          { path: 'customers/:id', element: <AdminCustomerDetailPage /> },
+          { path: 'employees', element: <AdminEmployeesPage /> },
+          { path: 'projects', element: <AdminProjectsPage /> },
+          { path: 'tasks', element: <AdminTasksPage /> },
+          { path: 'proposals', element: <AdminProposalsPage /> },
+          { path: 'invoices', element: <AdminInvoicesPage /> },
+          { path: 'payments', element: <AdminPaymentsPage /> },
+          { path: 'files', element: <AdminFilesPage /> },
+          { path: 'messages', element: <AdminMessagesPage /> },
+          { path: 'support', element: <AdminSupportPage /> },
+          { path: 'analytics', element: <AdminAnalyticsPage /> },
+          { path: 'notifications', element: <AdminNotificationsPage /> },
+          { path: 'audit-logs', element: <AdminAuditLogsPage /> },
+          { path: 'settings', element: <AdminSettingsPage /> },
+          { path: 'security', element: <AdminSecurityPage /> },
+        ],
       },
       { path: 'privacy-policy', element: <PrivacyPolicyPage /> },
       { path: 'terms', element: <TermsPage /> },
