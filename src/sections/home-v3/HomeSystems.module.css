@@ -53,61 +53,90 @@
 }
 
 .process {
-  margin-top: var(--space-10);
+  margin: var(--space-10) 0 0;
+  padding: 0;
+  list-style: none;
   display: grid;
   gap: var(--space-3);
 }
 
+@media (min-width: 48rem) {
+  .process {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 64rem) {
   .process {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .processStep {
-  padding: var(--space-4);
-  border-top: 2px solid var(--color-accent);
-  min-height: 6rem;
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.2);
 }
 
-.processStep span {
+.processIndex {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.processName {
+  margin: 0;
+  font-weight: 700;
   font-family: var(--font-display);
-  color: var(--color-text-subtle);
-  font-size: var(--text-small);
 }
 
-.processStep p {
+.processDetail {
   margin: var(--space-2) 0 0;
-  font-weight: 600;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.techGrid {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+@media (min-width: 48rem) {
+  .techGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .techGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.techCard {
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.techCard ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
 }
 
 .techHead {
   display: grid;
-  gap: var(--space-8);
-}
-
-@media (min-width: 64rem) {
-  .techHead {
-    grid-template-columns: 1fr 1fr;
-    align-items: end;
-  }
-}
-
-.techList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.techList li {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: var(--text-small);
-  color: var(--color-text-muted);
+  gap: var(--space-4);
 }
 
 .erode {

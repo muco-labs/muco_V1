@@ -15,8 +15,7 @@ export function SignatureHero() {
           <Reveal className={styles.copy}>
             <p className="eyebrow-line">{site.name} · Technology company</p>
             <h1 id="home-hero-title" className="text-display">
-              Websites, software &amp; AI—
-              <span className={styles.accent}> built to ship.</span>
+              We build digital products that move businesses forward.
             </h1>
             <p className={styles.lead}>
               {company.positioning} We help founders and teams in India and abroad launch products,

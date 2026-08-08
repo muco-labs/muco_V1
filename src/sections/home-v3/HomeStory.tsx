@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
 import { company } from '@/data/company'
-import { serviceCategories } from '@/data/services'
-import { routePaths, servicePath } from '@/config/routes'
+import { routePaths } from '@/config/routes'
 import styles from './HomeStory.module.css'
 
 const capabilities = [
@@ -19,12 +18,12 @@ const capabilities = [
   {
     title: 'Automate',
     body: 'AI and workflow automation with human oversight built in.',
-    href: servicePath('automation'),
+    href: routePaths.services,
   },
   {
     title: 'Grow',
     body: 'SEO and marketing systems tied to product—not isolated campaigns.',
-    href: servicePath('seo'),
+    href: routePaths.services,
   },
 ]
 
@@ -61,47 +60,6 @@ export function HomeStorySections() {
                   <h3 className="text-h3">{item.title}</h3>
                   <p>{item.body}</p>
                 </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section section--tight" aria-labelledby="svc-title">
-        <div className="shell">
-          <Reveal className={styles.servicesHead}>
-            <div>
-              <p className="text-label">Selected services</p>
-              <h2 id="svc-title" className="text-h2">
-                Everything you need to build and grow—organized.
-              </h2>
-            </div>
-            <div className={styles.servicesHeadLinks}>
-              <Link className="link-underline" to={routePaths.services}>
-                View full ecosystem
-              </Link>
-              <Link className="link-underline" to={routePaths.insights}>
-                Insights
-              </Link>
-            </div>
-          </Reveal>
-          <div className={styles.serviceColumns}>
-            {serviceCategories.slice(0, 4).map((category) => (
-              <Reveal key={category.id}>
-                <article className={styles.serviceCol}>
-                  <h3 className="text-label">{category.title}</h3>
-                  <ul>
-                    {category.offerings.slice(0, 4).map((offering) => (
-                      <li key={offering.id}>
-                        {offering.slug ? (
-                          <Link to={servicePath(offering.slug)}>{offering.title}</Link>
-                        ) : (
-                          <span>{offering.title}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
               </Reveal>
             ))}
           </div>

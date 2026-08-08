@@ -1,50 +1,32 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
-import { routePaths } from '@/config/routes'
+import { serviceHighlights } from '@/content/services-catalog'
+import { servicePath, routePaths } from '@/config/routes'
 import styles from './HomeTrustStrip.module.css'
-
-const pillars = [
-  {
-    title: 'Founder-led delivery',
-    body: 'Direct accountability from discovery through launch—no hand-offs into a black box.',
-  },
-  {
-    title: 'Engineering-first',
-    body: 'Maintainable code, clear architecture, and security considered from day one.',
-  },
-  {
-    title: 'Transparent process',
-    body: 'Structured proposals, milestones, and communication—built into our client portals.',
-  },
-]
 
 export function HomeTrustStrip() {
   return (
-    <section className={styles.strip} aria-label="Why teams choose MUCO LABS">
+    <section className={styles.strip} aria-label="What MUCO LABS builds">
       <div className="shell">
-        <div className={styles.grid}>
-          {pillars.map((item, index) => (
-            <Reveal key={item.title} delayMs={index * 60}>
-              <article className={styles.item}>
-                <h2 className="text-h3">{item.title}</h2>
-                <p>{item.body}</p>
-              </article>
+        <Reveal>
+          <p className={styles.label}>Build · Design · Automate · Grow</p>
+        </Reveal>
+        <ul className={styles.chips}>
+          {serviceHighlights.map((service, index) => (
+            <Reveal key={service.slug} delayMs={index * 40}>
+              <li>
+                <Link className={styles.chip} to={servicePath(service.slug)}>
+                  {service.title.replace(' & ', ' · ')}
+                </Link>
+              </li>
             </Reveal>
           ))}
-        </div>
-        <Reveal className={styles.foot}>
-          <p>
-            Need a partner for websites, software, AI, or growth systems?{' '}
-            <Link className="link-underline" to={routePaths.work}>
-              View concept work
-            </Link>{' '}
-            or{' '}
-            <Link className="link-underline" to={routePaths.contact}>
-              start a project
+          <li>
+            <Link className={`${styles.chip} ${styles.chipMuted}`} to={routePaths.services}>
+              All services
             </Link>
-            .
-          </p>
-        </Reveal>
+          </li>
+        </ul>
       </div>
     </section>
   )

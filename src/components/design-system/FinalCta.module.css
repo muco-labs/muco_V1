@@ -1,0 +1,49 @@
+.block {
+  position: relative;
+  padding: clamp(var(--space-10), 6vw, var(--space-16));
+  overflow: hidden;
+  border-color: var(--color-border-accent);
+  background: var(--color-surface-gradient);
+  text-align: center;
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black, transparent 75%);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.block h2 {
+  position: relative;
+  margin: 0 0 var(--space-4);
+  max-width: 16ch;
+  margin-inline: auto;
+}
+
+.body {
+  position: relative;
+  margin: 0 auto var(--space-8);
+  max-width: 36rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-body-lg);
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+@media (max-width: 30rem) {
+  .actions :global(a) {
+    width: 100%;
+  }
+}

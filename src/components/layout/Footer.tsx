@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { company } from '@/data/company'
 import { footerNav } from '@/data/navigation'
-import { routePaths } from '@/config/routes'
+import { serviceHighlights } from '@/content/services-catalog'
+import { servicePath, routePaths } from '@/config/routes'
 import { site } from '@/config/site'
 import { socialLinkList } from '@/content/social'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
@@ -45,6 +46,16 @@ export function Footer() {
               {footerNav.explore.map((item) => (
                 <li key={item.href}>
                   <Link to={item.href}>{item.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className={styles.title}>Services</p>
+            <ul>
+              {serviceHighlights.map((item) => (
+                <li key={item.slug}>
+                  <Link to={servicePath(item.slug)}>{item.title}</Link>
                 </li>
               ))}
             </ul>

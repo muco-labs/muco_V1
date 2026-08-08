@@ -1,8 +1,10 @@
 .footer {
   margin-top: auto;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border-accent);
   padding-block: var(--space-20);
-  background: #09090b;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, var(--color-accent-glow), transparent 70%),
+    var(--color-bg-elevated);
 }
 
 .grid {
@@ -12,7 +14,7 @@
 
 @media (min-width: 48rem) {
   .grid {
-    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
   }
 }
 

@@ -5,6 +5,7 @@ import { HomeCultureSections } from '@/sections/home-v3/HomeCulture'
 import { HomeEngagementSections } from '@/sections/home-v3/HomeEngagement'
 import { HomeFaqSection } from '@/sections/home-v3/HomeFaq'
 import { HomeFounderSpotlight } from '@/sections/home-v3/HomeFounderSpotlight'
+import { HomeServicesShowcase } from '@/sections/home-v3/HomeServicesShowcase'
 import { HomeStorySections } from '@/sections/home-v3/HomeStory'
 import { HomeSystemsSections } from '@/sections/home-v3/HomeSystems'
 import { HomeTeamSection } from '@/sections/home-v3/HomeTeam'
@@ -27,6 +28,7 @@ export function HomePage() {
       <SignatureHero />
       <HomeTrustStrip />
       <HomeStorySections />
+      <HomeServicesShowcase />
       <HomeCultureSections />
       <HomeSystemsSections />
       <HomeFounderSpotlight />

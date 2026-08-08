@@ -1,17 +1,25 @@
 :root {
-  /* Brand — Generation 3 (warm neutral + chartreuse, not legacy navy/blue) */
-  --color-primary: #f6f5f1;
-  --color-secondary: #c8c4bc;
-  --color-accent: #d4ff5c;
-  --color-accent-soft: rgba(212, 255, 92, 0.14);
-  --color-accent-muted: rgba(212, 255, 92, 0.1);
-  --color-accent-ink: #1a1f0f;
+  /* Brand — Phase 2 (Signal Forge): obsidian surfaces + mint signal accent */
+  --color-primary: #f4f3ef;
+  --color-secondary: #b8b4ac;
+  --color-accent: #62f0c8;
+  --color-accent-soft: rgba(98, 240, 200, 0.12);
+  --color-accent-muted: rgba(98, 240, 200, 0.08);
+  --color-accent-glow: rgba(98, 240, 200, 0.14);
+  --color-accent-ink: #041510;
+  --color-border-accent: rgba(98, 240, 200, 0.22);
 
-  --color-bg: #0b0b0d;
-  --color-bg-elevated: #121214;
-  --color-bg-subtle: #16161a;
-  --color-surface: #1a1a1f;
-  --color-surface-elevated: #222228;
+  --color-bg: #050506;
+  --color-bg-elevated: #0c0c0f;
+  --color-bg-subtle: #101014;
+  --color-surface: #141418;
+  --color-surface-elevated: #1c1c22;
+  --color-surface-gradient: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.045) 0%,
+    rgba(255, 255, 255, 0.012) 48%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
 
   --color-border: rgba(255, 255, 255, 0.09);
   --color-border-strong: rgba(255, 255, 255, 0.16);
@@ -20,8 +28,8 @@
   --color-text-muted: #a8a8b3;
   --color-text-subtle: #6f6f7a;
 
-  --color-focus: #e8ff9a;
-  --color-accent-hover: #e8ff9a;
+  --color-focus: #9efde6;
+  --color-accent-hover: #9efde6;
   --color-success: #5ee9a8;
   --color-warning: #f5c84c;
   --color-danger: #ff7b7b;
@@ -84,7 +92,7 @@
 
   --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04);
   --shadow-md: 0 24px 60px rgba(0, 0, 0, 0.45);
-  --shadow-glow: 0 0 0 1px var(--color-accent-soft), 0 20px 50px rgba(212, 255, 92, 0.08);
+  --shadow-glow: 0 0 0 1px var(--color-accent-soft), 0 24px 48px rgba(98, 240, 200, 0.07);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);

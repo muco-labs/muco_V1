@@ -1,21 +1,27 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
-import { ProjectPreview } from '@/components/visual/ProjectPreview'
-import { portfolioProjects, portfolioKindLabel } from '@/data/portfolio'
+import { ProjectCard } from '@/components/design-system/ProjectCard'
+import { portfolioProjects } from '@/data/portfolio'
 import { erodePositioning, erodeServiceLinks, erodeServiceHref } from '@/data/erode'
 import { routePaths } from '@/config/routes'
 import styles from './HomeSystems.module.css'
 
 const process = [
-  'Discover',
-  'Strategize',
-  'Design',
-  'Build',
-  'Launch',
-  'Grow',
+  { step: 'Discover', detail: 'Goals, constraints and success metrics—no fluff.' },
+  { step: 'Strategize', detail: 'Scope, architecture and delivery plan you can trust.' },
+  { step: 'Design', detail: 'UX, UI and content structure with conversion in mind.' },
+  { step: 'Build', detail: 'Engineering with reviews, tests and secure defaults.' },
+  { step: 'Test', detail: 'QA across devices, flows and performance budgets.' },
+  { step: 'Launch', detail: 'Deploy, monitor and hand off with documentation.' },
+  { step: 'Grow', detail: 'SEO, automation and iteration tied to outcomes.' },
 ]
 
-const tech = ['Web', 'Mobile', 'Cloud', 'AI', 'Automation', 'Data', 'Security', 'APIs']
+const techGroups = [
+  { title: 'Frontend', items: ['React', 'TypeScript', 'Vite', 'Design systems'] },
+  { title: 'Backend', items: ['Node', 'PostgreSQL', 'REST APIs', 'Supabase'] },
+  { title: 'Cloud & ops', items: ['Vercel', 'CI/CD', 'Observability', 'Security headers'] },
+  { title: 'AI & data', items: ['Applied AI', 'Automation', 'Integrations', 'Analytics'] },
+]
 
 export function HomeSystemsSections() {
   return (
@@ -24,26 +30,19 @@ export function HomeSystemsSections() {
         <div className="shell">
           <Reveal className={styles.workHead}>
             <div>
-              <p className="text-label">MUCO LABS concept work</p>
+              <p className="text-label">Work</p>
               <h2 id="work-title" className="text-h2">
-                Demonstrations—not client claims.
+                Concept explorations—clearly labeled.
               </h2>
             </div>
             <Link className="link-underline" to={routePaths.work}>
-              View concept portfolio
+              View portfolio
             </Link>
           </Reveal>
           <div className={styles.workGrid}>
             {portfolioProjects.slice(0, 3).map((project, index) => (
               <Reveal key={project.id} delayMs={index * 90}>
-                <article className={`surface surface--lift ${styles.workCard}`}>
-                  <ProjectPreview visual={project.visual} title={project.title} />
-                  <div className={styles.workBody}>
-                    <p className={styles.workLabel}>{portfolioKindLabel(project.kind)}</p>
-                    <h3 className="text-h3">{project.title}</h3>
-                    <p>{project.problem}</p>
-                  </div>
-                </article>
+                <ProjectCard project={project} />
               </Reveal>
             ))}
           </div>
@@ -55,19 +54,22 @@ export function HomeSystemsSections() {
           <Reveal>
             <p className="text-label">Process</p>
             <h2 id="process-title" className="text-h2">
-              From idea to impact.
+              From idea to impact—in seven deliberate stages.
             </h2>
           </Reveal>
-          <div className={styles.process}>
-            {process.map((step, index) => (
-              <Reveal key={step} delayMs={index * 50}>
-                <div className={styles.processStep}>
-                  <span>{String(index + 1).padStart(2, '0')}</span>
-                  <p>{step}</p>
-                </div>
+          <ol className={styles.process}>
+            {process.map((item, index) => (
+              <Reveal key={item.step} delayMs={index * 50}>
+                <li className={styles.processStep}>
+                  <span className={styles.processIndex}>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <p className={styles.processName}>{item.step}</p>
+                    <p className={styles.processDetail}>{item.detail}</p>
+                  </div>
+                </li>
               </Reveal>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
@@ -75,17 +77,26 @@ export function HomeSystemsSections() {
         <div className="shell">
           <Reveal className={styles.techHead}>
             <div>
-              <p className="text-label">Technology + AI</p>
+              <p className="text-label">Technology</p>
               <h2 id="tech-title" className="text-h2">
                 Modern stack. Applied with restraint.
               </h2>
             </div>
-            <ul className={styles.techList} aria-label="Technology domains">
-              {tech.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
           </Reveal>
+          <div className={styles.techGrid}>
+            {techGroups.map((group, index) => (
+              <Reveal key={group.title} delayMs={index * 60}>
+                <article className={`surface ${styles.techCard}`}>
+                  <h3 className="text-label">{group.title}</h3>
+                  <ul>
+                    {group.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </article>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

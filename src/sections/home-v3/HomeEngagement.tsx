@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
-import { Button } from '@/components/ui/Button'
+import { FinalCta } from '@/components/design-system/FinalCta'
 import { pricingNote, pricingTiers, maintenanceNote } from '@/data/pricing'
 import { routePaths } from '@/config/routes'
-import { analyticsEvents } from '@/lib/analytics'
 import styles from './HomeEngagement.module.css'
 
 export function HomeEngagementSections() {
@@ -48,35 +47,7 @@ export function HomeEngagementSections() {
         </div>
       </section>
 
-      <section className="section section--tight" aria-labelledby="cta-title">
-        <div className="shell">
-          <Reveal className={`surface ${styles.cta}`}>
-            <h2 id="cta-title" className="text-h1">
-              Have an idea worth building?
-            </h2>
-            <p>Let&apos;s turn it into something real.</p>
-            <div className={styles.ctaActions}>
-              <Button
-                to={routePaths.contact}
-                size="lg"
-                trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'home_cta' }}
-              >
-                Start a Project
-              </Button>
-              <Button
-                to={routePaths.contact}
-                variant="secondary"
-                size="lg"
-                trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'home_cta_secondary' }}
-              >
-                Talk to MUCO LABS
-              </Button>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      <FinalCta source="home_cta" />
     </>
   )
 }

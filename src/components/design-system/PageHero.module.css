@@ -1,0 +1,21 @@
+.hero {
+  padding-block: clamp(var(--space-16), 8vw, var(--space-24));
+  border-bottom: 1px solid var(--color-border);
+  background:
+    radial-gradient(ellipse 80% 60% at 20% -20%, var(--color-accent-glow), transparent 55%),
+    var(--color-bg);
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 44rem;
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text-body-lg);
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+  line-height: var(--leading-snug);
+}
