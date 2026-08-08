@@ -5,7 +5,7 @@ import styles from './Card.module.css'
 type CardProps = {
   children: ReactNode
   className?: string
-  as?: 'div' | 'article' | 'li'
+  as?: 'div' | 'article' | 'li' | 'section'
 }
 
 export function Card({ children, className, as: Tag = 'div' }: CardProps) {

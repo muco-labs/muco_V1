@@ -14,9 +14,6 @@ export type ContactResult = { ok: true } | { ok: false; error: string }
 export function validateContactPayload(payload: ContactPayload): ContactResult {
   const name = sanitizeTextInput(payload.name, 120)
   const email = sanitizeTextInput(payload.email, 254)
-  const company = payload.company
-    ? sanitizeTextInput(payload.company, 120)
-    : undefined
   const message = sanitizeTextInput(payload.message, 4000)
 
   if (!name) return { ok: false, error: 'Name is required.' }

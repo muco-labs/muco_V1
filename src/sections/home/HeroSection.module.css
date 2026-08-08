@@ -1,0 +1,86 @@
+.grid {
+  display: grid;
+  gap: var(--space-10);
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  .grid {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--space-12);
+    min-height: min(70vh, 42rem);
+  }
+}
+
+.copy {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 40rem;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-5xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  max-width: 38rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.visual {
+  position: relative;
+  min-height: 16rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: radial-gradient(
+      500px 280px at 30% 20%,
+      rgba(61, 139, 255, 0.16),
+      transparent 70%
+    ),
+    var(--color-bg-elevated);
+  overflow: hidden;
+}
+
+.orb {
+  position: absolute;
+  inset: auto;
+  right: 12%;
+  top: 18%;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #9ec9ff, var(--color-accent));
+  filter: blur(2px);
+  opacity: 0.85;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+}
+
+@media (max-width: 30rem) {
+  .actions :global(a) {
+    width: 100%;
+  }
+}

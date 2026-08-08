@@ -1,4 +1,4 @@
-import { useEffect, useId, type ReactNode } from 'react'
+import { useEffect, useId, type RefObject, type ReactNode } from 'react'
 import { HiXMark } from 'react-icons/hi2'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import styles from './Modal.module.css'
@@ -33,7 +33,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   return (
     <div className={styles.overlay} role="presentation" onMouseDown={onClose}>
       <dialog
-        ref={containerRef as React.RefObject<HTMLDialogElement>}
+        ref={containerRef as RefObject<HTMLDialogElement>}
         open
         className={styles.dialog}
         aria-labelledby={titleId}

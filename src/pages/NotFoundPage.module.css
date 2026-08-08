@@ -1,0 +1,28 @@
+.page {
+  padding-block: var(--space-24);
+}
+
+.code {
+  margin: 0 0 var(--space-3);
+  color: var(--color-accent-hover);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-4xl);
+}
+
+.lead {
+  margin: 0 0 var(--space-8);
+  color: var(--color-text-muted);
+  max-width: 36rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
