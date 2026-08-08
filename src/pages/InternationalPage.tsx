@@ -5,49 +5,49 @@ import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { routePaths } from '@/config/routes'
 import {
-  indiaContactBlurb,
-  indiaFaqs,
-  indiaHub,
-  indiaHubSeo,
-  indiaRelatedLinks,
-  indiaServiceLinks,
-} from '@/content/market/india'
+  internationalContactBlurb,
+  internationalFaqs,
+  internationalHub,
+  internationalHubSeo,
+  internationalRelatedLinks,
+  internationalServiceLinks,
+} from '@/content/market/international'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { contactHref } from '@/lib/conversion/contact-link'
 import { useEffect } from 'react'
 import styles from './ErodePage.module.css'
 
-export function IndiaPage() {
+export function InternationalPage() {
   useEffect(() => {
-    trackEvent(analyticsEvents.indiaPageView, {})
+    trackEvent(analyticsEvents.internationalPageView, {})
   }, [])
 
   return (
     <>
       <PageMeta
-        documentTitle={indiaHubSeo.documentTitle}
-        description={indiaHubSeo.description}
-        path={indiaHubSeo.path}
+        documentTitle={internationalHubSeo.documentTitle}
+        description={internationalHubSeo.description}
+        path={internationalHubSeo.path}
       />
       <BreadcrumbSchema
         items={[
           { name: 'Home', path: '/' },
-          { name: 'India', path: indiaHub.path },
+          { name: 'International', path: internationalHub.path },
         ]}
       />
-      <FaqPageSchema faqs={[...indiaFaqs]} />
+      <FaqPageSchema faqs={[...internationalFaqs]} />
       <div className={styles.page}>
         <header className={styles.hero}>
           <div className="shell">
             <nav className={styles.breadcrumb} aria-label="Breadcrumb">
               <Link to={routePaths.home}>Home</Link>
               <span aria-hidden="true">/</span>
-              <span aria-current="page">India</span>
+              <span aria-current="page">International</span>
             </nav>
             <Reveal>
-              <p className="text-label">India-wide delivery</p>
-              <h1 className="text-display">{indiaHub.h1}</h1>
-              <p className={styles.lead}>{indiaHub.lead}</p>
+              <p className="text-label">Global · Remote-first</p>
+              <h1 className="text-display">{internationalHub.h1}</h1>
+              <p className={styles.lead}>{internationalHub.lead}</p>
             </Reveal>
           </div>
         </header>
@@ -55,30 +55,34 @@ export function IndiaPage() {
         <section className="section section--tight">
           <div className="shell">
             <Reveal>
-              <h2 className="text-h2">Who we serve</h2>
-              <ul className={styles.list}>
-                {indiaHub.coverage.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+              <h2 className="text-h2">Services</h2>
+              <p className={styles.body}>{internationalHub.services}</p>
             </Reveal>
             <Reveal delayMs={60}>
-              <h2 className="text-h2">Delivery model</h2>
+              <h2 className="text-h2">How we collaborate</h2>
               <ul className={styles.list}>
-                {indiaHub.delivery.map((item) => (
+                {internationalHub.delivery.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
             </Reveal>
-            <p className={styles.body}>{indiaHub.industries}</p>
+            <Reveal delayMs={80}>
+              <h2 className="text-h2">Trust & payments</h2>
+              <ul className={styles.list}>
+                {internationalHub.trust.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <p className={styles.body}>{internationalHub.privacy}</p>
+            </Reveal>
           </div>
         </section>
 
         <section className="section">
           <div className="shell">
-            <h2 className="text-h2">Services</h2>
+            <h2 className="text-h2">Core capabilities</h2>
             <ul className={styles.serviceLinks}>
-              {indiaServiceLinks.map((item) => (
+              {internationalServiceLinks.map((item) => (
                 <li key={item.slug}>
                   <Link className="link-underline" to={item.href}>
                     {item.label}
@@ -87,7 +91,7 @@ export function IndiaPage() {
               ))}
             </ul>
             <ul className={styles.serviceLinks}>
-              {indiaRelatedLinks.map((item) => (
+              {internationalRelatedLinks.map((item) => (
                 <li key={item.href}>
                   <Link className="link-underline" to={item.href}>
                     {item.label}
@@ -97,18 +101,12 @@ export function IndiaPage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'india_hub' })}
+                to={contactHref({ source: 'international_hub' })}
                 trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'india_hub' }}
+                trackParams={{ source: 'international_hub' }}
               >
-                Start a project
+                Discuss your project
               </Button>
-              <Link className="link-underline" to={routePaths.pricing}>
-                Pricing
-              </Link>
-              <Link className="link-underline" to={routePaths.international}>
-                International
-              </Link>
             </div>
           </div>
         </section>
@@ -117,14 +115,14 @@ export function IndiaPage() {
           <div className="shell">
             <h2 className="text-h2">Questions</h2>
             <dl className={styles.faq}>
-              {indiaFaqs.map((faq) => (
+              {internationalFaqs.map((faq) => (
                 <div key={faq.question}>
                   <dt className="text-h3">{faq.question}</dt>
                   <dd>{faq.answer}</dd>
                 </div>
               ))}
             </dl>
-            <p className={styles.contact}>{indiaContactBlurb}</p>
+            <p className={styles.contact}>{internationalContactBlurb}</p>
           </div>
         </section>
       </div>

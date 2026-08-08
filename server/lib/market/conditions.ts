@@ -9,7 +9,12 @@ import {
   TAMIL_NADU_CITY_HINTS,
   TAMIL_NADU_PAGE_PREFIX,
   TAMIL_NADU_STATE_HINTS,
+  INTERNATIONAL_PAGE_PREFIX,
+  TIER1_MARKET_COUNTRY_HINTS,
+  type Tier1MarketId,
 } from './constants.js'
+
+const ALL_TIER1_COUNTRY_HINTS = Object.values(TIER1_MARKET_COUNTRY_HINTS).flat()
 
 function textColumnIlike(column: PgColumn, hints: readonly string[]): SQL[] {
   return hints.map((hint) => ilike(column, `%${hint}%`))
@@ -41,4 +46,16 @@ export function indiaLeadCondition(): SQL {
     ilike(leads.landingPath, `${INDIA_PAGE_PREFIX}%`),
     ilike(leads.pageSource, 'india%'),
   )!
+}
+
+export function internationalLeadCondition(): SQL {
+  return or(
+    ilike(leads.landingPath, `${INTERNATIONAL_PAGE_PREFIX}%`),
+    ilike(leads.pageSource, 'international%'),
+    ...textColumnIlike(leads.businessCountry, ALL_TIER1_COUNTRY_HINTS),
+  )!
+}
+
+export function tier1MarketLeadCondition(market: Tier1MarketId): SQL {
+  return or(...textColumnIlike(leads.businessCountry, TIER1_MARKET_COUNTRY_HINTS[market]))!
 }

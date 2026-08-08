@@ -135,6 +135,9 @@ export const pricingTiers: PricingTier[] = [
   },
 ]
 
+export const internationalPricingNote =
+  'Starting prices on this page are in INR. International clients receive proposal-led quotes in agreed currencies (e.g. USD, GBP)—see our international delivery page for context.'
+
 export const pricingNote =
   'Figures marked “from” are public starting points on mucolabs.com. Your proposal confirms exact scope, timeline and payment terms before work begins.'
 

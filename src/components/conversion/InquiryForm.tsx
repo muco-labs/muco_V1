@@ -24,6 +24,8 @@ export type InquiryFormValues = {
   timeline: string
   businessCity: string
   businessState: string
+  businessCountry: string
+  contactTimezone: string
   message: string
 }
 
@@ -44,6 +46,8 @@ const emptyValues: InquiryFormValues = {
   timeline: '',
   businessCity: '',
   businessState: '',
+  businessCountry: '',
+  contactTimezone: '',
   message: '',
 }
 
@@ -94,6 +98,8 @@ export function InquiryForm({
       timeline: values.timeline,
       businessCity: values.businessCity,
       businessState: values.businessState,
+      businessCountry: values.businessCountry,
+      contactTimezone: values.contactTimezone,
       pageSource,
       website: String(honeypot ?? ''),
     })
@@ -210,6 +216,24 @@ export function InquiryForm({
         placeholder="E.g. Tamil Nadu"
         maxLength={contactFieldLimits.businessState}
         {...field('businessState')}
+      />
+      <Input
+        id={`${idPrefix}-country`}
+        name="businessCountry"
+        label="Country (optional)"
+        autoComplete="country-name"
+        placeholder="E.g. United States"
+        maxLength={contactFieldLimits.businessCountry}
+        {...field('businessCountry')}
+      />
+      <Input
+        id={`${idPrefix}-timezone`}
+        name="contactTimezone"
+        label="Time zone (optional)"
+        placeholder="E.g. America/New_York"
+        maxLength={contactFieldLimits.contactTimezone}
+        hint="IANA time zone name helps us schedule meetings respectfully."
+        {...field('contactTimezone')}
       />
       <Select
         id={`${idPrefix}-service`}

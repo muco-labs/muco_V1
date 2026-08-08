@@ -51,6 +51,7 @@ const indexablePaths = [
   '/erode/seo',
   '/tamil-nadu',
   '/india',
+  '/international',
   '/contact',
   '/pricing',
   '/privacy-policy',

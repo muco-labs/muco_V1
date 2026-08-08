@@ -30,6 +30,8 @@ function attributionFields(input: CreateLeadInput) {
     pageSource: input.pageSource,
     businessCity: input.businessCity,
     businessState: input.businessState,
+    businessCountry: input.businessCountry,
+    contactTimezone: input.contactTimezone,
   }
 }
 

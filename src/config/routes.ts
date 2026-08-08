@@ -17,6 +17,7 @@ export const routePaths = {
   erode: '/erode',
   tamilNadu: '/tamil-nadu',
   india: '/india',
+  international: '/international',
 } as const
 
 export type ServiceSlug =
@@ -61,6 +62,7 @@ export const staticRoutes = [
   routePaths.erode,
   routePaths.tamilNadu,
   routePaths.india,
+  routePaths.international,
   '/auth/sign-in',
   '/auth/sign-up',
   routePaths.privacy,

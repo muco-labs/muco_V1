@@ -18,6 +18,7 @@ export const indexablePaths: string[] = [
   ...erodeLocalServiceSlugs.map((slug) => erodeLocalServicePath(slug)),
   pageSeo.tamilNadu.path,
   pageSeo.india.path,
+  pageSeo.international.path,
   pageSeo.about.path,
   pageSeo.contact.path,
   pageSeo.pricing.path,

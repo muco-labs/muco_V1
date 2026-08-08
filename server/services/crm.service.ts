@@ -35,7 +35,14 @@ import {
   normalizeLeadSource,
   storageSourceValue,
 } from '../lib/crm/constants.js'
-import { erodeLeadCondition, indiaLeadCondition, tamilNaduLeadCondition } from '../lib/market/conditions.js'
+import {
+  erodeLeadCondition,
+  indiaLeadCondition,
+  internationalLeadCondition,
+  tamilNaduLeadCondition,
+  tier1MarketLeadCondition,
+} from '../lib/market/conditions.js'
+import type { Tier1MarketId } from '../lib/market/constants.js'
 import { inviteCustomerFromLead } from './auth.service.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
@@ -258,7 +265,8 @@ export async function listLeadsForCrm(
     assignedEmployeeId?: string
     q?: string
     followUp?: 'overdue' | 'upcoming'
-    locality?: 'erode' | 'tamil_nadu' | 'india'
+    locality?: 'erode' | 'tamil_nadu' | 'india' | 'international'
+    market?: Tier1MarketId
     limit?: number
     offset?: number
     sort?: 'newest' | 'oldest' | 'priority' | 'follow_up' | 'updated'
@@ -313,6 +321,13 @@ export async function listLeadsForCrm(
   }
   if (query.locality === 'india') {
     conditions.push(indiaLeadCondition())
+  }
+  if (query.locality === 'international') {
+    if (query.market) {
+      conditions.push(tier1MarketLeadCondition(query.market))
+    } else {
+      conditions.push(internationalLeadCondition())
+    }
   }
 
   const orderByClause =
@@ -475,6 +490,8 @@ export async function updateLeadCrm(
     referralSource: string
     businessCity: string
     businessState: string
+    businessCountry: string
+    contactTimezone: string
   }>,
 ) {
   await assertCanAccessLead(auth, leadId)
@@ -533,6 +550,8 @@ export async function updateLeadCrm(
       referralSource: input.referralSource,
       businessCity: input.businessCity,
       businessState: input.businessState,
+      businessCountry: input.businessCountry,
+      contactTimezone: input.contactTimezone,
       updatedAt: new Date(),
     })
     .where(eq(leads.id, leadId))

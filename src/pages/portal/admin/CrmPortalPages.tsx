@@ -196,7 +196,9 @@ export function CrmLeadDetailPage() {
       lead.utmSource ||
       lead.referrerHost ||
       lead.businessCity ||
-      lead.businessState ? (
+      lead.businessState ||
+      lead.businessCountry ||
+      lead.contactTimezone ? (
         <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
           <h2 className="text-h3">Attribution</h2>
           <ul className={ui.stack}>
@@ -215,6 +217,12 @@ export function CrmLeadDetailPage() {
             ) : null}
             {lead.businessState ? (
               <li className={ui.meta}>State / region (provided): {String(lead.businessState)}</li>
+            ) : null}
+            {lead.businessCountry ? (
+              <li className={ui.meta}>Country (provided): {String(lead.businessCountry)}</li>
+            ) : null}
+            {lead.contactTimezone ? (
+              <li className={ui.meta}>Time zone (provided): {String(lead.contactTimezone)}</li>
             ) : null}
           </ul>
         </section>

@@ -2,6 +2,21 @@
 export const ERODE_PAGE_PREFIX = '/erode'
 export const TAMIL_NADU_PAGE_PREFIX = '/tamil-nadu'
 export const INDIA_PAGE_PREFIX = '/india'
+export const INTERNATIONAL_PAGE_PREFIX = '/international'
+
+/** Voluntary country field hints — Tier 1 research markets only. */
+export const TIER1_MARKET_COUNTRY_HINTS: Record<string, readonly string[]> = {
+  us: ['united states', 'usa', 'u.s.', 'u.s.a.', 'america'],
+  uk: ['united kingdom', 'uk', 'u.k.', 'britain', 'england', 'scotland', 'wales'],
+  ca: ['canada'],
+  au: ['australia'],
+  ae: ['uae', 'united arab emirates', 'dubai', 'abu dhabi'],
+  sg: ['singapore'],
+} as const
+
+export const INDIA_COUNTRY_HINTS = ['india', 'bharat'] as const
+
+export type Tier1MarketId = keyof typeof TIER1_MARKET_COUNTRY_HINTS
 
 export const TAMIL_NADU_CITY_HINTS = [
   'erode',
@@ -150,5 +165,44 @@ export function isIndiaAttributedLead(input: {
   if (landing.startsWith(INDIA_PAGE_PREFIX)) return true
   const page = norm(input.pageSource)
   if (page.startsWith('india_') || page === 'india') return true
+  return false
+}
+
+export function matchesIndiaCountry(country?: string | null): boolean {
+  const c = norm(country)
+  if (!c) return false
+  return INDIA_COUNTRY_HINTS.some((hint) => c.includes(hint))
+}
+
+export function matchesTier1MarketCountry(
+  country?: string | null,
+  market?: Tier1MarketId,
+): boolean {
+  const c = norm(country)
+  if (!c) return false
+  if (market) {
+    return TIER1_MARKET_COUNTRY_HINTS[market].some((hint) => c.includes(hint))
+  }
+  return Object.values(TIER1_MARKET_COUNTRY_HINTS).some((hints) =>
+    hints.some((hint) => c.includes(hint)),
+  )
+}
+
+export function isInternationalAttributedLead(input: {
+  businessCountry?: string | null
+  businessCity?: string | null
+  businessState?: string | null
+  landingPath?: string | null
+  pageSource?: string | null
+}): boolean {
+  const landing = norm(input.landingPath)
+  if (landing.startsWith(INTERNATIONAL_PAGE_PREFIX)) return true
+  const page = norm(input.pageSource)
+  if (page.startsWith('international')) return true
+  if (matchesTier1MarketCountry(input.businessCountry)) return true
+  const country = norm(input.businessCountry)
+  if (country && !matchesIndiaCountry(country) && !isIndiaAttributedLead(input)) {
+    return true
+  }
   return false
 }

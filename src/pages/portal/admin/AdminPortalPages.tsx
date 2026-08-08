@@ -31,9 +31,13 @@ export function AdminLeadsPage() {
   const [searchParams] = useSearchParams()
   const [status, setStatus] = useState('')
   const [q, setQ] = useState('')
-  const [locality, setLocality] = useState<'' | 'erode' | 'tamil_nadu' | 'india'>(() => {
+  const [locality, setLocality] = useState<'' | 'erode' | 'tamil_nadu' | 'india' | 'international'>(() => {
     const v = searchParams.get('locality')
-    return v === 'erode' || v === 'tamil_nadu' || v === 'india' ? v : ''
+    return v === 'erode' || v === 'tamil_nadu' || v === 'india' || v === 'international' ? v : ''
+  })
+  const [market, setMarket] = useState<'' | 'us' | 'uk' | 'ca' | 'au' | 'ae' | 'sg'>(() => {
+    const v = searchParams.get('market')
+    return v === 'us' || v === 'uk' || v === 'ca' || v === 'au' || v === 'ae' || v === 'sg' ? v : ''
   })
   const { data, error, loading, reload } = useFetch(
     () =>
@@ -41,8 +45,9 @@ export function AdminLeadsPage() {
         status: status || undefined,
         q: q || undefined,
         locality: locality || undefined,
+        market: market || undefined,
       }),
-    [status, q, locality],
+    [status, q, locality, market],
   )
   const items = asRecords(data)
 
@@ -71,12 +76,27 @@ export function AdminLeadsPage() {
         <select
           aria-label="Filter by location segment"
           value={locality}
-          onChange={(e) => setLocality(e.target.value as '' | 'erode' | 'tamil_nadu' | 'india')}
+          onChange={(e) => setLocality(e.target.value as '' | 'erode' | 'tamil_nadu' | 'india' | 'international')}
         >
           <option value="">All locations</option>
           <option value="erode">Erode segment</option>
           <option value="tamil_nadu">Tamil Nadu</option>
           <option value="india">India (national segment)</option>
+          <option value="international">International</option>
+        </select>
+        <select
+          aria-label="Filter by Tier 1 market"
+          value={market}
+          onChange={(e) => setMarket(e.target.value as '' | 'us' | 'uk' | 'ca' | 'au' | 'ae' | 'sg')}
+          disabled={locality !== 'international'}
+        >
+          <option value="">All international</option>
+          <option value="us">United States</option>
+          <option value="uk">United Kingdom</option>
+          <option value="ca">Canada</option>
+          <option value="au">Australia</option>
+          <option value="ae">UAE</option>
+          <option value="sg">Singapore</option>
         </select>
       </div>
       {items.length === 0 ? (
@@ -1118,6 +1138,104 @@ export function AdminNationalMarketPage() {
                   {String(lead.serviceInterest ?? 'Service TBD')}
                   {lead.businessCity ? ` · ${String(lead.businessCity)}` : ''}
                   {lead.businessState ? ` · ${String(lead.businessState)}` : ''}
+                </span>
+                <StatusPill status={String(lead.status)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  )
+}
+
+export function AdminInternationalMarketPage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.local.internationalDashboard(), [])
+
+  if (loading) return <ListSkeleton rows={8} />
+  if (error) return <PortalError message={error} onRetry={reload} />
+
+  const overall = (data?.overall as SegmentMetrics) ?? {}
+  const tier1Markets =
+    (data?.tier1Markets as Record<string, SegmentMetrics>) ?? {}
+  const topCountries = (data?.topCountries as Array<{ country: string; count: number }>) ?? []
+  const byService = (data?.byService as Array<{ service: string; count: number }>) ?? []
+  const recent = (data?.recentLeads as Array<Record<string, unknown>>) ?? []
+
+  const tier1Labels: Record<string, string> = {
+    us: 'United States',
+    uk: 'United Kingdom',
+    ca: 'Canada',
+    au: 'Australia',
+    ae: 'UAE',
+    sg: 'Singapore',
+  }
+
+  return (
+    <>
+      <PageIntro
+        label="Global market"
+        title="International segment"
+        description="Tier 1 research markets—voluntary country and /international hub only."
+      />
+      <p className={ui.meta}>{String(data?.attributionNote ?? '')}</p>
+
+      <div className={ui.cardGrid} style={{ marginTop: 'var(--space-4)' }}>
+        <SegmentCard title="All international signals" segment={overall} />
+        {Object.entries(tier1Markets).map(([key, segment]) => (
+          <SegmentCard key={key} title={tier1Labels[key] ?? key} segment={segment} />
+        ))}
+      </div>
+
+      {topCountries.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Top countries (provided)</h2>
+          <ul className={ui.stack}>
+            {topCountries.map((row) => (
+              <li key={row.country} className={`surface ${ui.dataCard}`}>
+                {row.country} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {byService.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">By service</h2>
+          <ul className={ui.stack}>
+            {byService.map((row) => (
+              <li key={row.service} className={`surface ${ui.dataCard}`}>
+                {row.service} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={layout.filterRow}>
+          <h2 className="text-h3">Recent international leads</h2>
+          <Link
+            className="link-underline"
+            to={`${adminPortalPaths.crmLeadsList}?locality=international`}
+          >
+            View all with filter
+          </Link>
+        </div>
+        {recent.length === 0 ? (
+          <EmptyState title="No leads yet" description="International leads appear when attribution is captured." />
+        ) : (
+          <ul className={ui.stack}>
+            {recent.map((lead) => (
+              <li key={String(lead.id)} className={`surface ${ui.dataCard}`}>
+                <Link className="link-underline" to={adminPortalPaths.crmLeadDetail(String(lead.id))}>
+                  {String(lead.name)}
+                </Link>
+                <span className={ui.meta}>
+                  {String(lead.serviceInterest ?? 'Service TBD')}
+                  {lead.businessCountry ? ` · ${String(lead.businessCountry)}` : ''}
+                  {lead.contactTimezone ? ` · ${String(lead.contactTimezone)}` : ''}
                 </span>
                 <StatusPill status={String(lead.status)} />
               </li>

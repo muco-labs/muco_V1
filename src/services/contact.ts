@@ -21,6 +21,8 @@ export type ContactSubmitInput = {
   pageSource?: string
   businessCity?: string
   businessState?: string
+  businessCountry?: string
+  contactTimezone?: string
   website?: string
 }
 
@@ -61,6 +63,8 @@ export async function submitContact(input: ContactSubmitInput): Promise<ContactR
           timeline: validation.data.timeline || undefined,
           businessCity: validation.data.businessCity || undefined,
           businessState: validation.data.businessState || undefined,
+          businessCountry: validation.data.businessCountry || undefined,
+          contactTimezone: validation.data.contactTimezone || undefined,
           website: input.website ?? '',
           source,
           ...attribution,

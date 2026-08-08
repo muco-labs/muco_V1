@@ -329,6 +329,8 @@ export const leads = pgTable(
     referralSource: text('referral_source'),
     businessCity: text('business_city'),
     businessState: text('business_state'),
+    businessCountry: text('business_country'),
+    contactTimezone: text('contact_timezone'),
     qualificationBusinessType: text('qualification_business_type'),
     qualificationProjectSize: text('qualification_project_size'),
     qualificationUrgency: text('qualification_urgency'),
@@ -348,6 +350,7 @@ export const leads = pgTable(
     index('leads_service_interest_idx').on(table.serviceInterest),
     index('leads_business_city_idx').on(table.businessCity),
     index('leads_business_state_idx').on(table.businessState),
+    index('leads_business_country_idx').on(table.businessCountry),
   ],
 )
 
@@ -413,6 +416,7 @@ export const proposals = pgTable(
     terms: text('terms'),
     status: proposalStatusEnum('status').notNull().default('draft'),
     amount: numeric('amount', { precision: 12, scale: 2 }),
+    currency: text('currency').notNull().default('INR'),
     validUntil: timestamp('valid_until', { withTimezone: true }),
     customerDecidedAt: timestamp('customer_decided_at', { withTimezone: true }),
     customerDecisionNote: text('customer_decision_note'),

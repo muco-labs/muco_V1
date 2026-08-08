@@ -40,6 +40,10 @@ const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
 const ErodePage = lazyPage(() => import('@/pages/ErodePage'), 'ErodePage')
 const TamilNaduPage = lazyPage(() => import('@/pages/TamilNaduPage'), 'TamilNaduPage')
 const IndiaPage = lazyPage(() => import('@/pages/IndiaPage'), 'IndiaPage')
+const InternationalPage = lazyPage(
+  () => import('@/pages/InternationalPage'),
+  'InternationalPage',
+)
 const ErodeLocalServicePage = lazyPage(
   () => import('@/pages/erode/ErodeLocalServicePage'),
   'ErodeLocalServicePage',
@@ -147,6 +151,7 @@ const AdminSettingsPage = lazyAdminPage('AdminSettingsPage')
 const AdminSecurityPage = lazyAdminPage('AdminSecurityPage')
 const AdminLocalMarketPage = lazyAdminPage('AdminLocalMarketPage')
 const AdminNationalMarketPage = lazyAdminPage('AdminNationalMarketPage')
+const AdminInternationalMarketPage = lazyAdminPage('AdminInternationalMarketPage')
 const AdminLeadsPage = lazyAdminPage('AdminLeadsPage')
 
 function lazyCrmPage(exportName: string) {
@@ -190,6 +195,7 @@ export const router = createBrowserRouter([
       { path: 'erode/:serviceSlug', element: <ErodeLocalServicePage /> },
       { path: 'tamil-nadu', element: <TamilNaduPage /> },
       { path: 'india', element: <IndiaPage /> },
+      { path: 'international', element: <InternationalPage /> },
       { path: 'auth/sign-in', element: <AuthSignInPage /> },
       { path: 'auth/sign-up', element: <AuthSignUpPage /> },
       { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },
@@ -257,6 +263,7 @@ export const router = createBrowserRouter([
           { path: 'crm/list', element: <AdminLeadsPage /> },
           { path: 'local/erode', element: <AdminLocalMarketPage /> },
           { path: 'local/india', element: <AdminNationalMarketPage /> },
+          { path: 'local/international', element: <AdminInternationalMarketPage /> },
           { path: 'operations', element: <AdminOperationsPage /> },
           { path: 'sales', element: <AdminSalesPage /> },
           { path: 'revenue', element: <AdminRevenuePage /> },

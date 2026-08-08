@@ -79,6 +79,7 @@ import {
 import { normalizeLeadSource } from '../../lib/crm/constants.js'
 import { getErodeMarketDashboard } from '../../services/local.service.js'
 import { getNationalMarketDashboard } from '../../services/market.service.js'
+import { getInternationalMarketDashboard } from '../../services/international.service.js'
 
 export const adminRoutes = new Hono()
 
@@ -302,6 +303,14 @@ adminRoutes.get('/local/india-dashboard', requirePermission('leads.view'), async
   }
 })
 
+adminRoutes.get('/local/international-dashboard', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getInternationalMarketDashboard(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
   try {
     const auth = c.get('auth')
@@ -311,7 +320,13 @@ adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
       source: c.req.query('source'),
       assignedEmployeeId: c.req.query('assignedEmployeeId'),
       q: c.req.query('q'),
-      locality: c.req.query('locality') as 'erode' | 'tamil_nadu' | 'india' | undefined,
+      locality: c.req.query('locality') as
+        | 'erode'
+        | 'tamil_nadu'
+        | 'india'
+        | 'international'
+        | undefined,
+      market: c.req.query('market') as 'us' | 'uk' | 'ca' | 'au' | 'ae' | 'sg' | undefined,
       followUp: c.req.query('followUp') as 'overdue' | undefined,
       sort: (c.req.query('sort') as 'newest') ?? 'newest',
       limit: Number(c.req.query('limit') || 50),
@@ -653,6 +668,7 @@ const proposalCreateSchema = z.object({
   customerId: z.string().uuid(),
   title: z.string().optional(),
   amount: z.string().optional(),
+  currency: z.string().trim().max(8).optional(),
   scope: z.string().optional(),
   projectId: z.string().uuid().optional(),
   leadId: z.string().uuid().optional(),

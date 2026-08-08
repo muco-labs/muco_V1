@@ -1,6 +1,7 @@
 export {
   pricingTiers,
   pricingNote,
+  internationalPricingNote,
   serviceStartingPrices,
   maintenanceNote,
 } from '@/content/pricing'

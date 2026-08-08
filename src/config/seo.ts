@@ -69,6 +69,12 @@ export const pageSeo = {
     description:
       'India-wide delivery from MUCO LABS—custom software, websites, mobile apps, AI, automation and SEO with transparent proposals.',
   },
+  international: {
+    path: '/international',
+    documentTitle: `MUCO LABS International | Remote Software & AI`,
+    description:
+      'Remote web, software, mobile and AI development for global teams—US, UK, Canada, Australia, UAE, Singapore and beyond. Based in India, no fake offices.',
+  },
   contact: {
     path: '/contact',
     documentTitle: `Start a Project | ${brand}`,

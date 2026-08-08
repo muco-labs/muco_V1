@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/Button'
 import {
   maintenanceNote,
   pricingNote,
+  internationalPricingNote,
   pricingTiers,
   serviceStartingPrices,
 } from '@/data/pricing'
 import { faqs } from '@/content/faqs'
 import { pageSeo } from '@/config/seo'
+import { routePaths } from '@/config/routes'
 import { contactHref } from '@/lib/conversion/contact-link'
 import { servicePath } from '@/config/routes'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
@@ -42,6 +44,13 @@ export function PricingPage() {
               <p className="text-label">Engagement</p>
               <h1 className="text-h1">Clear starting points. Honest proposals.</h1>
               <p className={styles.lead}>{pricingNote}</p>
+              <p className={styles.lead}>
+                {internationalPricingNote}{' '}
+                <Link className="link-underline" to={routePaths.international}>
+                  International delivery
+                </Link>
+                .
+              </p>
             </Reveal>
           </div>
         </header>

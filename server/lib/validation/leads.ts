@@ -42,6 +42,8 @@ export const createLeadSchema = z.object({
   pageSource: z.string().trim().max(64).optional(),
   businessCity: z.string().trim().max(80).optional(),
   businessState: z.string().trim().max(80).optional(),
+  businessCountry: z.string().trim().max(80).optional(),
+  contactTimezone: z.string().trim().max(64).optional(),
 })
 
 export type CreateLeadInput = z.infer<typeof createLeadSchema>

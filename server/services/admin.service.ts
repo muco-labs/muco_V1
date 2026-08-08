@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gte, ilike, inArray, lte, or, sql, sum } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
+import { normalizeProposalCurrency } from '../lib/currency/constants.js'
 import {
   auditLogs,
   customerProfiles,
@@ -507,6 +508,7 @@ export async function createProposalAdmin(
     projectId?: string
     leadId?: string
     paymentSchedule?: string
+    currency?: string
     lineItems?: Array<{
       description: string
       quantity?: string
@@ -529,6 +531,7 @@ export async function createProposalAdmin(
       projectId: input.projectId ?? null,
       title: input.title?.trim() || 'Proposal',
       amount,
+      currency: normalizeProposalCurrency(input.currency),
       scope: input.scope?.trim() || null,
       paymentSchedule: input.paymentSchedule?.trim() || null,
       status: 'draft',
