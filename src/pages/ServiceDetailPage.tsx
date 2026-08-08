@@ -15,6 +15,7 @@ import { getServiceContent } from '@/data/service-content'
 import { serviceFaqs, serviceRelatedSlugs } from '@/data/service-seo'
 import { getServiceBySlug } from '@/data/services'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { UiUxDesignServiceDetail } from '@/pages/services/UiUxDesignServiceDetail'
 import styles from './ServiceDetailPage.module.css'
 
 export function ServiceDetailPage() {
@@ -23,9 +24,13 @@ export function ServiceDetailPage() {
   const content = slug ? getServiceContent(slug) : undefined
 
   useEffect(() => {
-    if (!content) return
+    if (!content || content.slug === 'ui-ux-design') return
     trackEvent(analyticsEvents.serviceView, { service_slug: content.slug })
   }, [content])
+
+  if (slug === 'ui-ux-design') {
+    return <UiUxDesignServiceDetail />
+  }
 
   if (!meta || !content) {
     return <Navigate to="/404" replace />

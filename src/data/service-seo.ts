@@ -54,6 +54,23 @@ export const serviceFaqs: Partial<Record<ServiceSlug, ServiceFaq[]>> = {
         'We build foundations for local intent where it is genuine—without thin location pages or keyword stuffing.',
     },
   ],
+  'ui-ux-design': [
+    {
+      question: 'Do you design only, or also build the product?',
+      answer:
+        'We offer UI/UX as a focused engagement or paired with MUCO LABS engineering. Handoff is structured for either path.',
+    },
+    {
+      question: 'What do we receive at the end of a design engagement?',
+      answer:
+        'Flows, UI specifications, component patterns and assets your team can implement—plus documented states for engineering clarity.',
+    },
+    {
+      question: 'Can you work with our existing brand?',
+      answer:
+        'Yes. We extend existing brand guidelines into product UI, or help define a system when you are starting fresh.',
+    },
+  ],
 }
 
 export const serviceRelatedSlugs: Record<ServiceSlug, ServiceSlug[]> = {
