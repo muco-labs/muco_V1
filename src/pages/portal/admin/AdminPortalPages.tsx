@@ -60,7 +60,7 @@ export function AdminLeadsPage() {
         </select>
       </div>
       {items.length === 0 ? (
-        <EmptyState title="No new leads." description="Leads from the website or admin entry will appear here." />
+        <EmptyState title="No enquiries" description="No enquiries have arrived yet." />
       ) : (
         <ul className={ui.stack}>
           {items.map((lead) => (

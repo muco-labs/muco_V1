@@ -1,7 +1,9 @@
 export const adminPortalPaths = {
   root: '/admin',
-  leads: '/admin/leads',
-  leadDetail: (id: string) => `/admin/leads/${id}`,
+  crm: '/admin/crm',
+  crmLeadDetail: (id: string) => `/admin/crm/leads/${id}`,
+  leads: '/admin/crm',
+  leadDetail: (id: string) => `/admin/crm/leads/${id}`,
   customers: '/admin/customers',
   customerDetail: (id: string) => `/admin/customers/${id}`,
   employees: '/admin/employees',
@@ -29,7 +31,7 @@ export type AdminNavItem = {
 
 export const adminNav: AdminNavItem[] = [
   { label: 'Dashboard', path: adminPortalPaths.root, end: true, permission: null },
-  { label: 'Leads', path: adminPortalPaths.leads, permission: 'leads.view' },
+  { label: 'CRM', path: adminPortalPaths.crm, permission: 'leads.view' },
   { label: 'Customers', path: adminPortalPaths.customers, permission: 'customers.view' },
   { label: 'Employees', path: adminPortalPaths.employees, permission: 'employees.view' },
   { label: 'Projects', path: adminPortalPaths.projects, permission: 'projects.view' },
@@ -56,8 +58,21 @@ export const leadStatusOptions = [
   'new',
   'contacted',
   'qualified',
+  'discovery',
   'proposal',
+  'negotiation',
   'won',
   'lost',
   'archived',
+] as const
+
+export const CRM_PIPELINE_STATUSES = [
+  'new',
+  'contacted',
+  'qualified',
+  'discovery',
+  'proposal',
+  'negotiation',
+  'won',
+  'lost',
 ] as const

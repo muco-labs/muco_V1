@@ -114,8 +114,6 @@ const AdminDashboardPage = lazyPage(
   () => import('@/pages/portal/admin/AdminDashboardPage'),
   'AdminDashboardPage',
 )
-const AdminLeadsPage = lazyAdminPage('AdminLeadsPage')
-const AdminLeadDetailPage = lazyAdminPage('AdminLeadDetailPage')
 const AdminCustomersPage = lazyAdminPage('AdminCustomersPage')
 const AdminCustomerDetailPage = lazyAdminPage('AdminCustomerDetailPage')
 const AdminEmployeesPage = lazyAdminPage('AdminEmployeesPage')
@@ -132,6 +130,17 @@ const AdminNotificationsPage = lazyAdminPage('AdminNotificationsPage')
 const AdminAuditLogsPage = lazyAdminPage('AdminAuditLogsPage')
 const AdminSettingsPage = lazyAdminPage('AdminSettingsPage')
 const AdminSecurityPage = lazyAdminPage('AdminSecurityPage')
+
+function lazyCrmPage(exportName: string) {
+  return lazy(() =>
+    import('@/pages/portal/admin/CrmPortalPages').then((module) => ({
+      default: module[exportName as keyof typeof module] as ComponentType<unknown>,
+    })),
+  )
+}
+
+const CrmHomePage = lazyCrmPage('CrmHomePage')
+const CrmLeadDetailPage = lazyCrmPage('CrmLeadDetailPage')
 const PrivacyPolicyPage = lazyPage(
   () => import('@/pages/PrivacyPolicyPage'),
   'PrivacyPolicyPage',
@@ -220,8 +229,10 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <AdminDashboardPage /> },
-          { path: 'leads', element: <AdminLeadsPage /> },
-          { path: 'leads/:id', element: <AdminLeadDetailPage /> },
+          { path: 'crm', element: <CrmHomePage /> },
+          { path: 'crm/leads/:id', element: <CrmLeadDetailPage /> },
+          { path: 'leads', element: <CrmHomePage /> },
+          { path: 'leads/:id', element: <CrmLeadDetailPage /> },
           { path: 'customers', element: <AdminCustomersPage /> },
           { path: 'customers/:id', element: <AdminCustomerDetailPage /> },
           { path: 'employees', element: <AdminEmployeesPage /> },

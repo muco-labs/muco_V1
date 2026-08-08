@@ -37,8 +37,9 @@ export function AdminDashboardPage() {
         <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">New leads</h2>
           <p className="text-h2">{data.leadsNew}</p>
-          <Link className="link-underline" to={adminPortalPaths.leads}>
-            Manage leads
+          Manage in{' '}
+          <Link className="link-underline" to={adminPortalPaths.crm}>
+            CRM
           </Link>
         </article>
         <article className={`surface ${ui.dataCard}`}>

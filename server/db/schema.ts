@@ -25,10 +25,28 @@ export const leadStatusEnum = pgEnum('lead_status', [
   'new',
   'contacted',
   'qualified',
+  'discovery',
   'proposal',
+  'negotiation',
   'won',
   'lost',
   'archived',
+])
+export const leadFollowUpStatusEnum = pgEnum('lead_follow_up_status', [
+  'pending',
+  'due',
+  'completed',
+  'missed',
+  'cancelled',
+])
+export const leadLostReasonEnum = pgEnum('lead_lost_reason', [
+  'price',
+  'timing',
+  'no_response',
+  'competitor',
+  'not_a_fit',
+  'cancelled',
+  'other',
 ])
 export const projectStatusEnum = pgEnum('project_status', [
   'draft',
@@ -275,14 +293,26 @@ export const leads = pgTable(
     source: text('source').notNull().default('website'),
     serviceInterest: text('service_interest'),
     projectDescription: text('project_description').notNull(),
+    website: text('website'),
     budget: text('budget'),
     timeline: text('timeline'),
     status: leadStatusEnum('status').notNull().default('new'),
+    priority: taskPriorityEnum('priority').notNull().default('medium'),
     assignedEmployeeId: uuid('assigned_employee_id').references(() => employeeProfiles.id, {
       onDelete: 'set null',
     }),
     notes: text('notes'),
     followUpAt: timestamp('follow_up_at', { withTimezone: true }),
+    followUpStatus: leadFollowUpStatusEnum('follow_up_status').default('pending'),
+    lastContactedAt: timestamp('last_contacted_at', { withTimezone: true }),
+    convertedAt: timestamp('converted_at', { withTimezone: true }),
+    lostReason: leadLostReasonEnum('lost_reason'),
+    customerId: uuid('customer_id').references(() => customerProfiles.id, { onDelete: 'set null' }),
+    possibleDuplicateOf: uuid('possible_duplicate_of'),
+    qualificationBusinessType: text('qualification_business_type'),
+    qualificationProjectSize: text('qualification_project_size'),
+    qualificationUrgency: text('qualification_urgency'),
+    qualificationDecisionMaker: text('qualification_decision_maker'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -290,7 +320,59 @@ export const leads = pgTable(
     index('leads_email_idx').on(table.email),
     index('leads_status_idx').on(table.status),
     index('leads_source_idx').on(table.source),
+    index('leads_assigned_employee_id_idx').on(table.assignedEmployeeId),
+    index('leads_follow_up_at_idx').on(table.followUpAt),
+    index('leads_priority_idx').on(table.priority),
+    index('leads_customer_id_idx').on(table.customerId),
   ],
+)
+
+export const leadNotes = pgTable(
+  'lead_notes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    leadId: uuid('lead_id')
+      .notNull()
+      .references(() => leads.id, { onDelete: 'cascade' }),
+    authorUserId: uuid('author_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('lead_notes_lead_id_idx').on(table.leadId)],
+)
+
+export const leadActivities = pgTable(
+  'lead_activities',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    leadId: uuid('lead_id')
+      .notNull()
+      .references(() => leads.id, { onDelete: 'cascade' }),
+    actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    metadata: text('metadata'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('lead_activities_lead_id_idx').on(table.leadId)],
+)
+
+export const leadInteractions = pgTable(
+  'lead_interactions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    leadId: uuid('lead_id')
+      .notNull()
+      .references(() => leads.id, { onDelete: 'cascade' }),
+    loggedByUserId: uuid('logged_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    interactionType: text('interaction_type').notNull(),
+    summary: text('summary').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
+    nextAction: text('next_action'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('lead_interactions_lead_id_idx').on(table.leadId)],
 )
 
 export const proposals = pgTable(

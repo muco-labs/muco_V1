@@ -452,6 +452,7 @@ export async function createProposalAdmin(
     amount?: string
     scope?: string
     projectId?: string
+    leadId?: string
   },
 ) {
   const db = getDb()
@@ -460,6 +461,7 @@ export async function createProposalAdmin(
     .insert(proposals)
     .values({
       customerId: input.customerId,
+      leadId: input.leadId ?? null,
       projectId: input.projectId ?? null,
       title: input.title?.trim() || 'Proposal',
       amount: input.amount ?? null,

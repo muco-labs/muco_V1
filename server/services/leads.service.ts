@@ -2,10 +2,17 @@ import { AppError } from '../lib/errors.js'
 import { getDb } from '../db/client.js'
 import { auditLogs, leads } from '../db/schema.js'
 import type { CreateLeadInput } from '../lib/validation/leads.js'
+import { normalizeLeadSource, storageSourceValue } from '../lib/crm/constants.js'
+import {
+  findDuplicateHints,
+  notifyAdminsOfNewLead,
+  recordLeadActivity,
+} from './crm.service.js'
 
 export type CreateLeadResult = {
   id: string
   status: 'new'
+  possibleDuplicate?: boolean
 }
 
 export async function createLeadFromWebsite(input: CreateLeadInput): Promise<CreateLeadResult> {
@@ -18,6 +25,13 @@ export async function createLeadFromWebsite(input: CreateLeadInput): Promise<Cre
     )
   }
 
+  const source = storageSourceValue(normalizeLeadSource(input.source))
+  const hints = await findDuplicateHints({
+    email: input.email,
+    phone: input.phone,
+    company: input.company,
+  })
+
   const [lead] = await db
     .insert(leads)
     .values({
@@ -25,12 +39,14 @@ export async function createLeadFromWebsite(input: CreateLeadInput): Promise<Cre
       email: input.email.toLowerCase(),
       phone: input.phone,
       company: input.company,
+      website: input.website,
       projectDescription: input.message,
       serviceInterest: input.serviceInterest,
       budget: input.budget,
       timeline: input.timeline,
-      source: input.source ?? 'website_contact',
+      source,
       status: 'new',
+      possibleDuplicateOf: hints.leadMatchId,
     })
     .returning({ id: leads.id, status: leads.status })
 
@@ -38,8 +54,15 @@ export async function createLeadFromWebsite(input: CreateLeadInput): Promise<Cre
     action: 'lead.created',
     entity: 'leads',
     entityId: lead.id,
-    metadata: JSON.stringify({ source: input.source ?? 'website_contact' }),
+    metadata: JSON.stringify({ source, possibleDuplicate: Boolean(hints.leadMatchId || hints.customerMatchId) }),
   })
 
-  return { id: lead.id, status: 'new' }
+  await recordLeadActivity(lead.id, 'lead.created', null, { source })
+  await notifyAdminsOfNewLead(lead.id, input.name)
+
+  return {
+    id: lead.id,
+    status: 'new',
+    possibleDuplicate: Boolean(hints.leadMatchId || hints.customerMatchId),
+  }
 }

@@ -16,6 +16,10 @@ export type AdminDashboard = {
 
 export const adminApi = {
   dashboard: () => apiRequest<AdminDashboard>(`${base}/dashboard`),
+  crm: {
+    metrics: () => apiRequest<Record<string, unknown>>(`${base}/crm/metrics`),
+    pipeline: () => apiRequest<Record<string, unknown>>(`${base}/crm/pipeline`),
+  },
   analytics: () => apiRequest<Record<string, unknown>>(`${base}/analytics`),
   integrations: () => apiRequest<Record<string, unknown>>(`${base}/integrations`),
   search: (q: string) =>
@@ -34,6 +38,17 @@ export const adminApi = {
       apiRequest(`${base}/leads`, { method: 'POST', json: body }),
     update: (id: string, body: Record<string, unknown>) =>
       apiRequest(`${base}/leads/${id}`, { method: 'PATCH', json: body }),
+    addNote: (id: string, content: string) =>
+      apiRequest(`${base}/leads/${id}/notes`, { method: 'POST', json: { content } }),
+    assign: (id: string, employeeId: string) =>
+      apiRequest(`${base}/leads/${id}/assign`, { method: 'POST', json: { employeeId } }),
+    scheduleFollowUp: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/leads/${id}/follow-up`, { method: 'POST', json: body }),
+    logInteraction: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/leads/${id}/interactions`, { method: 'POST', json: body }),
+    convert: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/leads/${id}/convert`, { method: 'POST', json: body }),
+    activity: (id: string) => apiRequest<{ items: unknown[] }>(`${base}/leads/${id}/activity`),
   },
   customers: {
     list: (q?: string) =>

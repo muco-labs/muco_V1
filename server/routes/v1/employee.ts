@@ -8,6 +8,10 @@ import {
   requirePortal,
 } from '../../middleware/authenticate.js'
 import {
+  getLeadDetailCrm,
+  listLeadsForCrm,
+} from '../../services/crm.service.js'
+import {
   getEmployeeDashboard,
   getEmployeeDeadlines,
   getEmployeeFileDownloadUrl,
@@ -276,6 +280,29 @@ employeeRoutes.get('/deadlines', ...employeeStack, async (c) => {
     const auth = c.get('auth')
     const ctx = await requireEmployeeContext(auth)
     return jsonSuccess(c, { items: await getEmployeeDeadlines(ctx) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+employeeRoutes.get('/leads', ...employeeStack, requirePermission('leads.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const items = await listLeadsForCrm(auth, {
+      q: c.req.query('q'),
+      status: c.req.query('status'),
+      limit: 50,
+    })
+    return jsonSuccess(c, { items })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+employeeRoutes.get('/leads/:id', ...employeeStack, requirePermission('leads.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getLeadDetailCrm(auth, paramId(c)))
   } catch (error) {
     return handleRouteError(c, error)
   }

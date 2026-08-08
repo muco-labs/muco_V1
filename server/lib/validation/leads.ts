@@ -22,6 +22,7 @@ export const createLeadSchema = z.object({
     .max(160)
     .optional()
     .transform((value) => (value === '' ? undefined : value)),
+  website: z.string().trim().max(200).optional(),
   message: z
     .string()
     .trim()

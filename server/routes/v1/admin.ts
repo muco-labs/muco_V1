@@ -29,7 +29,6 @@ import {
   getAdminDashboard,
   getCustomerAdmin,
   getIntegrationStatus,
-  getLeadAdmin,
   issueInvoiceAdmin,
   listAuditLogsAdmin,
   listFilesAdmin,
@@ -37,7 +36,6 @@ import {
   listCustomersAdmin,
   listEmployeesAdmin,
   listInvoicesAdmin,
-  listLeadsAdmin,
   listPaymentsAdmin,
   listProjectsAdmin,
   listProposalsAdmin,
@@ -45,10 +43,23 @@ import {
   listTasksAdmin,
   requireFinancialPermission,
   sendProposalAdmin,
-  updateLeadAdmin,
   updateSupportAdmin,
   updateTaskAdmin,
 } from '../../services/admin.service.js'
+import {
+  addLeadNoteCrm,
+  assignLeadCrm,
+  convertLeadCrm,
+  getCrmMetrics,
+  getCrmPipeline,
+  getLeadActivityCrm,
+  getLeadDetailCrm,
+  listLeadsForCrm,
+  logLeadInteractionCrm,
+  scheduleLeadFollowUpCrm,
+  updateLeadCrm,
+} from '../../services/crm.service.js'
+import { normalizeLeadSource } from '../../lib/crm/constants.js'
 
 export const adminRoutes = new Hono()
 
@@ -128,14 +139,123 @@ adminRoutes.get('/audit-logs', requirePermission('audit_logs.view'), async (c) =
   }
 })
 
+adminRoutes.get('/crm/metrics', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getCrmMetrics(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/crm/pipeline', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getCrmPipeline(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
   try {
-    return jsonSuccess(c, {
-      items: await listLeadsAdmin({
-        status: c.req.query('status'),
-        q: c.req.query('q'),
-      }),
+    const auth = c.get('auth')
+    const items = await listLeadsForCrm(auth, {
+      status: c.req.query('status'),
+      priority: c.req.query('priority'),
+      source: c.req.query('source'),
+      assignedEmployeeId: c.req.query('assignedEmployeeId'),
+      q: c.req.query('q'),
+      followUp: c.req.query('followUp') as 'overdue' | undefined,
+      sort: (c.req.query('sort') as 'newest') ?? 'newest',
+      limit: Number(c.req.query('limit') || 50),
+      offset: Number(c.req.query('offset') || 0),
     })
+    return jsonSuccess(c, { items })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/leads/:id/activity', requirePermission('leads.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await getLeadActivityCrm(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/assign', requirePermission('leads.assign'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const employeeId = z.object({ employeeId: z.string().uuid() }).safeParse(body)
+    if (!employeeId.success) throw new AppError('VALIDATION_ERROR', 'Invalid assignment.', 400)
+    return jsonSuccess(c, await assignLeadCrm(auth, paramId(c), employeeId.data.employeeId))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/notes', requirePermission('leads.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = z.object({ content: z.string().min(1).max(8000) }).safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid note.', 400)
+    return jsonSuccess(c, await addLeadNoteCrm(auth, paramId(c), parsed.data.content), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/follow-up', requirePermission('leads.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = z
+      .object({
+        followUpAt: z.string(),
+        followUpStatus: z.string().optional(),
+      })
+      .safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid follow-up.', 400)
+    return jsonSuccess(c, await scheduleLeadFollowUpCrm(auth, paramId(c), parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/interactions', requirePermission('leads.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = z
+      .object({
+        interactionType: z.string().min(1).max(32),
+        summary: z.string().min(1).max(4000),
+        occurredAt: z.string().optional(),
+        nextAction: z.string().max(500).optional(),
+      })
+      .safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid interaction.', 400)
+    return jsonSuccess(c, await logLeadInteractionCrm(auth, paramId(c), parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/convert', requirePermission('customers.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = z
+      .object({
+        linkExistingCustomerId: z.string().uuid().optional(),
+        invite: z.boolean().optional(),
+      })
+      .safeParse(body ?? {})
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid conversion.', 400)
+    return jsonSuccess(c, await convertLeadCrm(auth, paramId(c), parsed.data))
   } catch (error) {
     return handleRouteError(c, error)
   }
@@ -143,7 +263,7 @@ adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
 
 adminRoutes.get('/leads/:id', requirePermission('leads.view'), async (c) => {
   try {
-    return jsonSuccess(c, await getLeadAdmin(paramId(c)))
+    return jsonSuccess(c, await getLeadDetailCrm(c.get('auth'), paramId(c)))
   } catch (error) {
     return handleRouteError(c, error)
   }
@@ -177,9 +297,20 @@ adminRoutes.post('/leads', requirePermission('leads.create'), async (c) => {
 
 const leadUpdateSchema = z.object({
   status: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
   notes: z.string().optional(),
   assignedEmployeeId: z.string().uuid().nullable().optional(),
   followUpAt: z.string().nullable().optional(),
+  followUpStatus: z.string().optional(),
+  lostReason: z.string().optional(),
+  serviceInterest: z.string().optional(),
+  budget: z.string().optional(),
+  timeline: z.string().optional(),
+  qualificationBusinessType: z.string().optional(),
+  qualificationProjectSize: z.string().optional(),
+  qualificationUrgency: z.string().optional(),
+  qualificationDecisionMaker: z.string().optional(),
+  source: z.string().optional(),
 })
 
 adminRoutes.patch('/leads/:id', requirePermission('leads.update'), async (c) => {
@@ -188,7 +319,10 @@ adminRoutes.patch('/leads/:id', requirePermission('leads.update'), async (c) => 
     const body = await c.req.json().catch(() => null)
     const parsed = leadUpdateSchema.safeParse(body)
     if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid update.', 400)
-    return jsonSuccess(c, await updateLeadAdmin(auth.userId, paramId(c), parsed.data))
+    return jsonSuccess(c, await updateLeadCrm(auth, paramId(c), {
+      ...parsed.data,
+      source: parsed.data.source ? normalizeLeadSource(parsed.data.source) : undefined,
+    }))
   } catch (error) {
     return handleRouteError(c, error)
   }
@@ -373,6 +507,7 @@ const proposalCreateSchema = z.object({
   amount: z.string().optional(),
   scope: z.string().optional(),
   projectId: z.string().uuid().optional(),
+  leadId: z.string().uuid().optional(),
 })
 
 adminRoutes.post('/proposals', requirePermission('proposals.create'), async (c) => {

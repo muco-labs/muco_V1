@@ -198,6 +198,98 @@ export async function inviteEmployee(input: {
   return { userId: user.id, email }
 }
 
+export async function inviteCustomerFromLead(input: {
+  email: string
+  fullName: string
+  companyName?: string
+  phone?: string
+  invitedByUserId: string
+}) {
+  const supabase = getSupabaseAdmin()
+  const db = getDb()
+  if (!supabase || !db) {
+    throw new AppError('SERVICE_UNAVAILABLE', 'Invitation is temporarily unavailable.', 503)
+  }
+
+  const email = input.email.trim().toLowerCase()
+
+  const existingUser = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+
+  if (existingUser[0]) {
+    const [profile] = await db
+      .select({ id: customerProfiles.id })
+      .from(customerProfiles)
+      .where(eq(customerProfiles.userId, existingUser[0].id))
+      .limit(1)
+    if (profile) {
+      return { userId: existingUser[0].id, customerProfileId: profile.id, invited: false as const }
+    }
+  }
+
+  const redirectTo = process.env.AUTH_INVITE_REDIRECT_URL?.trim() || process.env.AUTH_REDIRECT_URL
+  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: redirectTo || undefined,
+    data: { full_name: input.fullName.trim(), invited_as: 'customer' },
+  })
+
+  if (error) {
+    throw new AppError('CONFLICT', 'Unable to send customer invitation.', 409)
+  }
+
+  const authUserId = data.user?.id
+  if (!authUserId) {
+    throw new AppError('INTERNAL_ERROR', 'Invitation could not be completed.', 500)
+  }
+
+  const [user] = await db
+    .insert(users)
+    .values({
+      authUserId,
+      email,
+      fullName: input.fullName.trim(),
+      authProvider: 'supabase',
+      status: 'invited',
+    })
+    .onConflictDoUpdate({
+      target: users.authUserId,
+      set: { fullName: input.fullName.trim(), status: 'invited', updatedAt: new Date() },
+    })
+    .returning()
+
+  await assignRoleToUser(user.id, 'CUSTOMER')
+
+  const [profile] = await db
+    .insert(customerProfiles)
+    .values({
+      userId: user.id,
+      companyName: input.companyName?.trim() || null,
+      phone: input.phone?.trim() || null,
+    })
+    .onConflictDoUpdate({
+      target: customerProfiles.userId,
+      set: {
+        companyName: input.companyName?.trim() || null,
+        phone: input.phone?.trim() || null,
+        updatedAt: new Date(),
+      },
+    })
+    .returning()
+
+  await db.insert(auditLogs).values({
+    actorUserId: input.invitedByUserId,
+    action: 'customer.invited_from_lead',
+    entity: 'customer_profiles',
+    entityId: profile.id,
+    metadata: JSON.stringify({ email }),
+  })
+
+  return { userId: user.id, customerProfileId: profile.id, invited: true as const }
+}
+
 export async function setUserStatus(
   targetUserId: string,
   status: 'active' | 'suspended' | 'disabled' | 'inactive',
