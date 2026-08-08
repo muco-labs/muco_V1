@@ -5,7 +5,7 @@ export const site = {
     'Technology company building products, platforms and growth systems.',
   positioning:
     'MUCO LABS designs, builds, automates and grows digital businesses through technology, software, AI and digital solutions.',
-  defaultTitle: 'MUCO LABS | Technology, Software, AI & Digital Solutions',
+  defaultTitle: 'MUCO LABS | Web & Software Development in Erode, Tamil Nadu',
   defaultDescription:
     'Founder-led technology company in Erode, Tamil Nadu—websites, software, mobile apps, SaaS, CRM, ecommerce, AI and digital marketing with clear public pricing.',
   locale: 'en-IN',

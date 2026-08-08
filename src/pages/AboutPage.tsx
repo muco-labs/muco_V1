@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { FounderPortrait } from '@/components/content/FounderPortrait'
+import { BreadcrumbSchema, PersonSchema } from '@/components/seo/StructuredData'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { pageSeo } from '@/config/seo'
@@ -10,6 +11,7 @@ import { founder } from '@/data/founder'
 import { teamGroups, teamMembers, teamHiringNote } from '@/data/team'
 import { deliveryProcess } from '@/content/process'
 import { routePaths } from '@/config/routes'
+import { env } from '@/config/env'
 import styles from './AboutPage.module.css'
 
 export function AboutPage() {
@@ -21,6 +23,18 @@ export function AboutPage() {
         documentTitle={about.documentTitle}
         description={about.description}
         path={about.path}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'About', path: about.path },
+        ]}
+      />
+      <PersonSchema
+        name={founder.name}
+        jobTitle={founder.title}
+        description={founder.introduction}
+        url={`${env.siteUrl}${about.path}#founder`}
       />
       <div className={styles.page}>
         <section className={styles.hero}>

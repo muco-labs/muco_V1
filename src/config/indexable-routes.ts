@@ -1,6 +1,5 @@
 import { pageSeo } from '@/config/seo'
 import { routePaths, serviceSlugs, servicePath } from '@/config/routes'
-import { insightArticles } from '@/data/insights'
 import { portfolioProjects } from '@/data/portfolio'
 import { workPath } from '@/data/portfolio'
 
@@ -9,12 +8,10 @@ export const indexablePaths: string[] = [
   pageSeo.home.path,
   pageSeo.services.path,
   ...serviceSlugs.map(servicePath),
-  pageSeo.solutions.path,
   pageSeo.work.path,
   ...portfolioProjects.map((project) => workPath(project.id)),
+  pageSeo.erode.path,
   pageSeo.about.path,
-  pageSeo.insights.path,
-  ...insightArticles.map((article) => article.path),
   pageSeo.contact.path,
   pageSeo.pricing.path,
   pageSeo.privacy.path,
@@ -28,6 +25,7 @@ export const nonIndexablePathPrefixes = [
   '/admin/',
   '/employee/',
   '/customer/',
+  '/team/',
   '/login/',
   '/signup/',
 ] as const

@@ -1,5 +1,11 @@
 import { PageMeta } from '@/components/seo/PageMeta'
-import { LocalBusinessSchema, OrganizationSchema, WebSiteSchema } from '@/components/seo/StructuredData'
+import {
+  FaqPageSchema,
+  LocalBusinessSchema,
+  OrganizationSchema,
+  WebSiteSchema,
+} from '@/components/seo/StructuredData'
+import { faqs, homeFaqIds } from '@/content/faqs'
 import { pageSeo } from '@/config/seo'
 import { HomeCultureSections } from '@/sections/home-v3/HomeCulture'
 import { HomeEngagementSections } from '@/sections/home-v3/HomeEngagement'
@@ -14,6 +20,11 @@ import { SignatureHero } from '@/sections/home-v3/SignatureHero'
 
 const home = pageSeo.home
 
+const homeFaqs = homeFaqIds
+  .map((id) => faqs.find((f) => f.id === id))
+  .filter((f): f is (typeof faqs)[number] => Boolean(f))
+  .map((f) => ({ question: f.question, answer: f.answer }))
+
 export function HomePage() {
   return (
     <>
@@ -25,6 +36,7 @@ export function HomePage() {
       <OrganizationSchema />
       <WebSiteSchema />
       <LocalBusinessSchema />
+      <FaqPageSchema faqs={homeFaqs} />
       <SignatureHero />
       <HomeTrustStrip />
       <HomeStorySections />

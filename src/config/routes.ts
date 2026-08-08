@@ -14,6 +14,7 @@ export const routePaths = {
   privacy: '/privacy-policy',
   terms: '/terms',
   cookies: '/cookie-policy',
+  erode: '/erode',
 } as const
 
 export type ServiceSlug =
@@ -55,6 +56,7 @@ export const staticRoutes = [
   routePaths.insights,
   routePaths.contact,
   routePaths.pricing,
+  routePaths.erode,
   '/auth/sign-in',
   '/auth/sign-up',
   routePaths.privacy,

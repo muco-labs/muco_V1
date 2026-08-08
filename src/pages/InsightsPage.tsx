@@ -15,6 +15,7 @@ export function InsightsPage() {
       documentTitle={insights.documentTitle}
       path={insights.path}
       description="Editorial roadmap for web development, software, AI, SEO and digital marketing from MUCO LABS."
+      noIndex
     >
       <p className={styles.intro}>{insightsIntro}</p>
       <section className={styles.topics} aria-labelledby="topics-title">

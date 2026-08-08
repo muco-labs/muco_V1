@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Reveal } from '@/components/motion/Reveal'
 import { PageHero } from '@/components/design-system/PageHero'
@@ -20,6 +21,12 @@ export function ServicesPage() {
         documentTitle={services.documentTitle}
         description={services.description}
         path={services.path}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Services', path: services.path },
+        ]}
       />
       <div className={styles.page}>
         <PageHero

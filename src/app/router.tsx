@@ -33,6 +33,7 @@ const AboutPage = lazyPage(() => import('@/pages/AboutPage'), 'AboutPage')
 const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPage')
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
 const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
+const ErodePage = lazyPage(() => import('@/pages/ErodePage'), 'ErodePage')
 const AuthSignInPage = lazyPage(() => import('@/pages/AuthSignInPage'), 'AuthSignInPage')
 const AuthSignUpPage = lazyPage(() => import('@/pages/AuthSignUpPage'), 'AuthSignUpPage')
 const AuthForgotPasswordPage = lazyPage(
@@ -169,6 +170,7 @@ export const router = createBrowserRouter([
       { path: 'insights', element: <InsightsPage /> },
       { path: 'contact', element: <ContactPage /> },
       { path: 'pricing', element: <PricingPage /> },
+      { path: 'erode', element: <ErodePage /> },
       { path: 'auth/sign-in', element: <AuthSignInPage /> },
       { path: 'auth/sign-up', element: <AuthSignUpPage /> },
       { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },

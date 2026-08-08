@@ -48,6 +48,15 @@ export function OrganizationSchema() {
     data.sameAs = sameAs
   }
 
+  data.contactPoint = {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    email: site.contactEmail,
+    telephone: site.contactPhone,
+    areaServed: ['IN', 'IN-TN'],
+    availableLanguage: ['English', 'Tamil'],
+  }
+
   if (founder.status === 'published' && founder.name) {
     data.founder = {
       '@type': 'Person',
@@ -96,6 +105,36 @@ export function LocalBusinessSchema() {
           addressCountry: company.location.country,
         },
         areaServed: ['Erode', 'Tamil Nadu', 'India'],
+      }}
+    />
+  )
+}
+
+export function PersonSchema({
+  name,
+  jobTitle,
+  description,
+  url,
+}: {
+  name: string
+  jobTitle: string
+  description?: string
+  url: string
+}) {
+  return (
+    <StructuredData
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name,
+        jobTitle,
+        ...(description ? { description } : {}),
+        url,
+        worksFor: {
+          '@type': 'Organization',
+          name: site.legalName,
+          url: env.siteUrl,
+        },
       }}
     />
   )

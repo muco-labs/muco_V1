@@ -8,5 +8,6 @@ Disallow: /customer/
 Disallow: /login/
 Disallow: /signup/
 Disallow: /auth/
+Disallow: /team/
 
 Sitemap: https://mucolabs.com/sitemap.xml

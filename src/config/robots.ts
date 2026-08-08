@@ -11,6 +11,7 @@ Disallow: /customer/
 Disallow: /login/
 Disallow: /signup/
 Disallow: /auth/
+Disallow: /team/
 
 Sitemap: ${siteUrl}/sitemap.xml
 `

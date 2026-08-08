@@ -31,6 +31,7 @@ export const pageSeo = {
     documentTitle: `Solutions | ${brand}`,
     description:
       'Outcome-based technology solutions from MUCO LABS—mapped to business problems, not a generic service grid.',
+    noIndex: true,
   },
   work: {
     path: '/work',
@@ -49,6 +50,13 @@ export const pageSeo = {
     documentTitle: `Insights | ${brand}`,
     description:
       'Perspectives on web development, software, AI, automation, SEO and digital marketing from the MUCO LABS team.',
+    noIndex: true,
+  },
+  erode: {
+    path: '/erode',
+    documentTitle: `MUCO LABS Erode | Web, Software & AI Development`,
+    description:
+      'MUCO LABS in Erode, Tamil Nadu—website development, custom software, mobile apps, AI, SEO and digital marketing with founder-led delivery.',
   },
   contact: {
     path: '/contact',
@@ -172,6 +180,30 @@ export function getServiceSeo(slug: ServiceSlug): ServiceSeo {
     description: entry.description,
     h1: entry.h1,
   }
+}
+
+export function getWorkProjectSeo(project: {
+  id: string
+  title: string
+  tagline: string
+  kind: string
+}): PageSeo {
+  return {
+    path: `/work/${project.id}`,
+    documentTitle: `${project.title} | Work | ${brand}`,
+    description: `${project.tagline} — ${portfolioKindLabelForSeo(project.kind)} from MUCO LABS.`,
+  }
+}
+
+function portfolioKindLabelForSeo(kind: string): string {
+  const labels: Record<string, string> = {
+    client: 'Client project',
+    internal: 'Internal project',
+    concept: 'Concept project',
+    demo: 'Demo',
+    case_study: 'Case study',
+  }
+  return labels[kind] ?? 'Project'
 }
 
 export function absoluteOgImageUrl(siteUrl: string, imagePath = defaultOgImagePath): string {

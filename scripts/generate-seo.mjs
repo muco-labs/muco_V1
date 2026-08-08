@@ -38,11 +38,10 @@ const indexablePaths = [
   '/',
   '/services',
   ...serviceSlugs.map((slug) => `/services/${slug}`),
-  '/solutions',
   '/work',
   ...portfolioIds.map((id) => `/work/${id}`),
   '/about',
-  '/insights',
+  '/erode',
   '/contact',
   '/pricing',
   '/privacy-policy',
@@ -79,6 +78,7 @@ Disallow: /customer/
 Disallow: /login/
 Disallow: /signup/
 Disallow: /auth/
+Disallow: /team/
 
 Sitemap: ${siteUrl}/sitemap.xml
 `

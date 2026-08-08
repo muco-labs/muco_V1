@@ -108,9 +108,18 @@ export function PageMeta({
       name: 'twitter:description',
       content: description,
     })
+    upsertMeta('meta[property="og:locale"]', {
+      property: 'og:locale',
+      content: site.locale,
+    })
+
     upsertMeta('meta[name="twitter:image"]', {
       name: 'twitter:image',
       content: ogImage,
+    })
+    upsertMeta('meta[name="twitter:site"]', {
+      name: 'twitter:site',
+      content: '@muco_labs',
     })
 
     upsertMeta('meta[name="robots"]', {

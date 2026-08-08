@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Reveal } from '@/components/motion/Reveal'
 import { PageHero } from '@/components/design-system/PageHero'
@@ -25,6 +26,12 @@ export function WorkPage() {
         documentTitle={work.documentTitle}
         description={work.description}
         path={work.path}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', path: '/' },
+          { name: 'Work', path: work.path },
+        ]}
       />
       <div className={styles.page}>
         <PageHero

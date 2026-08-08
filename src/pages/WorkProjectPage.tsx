@@ -13,6 +13,7 @@ import {
 import { contactHref } from '@/lib/conversion/contact-link'
 import { routePaths, servicePath } from '@/config/routes'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { getWorkProjectSeo } from '@/config/seo'
 import { useEffect } from 'react'
 import styles from './WorkProjectPage.module.css'
 
@@ -29,14 +30,14 @@ export function WorkProjectPage() {
     return <Navigate to="/404" replace />
   }
 
-  const description = `${portfolioKindLabel(project.kind)}: ${project.tagline}`
+  const projectSeo = getWorkProjectSeo(project)
 
   return (
     <>
       <PageMeta
-        documentTitle={`${project.title} | MUCO LABS Work`}
-        description={description}
-        path={`/work/${project.id}`}
+        documentTitle={projectSeo.documentTitle}
+        description={projectSeo.description}
+        path={projectSeo.path}
       />
       <article className={styles.page}>
         <header className={styles.hero}>

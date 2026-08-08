@@ -12,6 +12,7 @@ export function SolutionsPage() {
       documentTitle={solutions.documentTitle}
       path={solutions.path}
       description={solutions.description}
+      noIndex
     >
       <p>
         Outcome-based packages are being mapped to the services catalog. Meanwhile, explore{' '}

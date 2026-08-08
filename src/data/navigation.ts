@@ -21,6 +21,7 @@ export const footerNav = {
     { label: 'Solutions', href: routePaths.solutions },
     { label: 'Work', href: routePaths.work },
     { label: 'About', href: routePaths.about },
+    { label: 'Erode', href: routePaths.erode },
     { label: 'Insights', href: routePaths.insights },
     { label: 'Contact', href: routePaths.contact },
     { label: 'Pricing', href: routePaths.pricing },

@@ -14,6 +14,7 @@ export type ConversionFunnelStage = (typeof conversionFunnelStages)[number]
 /** Maps existing GA4 events to funnel stages — no fabricated metrics. */
 export const funnelEventMap: Record<string, ConversionFunnelStage> = {
   page_view: 'visitor',
+  organic_landing: 'engaged',
   service_view: 'service_view',
   portfolio_view: 'engaged',
   pricing_view: 'engaged',
