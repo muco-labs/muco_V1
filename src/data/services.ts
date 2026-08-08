@@ -71,7 +71,7 @@ export const serviceCategories: ServiceCategory[] = [
   },
   {
     id: 'grow',
-    title: 'Grow',
+    title: 'Growth',
     offerings: [
       { id: 'seo', slug: 'seo', title: 'SEO' },
       {
@@ -89,7 +89,7 @@ export const serviceCategories: ServiceCategory[] = [
     offerings: [
       { id: 'cloud', title: 'Cloud' },
       { id: 'devops', title: 'DevOps' },
-      { id: 'security', title: 'Security' },
+      { id: 'security', title: 'Cybersecurity' },
       {
         id: 'technology-consulting',
         slug: 'technology-consulting',

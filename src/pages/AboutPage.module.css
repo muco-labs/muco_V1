@@ -1,0 +1,108 @@
+.page {
+  padding-bottom: var(--space-16);
+}
+
+.hero {
+  padding-block: clamp(var(--space-16), 8vw, var(--space-28));
+  border-bottom: 1px solid var(--color-border);
+}
+
+.lead {
+  margin: var(--space-6) 0 0;
+  max-width: 40rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-body-lg);
+}
+
+.split {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 48rem) {
+  .split {
+    grid-template-columns: 0.8fr 1.2fr;
+    align-items: start;
+  }
+}
+
+.split p,
+.founder p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.list,
+.builds {
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+  max-width: 40rem;
+}
+
+.list li,
+.builds li {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-accent);
+  color: var(--color-text-muted);
+}
+
+.status {
+  color: var(--color-accent) !important;
+  font-weight: 600;
+  font-size: var(--text-small) !important;
+}
+
+.vision {
+  font-style: italic;
+}
+
+.teamNote {
+  margin: var(--space-4) 0 var(--space-8);
+  color: var(--color-text-muted);
+  max-width: 42rem;
+}
+
+.teamGroups {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .teamGroups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.teamGroups article {
+  padding: var(--space-5);
+}
+
+.teamGroups ul {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.empty {
+  color: var(--color-text-subtle);
+}
+
+.cta {
+  padding: var(--space-8);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.cta p {
+  margin: 0;
+  color: var(--color-text-muted);
+  max-width: 36rem;
+}

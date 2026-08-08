@@ -1,11 +1,21 @@
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
 .text-display {
+  font-family: var(--font-display);
   font-size: var(--text-display);
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-display);
   font-weight: 600;
 }
 
 .text-h1 {
+  font-family: var(--font-display);
   font-size: var(--text-h1);
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
@@ -13,50 +23,49 @@
 }
 
 .text-h2 {
+  font-family: var(--font-display);
   font-size: var(--text-h2);
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-normal);
+  letter-spacing: var(--tracking-tight);
   font-weight: 600;
 }
 
 .text-h3 {
+  font-family: var(--font-display);
   font-size: var(--text-h3);
   line-height: var(--leading-snug);
-  letter-spacing: var(--tracking-normal);
   font-weight: 600;
 }
 
-.text-body {
-  font-size: var(--text-body);
-  line-height: var(--leading-normal);
-}
-
-.text-body-lg {
-  font-size: var(--text-body-lg);
-  line-height: var(--leading-snug);
-}
-
-.text-small {
-  font-size: var(--text-small);
-  line-height: var(--leading-normal);
-}
-
-.text-caption {
+.text-label {
+  font-family: var(--font-body);
   font-size: var(--text-caption);
-  line-height: var(--leading-normal);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.text-balance {
-  text-wrap: balance;
+.text-stat {
+  font-family: var(--font-display);
+  font-size: var(--text-stat);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
 }
 
-.text-pretty {
-  text-wrap: pretty;
-}
-
-.prose-muted {
+.eyebrow-line {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-weight: 700;
   color: var(--color-text-muted);
+}
+
+.eyebrow-line::before {
+  content: '';
+  width: 2rem;
+  height: 1px;
+  background: var(--color-accent);
 }

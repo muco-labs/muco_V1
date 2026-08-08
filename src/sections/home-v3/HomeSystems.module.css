@@ -1,0 +1,140 @@
+.workHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-10);
+}
+
+@media (min-width: 48rem) {
+  .workHead {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+}
+
+.workGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 64rem) {
+  .workGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.workCard {
+  overflow: hidden;
+  display: grid;
+  text-decoration: none;
+  color: inherit;
+}
+
+.workBody {
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.workLabel {
+  margin: 0;
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.workBody p:last-child {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.process {
+  margin-top: var(--space-10);
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 64rem) {
+  .process {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.processStep {
+  padding: var(--space-4);
+  border-top: 2px solid var(--color-accent);
+  min-height: 6rem;
+}
+
+.processStep span {
+  font-family: var(--font-display);
+  color: var(--color-text-subtle);
+  font-size: var(--text-small);
+}
+
+.processStep p {
+  margin: var(--space-2) 0 0;
+  font-weight: 600;
+}
+
+.techHead {
+  display: grid;
+  gap: var(--space-8);
+}
+
+@media (min-width: 64rem) {
+  .techHead {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+}
+
+.techList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.techList li {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.erode {
+  padding: clamp(var(--space-8), 4vw, var(--space-12));
+  display: grid;
+  gap: var(--space-4);
+}
+
+.erode p {
+  margin: 0;
+  color: var(--color-text-muted);
+  max-width: 42rem;
+}
+
+.erodeList {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.erodeList li {
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}

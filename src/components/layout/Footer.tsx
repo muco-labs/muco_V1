@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Container } from '@/components/ui/Container'
-import { site } from '@/config/site'
-import { routePaths } from '@/config/routes'
+import { company } from '@/data/company'
 import { footerNav } from '@/data/navigation'
+import { routePaths } from '@/config/routes'
+import { site } from '@/config/site'
 import styles from './Footer.module.css'
 
 export function Footer() {
@@ -10,35 +10,33 @@ export function Footer() {
 
   return (
     <footer className={styles.footer}>
-      <Container size="2xl">
+      <div className="shell">
         <div className={styles.grid}>
-          <div className={styles.brandBlock}>
+          <div>
             <Link to={routePaths.home} className={styles.brand}>
               {site.name}
             </Link>
-            <p className={styles.description}>
-              {site.tagline} We partner with teams that need reliable engineering,
-              thoughtful design and applied AI.
-            </p>
-            <a className={styles.email} href={`mailto:${site.contactEmail}`}>
+            <p className={styles.desc}>{company.tagline}</p>
+            <a href={`mailto:${site.contactEmail}`} className={styles.email}>
               {site.contactEmail}
             </a>
           </div>
-
           <div>
-            <h2 className={styles.columnTitle}>Explore</h2>
-            <ul className={styles.links}>
+            <h2 className={styles.title}>Explore</h2>
+            <ul>
               {footerNav.explore.map((item) => (
                 <li key={item.href}>
                   <Link to={item.href}>{item.label}</Link>
                 </li>
               ))}
+              <li>
+                <Link to={routePaths.pricing}>Pricing</Link>
+              </li>
             </ul>
           </div>
-
           <div>
-            <h2 className={styles.columnTitle}>Legal</h2>
-            <ul className={styles.links}>
+            <h2 className={styles.title}>Legal</h2>
+            <ul>
               {footerNav.legal.map((item) => (
                 <li key={item.href}>
                   <Link to={item.href}>{item.label}</Link>
@@ -47,13 +45,11 @@ export function Footer() {
             </ul>
           </div>
         </div>
-
-        <div className={styles.bottom}>
-          <p>
-            © {year} {site.legalName}. All rights reserved.
-          </p>
-        </div>
-      </Container>
+        <p className={styles.copy}>
+          © {year} {site.legalName}. {company.location.city}, {company.location.region},{' '}
+          {company.location.country}.
+        </p>
+      </div>
     </footer>
   )
 }

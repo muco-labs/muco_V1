@@ -1,40 +1,56 @@
 import { Link } from 'react-router-dom'
-import { Card } from '@/components/ui/Card'
-import { PageShell } from '@/layouts/PageShell'
-import {
-  resolveOfferingHref,
-  serviceCategories,
-} from '@/data/services'
+import { PageMeta } from '@/components/seo/PageMeta'
+import { Reveal } from '@/components/motion/Reveal'
+import { serviceCategories, resolveOfferingHref } from '@/data/services'
 import styles from './ServicesPage.module.css'
 
 export function ServicesPage() {
   return (
-    <PageShell
-      title="Services"
-      path="/services"
-      description="Build, design, automate, grow, and operate—organized for clarity as the commercial catalog evolves."
-    >
-      <div className={styles.grid}>
-        {serviceCategories.map((category) => (
-          <Card key={category.id} as="section" className={styles.card}>
-            <h2 className={styles.categoryTitle}>{category.title}</h2>
-            <ul className={styles.list}>
-              {category.offerings.map((offering) => {
-                const href = resolveOfferingHref(offering)
-                return (
-                  <li key={offering.id}>
-                    {href ? (
-                      <Link to={href}>{offering.title}</Link>
-                    ) : (
-                      <span className={styles.soon}>{offering.title}</span>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </Card>
-        ))}
+    <>
+      <PageMeta
+        title="Services"
+        description="Build, design, automate, grow and operate—MUCO LABS services for product, platform and growth teams."
+        path="/services"
+      />
+      <div className={styles.page}>
+        <header className={styles.hero}>
+          <div className="shell">
+            <Reveal>
+              <p className="text-label">Services</p>
+              <h1 className="text-display">A complete technology ecosystem.</h1>
+              <p className={styles.lead}>
+                Organized by how teams buy and scale work—without overwhelming you with a wall of links.
+              </p>
+            </Reveal>
+          </div>
+        </header>
+        <section className="section">
+          <div className="shell">
+            {serviceCategories.map((category) => (
+              <Reveal key={category.id} className={styles.category}>
+                <h2 className="text-h2">{category.title}</h2>
+                <ul>
+                  {category.offerings.map((offering) => {
+                    const href = resolveOfferingHref(offering)
+                    return (
+                      <li key={offering.id}>
+                        {href ? (
+                          <Link to={href} className={styles.link}>
+                            <span>{offering.title}</span>
+                            <span aria-hidden="true">↗</span>
+                          </Link>
+                        ) : (
+                          <span className={styles.soon}>{offering.title}</span>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </Reveal>
+            ))}
+          </div>
+        </section>
       </div>
-    </PageShell>
+    </>
   )
 }

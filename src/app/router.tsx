@@ -27,6 +27,9 @@ const WorkPage = lazyPage(() => import('@/pages/WorkPage'), 'WorkPage')
 const AboutPage = lazyPage(() => import('@/pages/AboutPage'), 'AboutPage')
 const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPage')
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
+const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
+const AuthSignInPage = lazyPage(() => import('@/pages/AuthSignInPage'), 'AuthSignInPage')
+const AuthSignUpPage = lazyPage(() => import('@/pages/AuthSignUpPage'), 'AuthSignUpPage')
 const PrivacyPolicyPage = lazyPage(
   () => import('@/pages/PrivacyPolicyPage'),
   'PrivacyPolicyPage',
@@ -51,6 +54,9 @@ export const router = createBrowserRouter([
       { path: 'about', element: <AboutPage /> },
       { path: 'insights', element: <InsightsPage /> },
       { path: 'contact', element: <ContactPage /> },
+      { path: 'pricing', element: <PricingPage /> },
+      { path: 'auth/sign-in', element: <AuthSignInPage /> },
+      { path: 'auth/sign-up', element: <AuthSignUpPage /> },
       { path: 'privacy-policy', element: <PrivacyPolicyPage /> },
       { path: 'terms', element: <TermsPage /> },
       { path: 'cookie-policy', element: <CookiePolicyPage /> },

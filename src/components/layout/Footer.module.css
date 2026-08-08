@@ -1,8 +1,8 @@
 .footer {
   margin-top: auto;
   border-top: 1px solid var(--color-border);
-  background: rgba(0, 0, 0, 0.28);
   padding-block: var(--space-20);
+  background: #09090b;
 }
 
 .grid {
@@ -12,39 +12,33 @@
 
 @media (min-width: 48rem) {
   .grid {
-    grid-template-columns: 1.5fr 1fr 1fr;
-    gap: var(--space-10);
+    grid-template-columns: 1.4fr 1fr 1fr;
   }
 }
 
-.brandBlock {
-  display: grid;
-  gap: var(--space-4);
-  max-width: 24rem;
-}
-
 .brand {
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: var(--tracking-wide);
   text-decoration: none;
-  font-size: var(--text-small);
 }
 
-.description {
-  margin: 0;
+.desc {
+  margin: var(--space-4) 0;
   color: var(--color-text-muted);
   font-size: var(--text-small);
+  max-width: 22rem;
   line-height: var(--leading-snug);
 }
 
 .email {
-  color: var(--color-accent-hover);
+  color: var(--color-accent);
   text-decoration: none;
   font-size: var(--text-small);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.columnTitle {
+.title {
   margin: 0 0 var(--space-4);
   font-size: var(--text-caption);
   letter-spacing: var(--tracking-wide);
@@ -52,33 +46,28 @@
   color: var(--color-text-subtle);
 }
 
-.links {
-  display: grid;
-  gap: var(--space-3);
+.grid ul {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: grid;
+  gap: var(--space-2);
 }
 
-.links a {
-  color: var(--color-text-muted);
+.grid a {
   text-decoration: none;
+  color: var(--color-text-muted);
   font-size: var(--text-small);
-  transition: color var(--duration-fast) var(--ease-out);
 }
 
-.links a:hover {
+.grid a:hover {
   color: var(--color-text);
 }
 
-.bottom {
-  margin-top: var(--space-12);
+.copy {
+  margin: var(--space-12) 0 0;
   padding-top: var(--space-6);
   border-top: 1px solid var(--color-border);
   color: var(--color-text-subtle);
   font-size: var(--text-small);
-}
-
-.bottom p {
-  margin: 0;
 }

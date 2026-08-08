@@ -1,38 +1,44 @@
 :root {
-  /* Colors */
-  --color-bg: #050816;
-  --color-bg-elevated: #0a0f1f;
-  --color-bg-subtle: #0d1224;
-  --color-surface: #111827;
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-border-strong: rgba(255, 255, 255, 0.12);
-  --color-text: #f8fafc;
-  --color-text-muted: #94a3b8;
-  --color-text-subtle: #64748b;
-  --color-accent: #2563eb;
-  --color-accent-hover: #3b82f6;
-  --color-accent-muted: rgba(37, 99, 235, 0.12);
-  --color-accent-glow: rgba(37, 99, 235, 0.28);
-  --color-focus: #60a5fa;
-  --color-danger: #f87171;
-  --color-success: #34d399;
+  /* Brand — Generation 3 (warm neutral + chartreuse, not legacy navy/blue) */
+  --color-primary: #f6f5f1;
+  --color-secondary: #c8c4bc;
+  --color-accent: #d4ff5c;
+  --color-accent-soft: rgba(212, 255, 92, 0.14);
+  --color-accent-ink: #1a1f0f;
 
-  /* Typography families */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-bg: #0b0b0d;
+  --color-bg-elevated: #121214;
+  --color-bg-subtle: #16161a;
+  --color-surface: #1a1a1f;
+  --color-surface-elevated: #222228;
+
+  --color-border: rgba(255, 255, 255, 0.09);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  --color-text: var(--color-primary);
+  --color-text-muted: #a8a8b3;
+  --color-text-subtle: #6f6f7a;
+
+  --color-focus: #e8ff9a;
+  --color-success: #5ee9a8;
+  --color-warning: #f5c84c;
+  --color-danger: #ff7b7b;
+
+  /* Typography */
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
   --font-mono: ui-monospace, 'JetBrains Mono', monospace;
 
-  /* Type scale */
-  --text-display: clamp(2.625rem, 5.2vw, 4.25rem);
-  --text-h1: clamp(2rem, 3.8vw, 3.125rem);
-  --text-h2: clamp(1.625rem, 2.8vw, 2.25rem);
-  --text-h3: clamp(1.125rem, 1.8vw, 1.375rem);
+  --text-display: clamp(2.75rem, 6vw, 4.75rem);
+  --text-h1: clamp(2.125rem, 4.2vw, 3.25rem);
+  --text-h2: clamp(1.75rem, 3vw, 2.5rem);
+  --text-h3: clamp(1.125rem, 2vw, 1.5rem);
   --text-body: 1rem;
   --text-body-lg: 1.125rem;
   --text-small: 0.875rem;
-  --text-caption: 0.75rem;
-  --text-button: 0.875rem;
+  --text-caption: 0.6875rem;
+  --text-stat: clamp(2rem, 4vw, 3rem);
 
-  /* Legacy aliases (components) */
   --text-xs: var(--text-caption);
   --text-sm: var(--text-small);
   --text-base: var(--text-body);
@@ -43,14 +49,14 @@
   --text-4xl: var(--text-h1);
   --text-5xl: var(--text-display);
 
-  --leading-tight: 1.1;
+  --leading-tight: 1.05;
   --leading-snug: 1.35;
   --leading-normal: 1.65;
-  --tracking-tight: -0.03em;
-  --tracking-normal: -0.01em;
-  --tracking-wide: 0.06em;
+  --tracking-tight: -0.04em;
+  --tracking-normal: -0.015em;
+  --tracking-wide: 0.12em;
+  --tracking-display: -0.05em;
 
-  /* Spacing (4px base) */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -66,50 +72,33 @@
   --space-28: 7rem;
   --space-32: 8rem;
 
-  /* Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 1rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
   --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
+  --radius-2xl: 1.75rem;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.55);
-  --shadow-glow: 0 0 0 1px var(--color-accent-muted),
-    0 16px 48px var(--color-accent-glow);
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-md: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px var(--color-accent-soft), 0 20px 50px rgba(212, 255, 92, 0.08);
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-fast: 150ms;
-  --duration-base: 280ms;
-  --duration-slow: 480ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --duration-fast: 160ms;
+  --duration-base: 320ms;
+  --duration-slow: 560ms;
 
-  /* Layout */
   --container-sm: 40rem;
   --container-md: 48rem;
   --container-lg: 64rem;
-  --container-xl: 76rem;
-  --container-2xl: 80rem;
-  --header-height: 4.25rem;
-  --section-gap: var(--space-24);
+  --container-xl: 72rem;
+  --container-2xl: 84rem;
+  --header-height: 4rem;
 
-  /* Breakpoints (reference) */
-  --bp-sm: 20rem;
-  --bp-md: 48rem;
-  --bp-lg: 64rem;
-  --bp-xl: 80rem;
-  --bp-2xl: 90rem;
-
-  /* Z-index */
-  --z-base: 0;
-  --z-elevated: 10;
   --z-header: 100;
   --z-overlay: 200;
   --z-modal: 300;
-  --z-toast: 400;
 }
 
 :root {

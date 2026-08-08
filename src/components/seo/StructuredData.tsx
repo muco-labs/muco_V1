@@ -1,3 +1,4 @@
+import { company } from '@/data/company'
 import { env } from '@/config/env'
 import { site } from '@/config/site'
 
@@ -41,6 +42,54 @@ export function WebSiteSchema() {
           '@type': 'Organization',
           name: site.legalName,
         },
+      }}
+    />
+  )
+}
+
+export function LocalBusinessSchema() {
+  return (
+    <StructuredData
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'ProfessionalService',
+        name: site.legalName,
+        url: env.siteUrl,
+        email: site.contactEmail,
+        description: site.defaultDescription,
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: company.location.city,
+          addressRegion: company.location.region,
+          addressCountry: company.location.country,
+        },
+        areaServed: ['Erode', 'Tamil Nadu', 'India'],
+      }}
+    />
+  )
+}
+
+export function ServiceSchema({
+  name,
+  description,
+  url,
+}: {
+  name: string
+  description: string
+  url: string
+}) {
+  return (
+    <StructuredData
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name,
+        description,
+        provider: {
+          '@type': 'Organization',
+          name: site.legalName,
+        },
+        url,
       }}
     />
   )

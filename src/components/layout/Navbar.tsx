@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { HiBars3, HiXMark } from 'react-icons/hi2'
-import { Button } from '@/components/ui/Button'
-import { Container } from '@/components/ui/Container'
-import { site } from '@/config/site'
+import { authRoutes } from '@/config/auth'
 import { routePaths } from '@/config/routes'
+import { site } from '@/config/site'
 import { primaryNav } from '@/data/navigation'
+import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 import styles from './Navbar.module.css'
 
@@ -14,7 +14,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12)
+    const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -34,22 +34,20 @@ export function Navbar() {
   }, [open])
 
   return (
-    <header className={cn(styles.header, scrolled && styles.headerScrolled)}>
-      <Container className={styles.inner} size="2xl">
-        <Link to={routePaths.home} className={styles.brand} aria-label={`${site.name} home`}>
-          <span className={styles.brandMark} aria-hidden="true" />
+    <header className={cn(styles.header, scrolled && styles.scrolled)}>
+      <div className={`shell ${styles.bar}`}>
+        <Link to={routePaths.home} className={styles.brand}>
+          <span className={styles.mark} aria-hidden="true" />
           <span>{site.name}</span>
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Primary">
-          <ul className={styles.navList}>
+          <ul>
             {primaryNav.map((item) => (
               <li key={item.href}>
                 <NavLink
                   to={item.href}
-                  className={({ isActive }) =>
-                    cn(styles.navLink, isActive && styles.navLinkActive)
-                  }
+                  className={({ isActive }) => cn(styles.link, isActive && styles.active)}
                 >
                   {item.label}
                 </NavLink>
@@ -59,54 +57,53 @@ export function Navbar() {
         </nav>
 
         <div className={styles.actions}>
-          <Button to={routePaths.contact} size="sm" className={styles.desktopCta}>
+          <div className={styles.auth}>
+            <Link to={authRoutes.signIn} className={styles.authLink}>
+              Sign in
+            </Link>
+            <Link to={authRoutes.signUp} className={styles.authLink}>
+              Sign up
+            </Link>
+          </div>
+          <Button to={routePaths.contact} size="sm">
             Start a Project
           </Button>
           <button
             type="button"
-            className={styles.menuButton}
+            className={styles.menuBtn}
             aria-expanded={open}
-            aria-controls="mobile-navigation"
-            onClick={() => setOpen((value) => !value)}
+            aria-controls="mobile-nav"
+            onClick={() => setOpen((v) => !v)}
           >
-            <span className="sr-only">{open ? 'Close menu' : 'Open menu'}</span>
-            {open ? <HiXMark aria-hidden="true" /> : <HiBars3 aria-hidden="true" />}
+            <span className="sr-only">Menu</span>
+            {open ? <HiXMark /> : <HiBars3 />}
           </button>
         </div>
-      </Container>
+      </div>
 
-      <div
-        id="mobile-navigation"
-        className={cn(styles.mobilePanel, open && styles.mobilePanelOpen)}
-        hidden={!open}
-      >
-        <Container size="2xl">
-          <nav aria-label="Mobile primary">
-            <ul className={styles.mobileList}>
-              {primaryNav.map((item) => (
-                <li key={item.href}>
-                  <NavLink
-                    to={item.href}
-                    className={({ isActive }) =>
-                      cn(styles.mobileLink, isActive && styles.navLinkActive)
-                    }
-                    onClick={() => setOpen(false)}
-                  >
-                    {item.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <Button
-            to={routePaths.contact}
-            fullWidth
-            className={styles.mobileCta}
-            onClick={() => setOpen(false)}
-          >
+      <div id="mobile-nav" className={cn(styles.mobile, open && styles.mobileOpen)} hidden={!open}>
+        <div className="shell">
+          <ul className={styles.mobileList}>
+            {primaryNav.map((item) => (
+              <li key={item.href}>
+                <NavLink to={item.href} onClick={() => setOpen(false)}>
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+          <div className={styles.mobileAuth}>
+            <Link to={authRoutes.signIn} onClick={() => setOpen(false)}>
+              Customer sign in
+            </Link>
+            <Link to={authRoutes.signUp} onClick={() => setOpen(false)}>
+              Customer sign up
+            </Link>
+          </div>
+          <Button to={routePaths.contact} fullWidth onClick={() => setOpen(false)}>
             Start a Project
           </Button>
-        </Container>
+        </div>
       </div>
     </header>
   )

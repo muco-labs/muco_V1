@@ -2,7 +2,7 @@ export const site = {
   name: 'MUCO LABS',
   legalName: 'MUCO LABS',
   tagline:
-    'Technology, software, AI, and digital solutions for businesses that intend to grow.',
+    'Technology company building products, platforms and growth systems.',
   positioning:
     'MUCO LABS designs, builds, automates and grows digital businesses through technology, software, AI and digital solutions.',
   defaultTitle: 'MUCO LABS | Technology, Software, AI & Digital Solutions',
