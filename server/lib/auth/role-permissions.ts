@@ -66,6 +66,8 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'support.manage',
     'analytics.view',
     'audit_logs.view',
+    'website_intelligence.view',
+    'website_intelligence.run',
   ],
   SUPER_ADMIN: [
     'users.view',
@@ -109,6 +111,8 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'analytics.view',
     'settings.manage',
     'audit_logs.view',
+    'website_intelligence.view',
+    'website_intelligence.run',
   ],
   FOUNDER: [
     'users.view',

@@ -109,6 +109,28 @@ export const employeeEmploymentStateEnum = pgEnum('employee_employment_state', [
   'offboarded',
 ])
 
+export const wiAuditStatusEnum = pgEnum('wi_audit_status', [
+  'queued',
+  'running',
+  'completed',
+  'failed',
+  'cancelled',
+])
+export const wiIssueSeverityEnum = pgEnum('wi_issue_severity', [
+  'critical',
+  'high',
+  'medium',
+  'low',
+  'informational',
+])
+export const wiIssueStatusEnum = pgEnum('wi_issue_status', [
+  'open',
+  'reviewed',
+  'resolved',
+  'ignored',
+])
+export const wiOpportunityLevelEnum = pgEnum('wi_opportunity_level', ['low', 'medium', 'high'])
+
 export const users = pgTable(
   'users',
   {
@@ -736,6 +758,141 @@ export const productOrganizationMembers = pgTable(
     primaryKey({ columns: [table.organizationId, table.userId] }),
     index('product_organization_members_user_id_idx').on(table.userId),
   ],
+)
+
+export const wiWebsites = pgTable(
+  'wi_websites',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    normalizedHost: text('normalized_host').notNull(),
+    companyName: text('company_name'),
+    country: text('country'),
+    city: text('city'),
+    notes: text('notes'),
+    createdByUserId: uuid('created_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('wi_websites_normalized_host_idx').on(table.normalizedHost)],
+)
+
+export const wiAudits = pgTable(
+  'wi_audits',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    websiteId: uuid('website_id')
+      .notNull()
+      .references(() => wiWebsites.id, { onDelete: 'cascade' }),
+    targetUrl: text('target_url').notNull(),
+    normalizedUrl: text('normalized_url').notNull(),
+    status: wiAuditStatusEnum('status').notNull().default('queued'),
+    progressPhase: text('progress_phase'),
+    errorMessage: text('error_message'),
+    overallScore: integer('overall_score'),
+    categoryScores: text('category_scores'),
+    opportunityLevel: wiOpportunityLevelEnum('opportunity_level'),
+    opportunityScore: integer('opportunity_score'),
+    createdByUserId: uuid('created_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('wi_audits_website_id_idx').on(table.websiteId),
+    index('wi_audits_status_idx').on(table.status),
+    index('wi_audits_created_at_idx').on(table.createdAt),
+  ],
+)
+
+export const wiAuditPages = pgTable(
+  'wi_audit_pages',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    auditId: uuid('audit_id')
+      .notNull()
+      .references(() => wiAudits.id, { onDelete: 'cascade' }),
+    url: text('url').notNull(),
+    statusCode: integer('status_code'),
+    title: text('title'),
+    metaDescription: text('meta_description'),
+    canonical: text('canonical'),
+    h1Texts: text('h1_texts'),
+    headings: text('headings'),
+    wordCount: integer('word_count'),
+    internalLinks: text('internal_links'),
+    externalLinks: text('external_links'),
+    imageCount: integer('image_count'),
+    imagesMissingAlt: integer('images_missing_alt'),
+    robotsNoindex: boolean('robots_noindex').notNull().default(false),
+    htmlLang: text('html_lang'),
+    viewportMeta: boolean('viewport_meta').notNull().default(false),
+    ogPresent: boolean('og_present').notNull().default(false),
+    twitterCardPresent: boolean('twitter_card_present').notNull().default(false),
+    structuredDataTypes: text('structured_data_types'),
+    contentType: text('content_type'),
+    responseTimeMs: integer('response_time_ms'),
+    crawledAt: timestamp('crawled_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('wi_audit_pages_audit_id_idx').on(table.auditId),
+    uniqueIndex('wi_audit_pages_audit_url_idx').on(table.auditId, table.url),
+  ],
+)
+
+export const wiAuditIssues = pgTable(
+  'wi_audit_issues',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    auditId: uuid('audit_id')
+      .notNull()
+      .references(() => wiAudits.id, { onDelete: 'cascade' }),
+    category: text('category').notNull(),
+    severity: wiIssueSeverityEnum('severity').notNull(),
+    status: wiIssueStatusEnum('status').notNull().default('open'),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    affectedUrls: text('affected_urls'),
+    evidence: text('evidence'),
+    recommendation: text('recommendation'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('wi_audit_issues_audit_id_idx').on(table.auditId),
+    index('wi_audit_issues_severity_idx').on(table.severity),
+  ],
+)
+
+export const wiAuditMetrics = pgTable(
+  'wi_audit_metrics',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    auditId: uuid('audit_id')
+      .notNull()
+      .references(() => wiAudits.id, { onDelete: 'cascade' }),
+    category: text('category').notNull(),
+    metricKey: text('metric_key').notNull(),
+    metricValue: text('metric_value'),
+    measured: boolean('measured').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('wi_audit_metrics_audit_id_idx').on(table.auditId)],
+)
+
+export const wiAuditEvents = pgTable(
+  'wi_audit_events',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    auditId: uuid('audit_id')
+      .notNull()
+      .references(() => wiAudits.id, { onDelete: 'cascade' }),
+    event: text('event').notNull(),
+    detail: text('detail'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('wi_audit_events_audit_id_idx').on(table.auditId)],
 )
 
 export const usersRelations = relations(users, ({ many }) => ({

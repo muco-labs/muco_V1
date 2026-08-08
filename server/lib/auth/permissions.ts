@@ -51,6 +51,8 @@ export const permissionNames = [
   'analytics.view',
   'settings.manage',
   'audit_logs.view',
+  'website_intelligence.view',
+  'website_intelligence.run',
 ] as const
 
 export type PermissionName = (typeof permissionNames)[number]

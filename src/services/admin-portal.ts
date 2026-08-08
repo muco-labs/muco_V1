@@ -49,6 +49,26 @@ export const adminApi = {
   executive: {
     overview: () => apiRequest<Record<string, unknown>>(`${base}/executive/overview`),
   },
+  websiteIntelligence: {
+    dashboard: () => apiRequest<Record<string, unknown>>(`${base}/website-intelligence/dashboard`),
+    listAudits: (params?: { q?: string; status?: string }) => {
+      const search = new URLSearchParams()
+      if (params?.q) search.set('q', params.q)
+      if (params?.status) search.set('status', params.status)
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[] }>(
+        `${base}/website-intelligence/audits${qs ? `?${qs}` : ''}`,
+      )
+    },
+    createAudit: (body: Record<string, unknown>) =>
+      apiRequest(`${base}/website-intelligence/audits`, { method: 'POST', json: body }),
+    getAudit: (id: string) =>
+      apiRequest<Record<string, unknown>>(`${base}/website-intelligence/audits/${id}`),
+    exportAudit: (id: string) =>
+      apiRequest<Record<string, unknown>>(`${base}/website-intelligence/audits/${id}/export`),
+    cancelAudit: (id: string) =>
+      apiRequest(`${base}/website-intelligence/audits/${id}/cancel`, { method: 'POST' }),
+  },
   search: (q: string) =>
     apiRequest<Record<string, unknown>>(`${base}/search?q=${encodeURIComponent(q)}`),
   auditLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs`),

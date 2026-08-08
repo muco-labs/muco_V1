@@ -81,6 +81,7 @@ import { getErodeMarketDashboard } from '../../services/local.service.js'
 import { getNationalMarketDashboard } from '../../services/market.service.js'
 import { getInternationalMarketDashboard } from '../../services/international.service.js'
 import { listProductWaitlistForAdmin } from '../../services/product-waitlist.service.js'
+import { websiteIntelligenceRoutes } from './website-intelligence.js'
 import {
   getEmployeeAccessReview,
   getExecutiveOverview,
@@ -133,6 +134,7 @@ adminRoutes.post('/bootstrap/founder', async (c) => {
 
 adminRoutes.use('*', authenticate)
 adminRoutes.use('*', requirePortal('admin'))
+adminRoutes.route('/website-intelligence', websiteIntelligenceRoutes)
 
 function paramId(c: { req: { param: (name: string) => string | undefined } }, name = 'id') {
   const value = c.req.param(name)

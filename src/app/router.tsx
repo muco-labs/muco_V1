@@ -170,6 +170,18 @@ const AdminTeamAccessPage = lazyPage(
   () => import('@/pages/portal/admin/AdminTeamAccessPage'),
   'AdminTeamAccessPage',
 )
+const WebsiteIntelligenceDashboardPage = lazyPage(
+  () => import('@/pages/portal/admin/WebsiteIntelligencePages'),
+  'WebsiteIntelligenceDashboardPage',
+)
+const WebsiteIntelligenceNewAuditPage = lazyPage(
+  () => import('@/pages/portal/admin/WebsiteIntelligencePages'),
+  'WebsiteIntelligenceNewAuditPage',
+)
+const WebsiteIntelligenceReportPage = lazyPage(
+  () => import('@/pages/portal/admin/WebsiteIntelligencePages'),
+  'WebsiteIntelligenceReportPage',
+)
 
 function lazyCrmPage(exportName: string) {
   return lazy(() =>
@@ -286,6 +298,9 @@ export const router = createBrowserRouter([
           { path: 'product/waitlist', element: <AdminProductWaitlistPage /> },
           { path: 'executive', element: <AdminExecutivePage /> },
           { path: 'team/access', element: <AdminTeamAccessPage /> },
+          { path: 'website-intelligence', element: <WebsiteIntelligenceDashboardPage /> },
+          { path: 'website-intelligence/new', element: <WebsiteIntelligenceNewAuditPage /> },
+          { path: 'website-intelligence/audits/:id', element: <WebsiteIntelligenceReportPage /> },
           { path: 'operations', element: <AdminOperationsPage /> },
           { path: 'sales', element: <AdminSalesPage /> },
           { path: 'revenue', element: <AdminRevenuePage /> },
