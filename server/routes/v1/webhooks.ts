@@ -5,6 +5,7 @@ import { handleRouteError, jsonSuccess } from '../../lib/response.js'
 import { getDb } from '../../db/client.js'
 import { payments } from '../../db/schema.js'
 import {
+  finalizeFailedPayment,
   finalizeSuccessfulPayment,
   findPaymentByRazorpayOrderId,
   verifyRazorpayWebhookSignature,
@@ -24,11 +25,13 @@ webhookRoutes.post('/razorpay', async (c) => {
     const payload = JSON.parse(rawBody) as {
       event?: string
       payload?: {
-        payment?: { entity?: { id?: string; order_id?: string; status?: string } }
+        payment?: { entity?: { id?: string; order_id?: string; status?: string; error_description?: string } }
       }
     }
 
-    if (payload.event !== 'payment.captured') {
+    const event = payload.event
+
+    if (event !== 'payment.captured' && event !== 'payment.failed') {
       return jsonSuccess(c, { received: true, ignored: true })
     }
 
@@ -36,7 +39,7 @@ webhookRoutes.post('/razorpay', async (c) => {
     const razorpayPaymentId = paymentEntity?.id
     const orderId = paymentEntity?.order_id
 
-    if (!razorpayPaymentId || !orderId) {
+    if (!orderId) {
       throw new AppError('VALIDATION_ERROR', 'Incomplete webhook payload.', 400)
     }
 
@@ -55,6 +58,19 @@ webhookRoutes.post('/razorpay', async (c) => {
 
     if (!payment) {
       return jsonSuccess(c, { received: true, matched: false })
+    }
+
+    if (event === 'payment.failed') {
+      const result = await finalizeFailedPayment({
+        paymentId: payment.id,
+        source: 'webhook',
+        reason: paymentEntity?.error_description,
+      })
+      return jsonSuccess(c, { received: true, ...result })
+    }
+
+    if (!razorpayPaymentId) {
+      throw new AppError('VALIDATION_ERROR', 'Incomplete webhook payload.', 400)
     }
 
     const result = await finalizeSuccessfulPayment({

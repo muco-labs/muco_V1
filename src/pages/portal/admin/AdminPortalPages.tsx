@@ -652,7 +652,7 @@ export function AdminSettingsPage() {
 
   const supabase = (data?.supabase as { configured?: boolean }) ?? {}
   const database = (data?.database as { configured?: boolean }) ?? {}
-  const razorpay = (data?.razorpay as { configured?: boolean }) ?? {}
+  const razorpay = (data?.razorpay as { configured?: boolean; webhookConfigured?: boolean }) ?? {}
   const email = (data?.email as { resend?: { configured?: boolean } }) ?? {}
 
   function statusLabel(configured?: boolean) {
@@ -668,6 +668,7 @@ export function AdminSettingsPage() {
           <li>Supabase: {statusLabel(supabase.configured)}</li>
           <li>Database: {statusLabel(database.configured)}</li>
           <li>Razorpay: {statusLabel(razorpay.configured)}</li>
+          <li>Razorpay webhook secret: {statusLabel(razorpay.webhookConfigured)}</li>
           <li>Email (Resend): {statusLabel(email.resend?.configured)}</li>
         </ul>
         <p className={ui.meta}>{String(data?.note ?? '')}</p>

@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "node scripts/generate-seo.mjs && tsc -b && tsc -p tsconfig.server.json --noEmit && vite build",

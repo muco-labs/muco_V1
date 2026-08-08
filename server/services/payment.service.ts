@@ -151,6 +151,82 @@ export async function finalizeSuccessfulPayment(input: FinalizePaymentInput) {
   return { status: result.status, paymentId: result.paymentId, duplicate: result.duplicate }
 }
 
+export async function finalizeFailedPayment(input: {
+  paymentId: string
+  actorUserId?: string | null
+  source: 'webhook'
+  reason?: string
+}) {
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  return db.transaction(async (tx) => {
+    const [payment] = await tx.select().from(payments).where(eq(payments.id, input.paymentId)).limit(1)
+    if (!payment) throw new AppError('NOT_FOUND', 'Payment not found.', 404)
+
+    if (payment.status === 'succeeded') {
+      return { status: 'succeeded' as const, paymentId: payment.id, ignored: true }
+    }
+    if (payment.status === 'failed') {
+      return { status: 'failed' as const, paymentId: payment.id, duplicate: true }
+    }
+
+    await tx
+      .update(payments)
+      .set({ status: 'failed', updatedAt: new Date() })
+      .where(eq(payments.id, payment.id))
+
+    await tx.insert(auditLogs).values({
+      actorUserId: input.actorUserId ?? null,
+      action: 'payment.failed',
+      entity: 'payments',
+      entityId: payment.id,
+      metadata: JSON.stringify({ source: input.source, reason: input.reason ?? null }),
+    })
+
+    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, payment.invoiceId)).limit(1)
+
+    const [customerRow] = await tx
+      .select({ userId: customerProfiles.userId })
+      .from(customerProfiles)
+      .where(eq(customerProfiles.id, payment.customerId))
+      .limit(1)
+
+    const adminUsers = await tx
+      .select({ userId: userRoles.userId })
+      .from(userRoles)
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(inArray(roles.name, ['FOUNDER', 'ADMIN', 'SUPER_ADMIN']))
+
+    const uniqueAdmins = [...new Set(adminUsers.map((r) => r.userId))]
+    if (uniqueAdmins.length > 0) {
+      await tx.insert(notifications).values(
+        uniqueAdmins.map((userId) => ({
+          userId,
+          type: 'payment.failed',
+          title: 'Payment failed',
+          message: invoice
+            ? `Payment failed for invoice ${invoice.invoiceNumber}.`
+            : 'A customer payment attempt failed.',
+        })),
+      )
+    }
+
+    if (customerRow?.userId) {
+      await tx.insert(notifications).values({
+        userId: customerRow.userId,
+        type: 'payment.failed',
+        title: 'Payment failed',
+        message: invoice
+          ? `Your payment for invoice ${invoice.invoiceNumber} could not be completed.`
+          : 'Your payment could not be completed. You can try again from your invoice.',
+      })
+    }
+
+    return { status: 'failed' as const, paymentId: payment.id, duplicate: false }
+  })
+}
+
 export function verifyRazorpayCheckoutSignature(
   orderId: string,
   paymentId: string,

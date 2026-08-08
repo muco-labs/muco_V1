@@ -27,6 +27,10 @@ export function isRazorpayConfigured(): boolean {
   return Boolean(serverEnv.razorpayKeyId && serverEnv.razorpayKeySecret)
 }
 
+export function isRazorpayWebhookConfigured(): boolean {
+  return Boolean(serverEnv.razorpayWebhookSecret)
+}
+
 export function isSupabaseConfigured(): boolean {
   return Boolean(serverEnv.supabaseUrl && serverEnv.supabaseServiceRoleKey)
 }

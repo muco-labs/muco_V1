@@ -23,7 +23,7 @@ import {
 import { AppError } from '../lib/errors.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission, roleCanAccessPortal } from '../lib/auth/permissions.js'
-import { isDatabaseConfigured, isRazorpayConfigured, isSupabaseConfigured } from '../lib/env.js'
+import { isDatabaseConfigured, isRazorpayConfigured, isRazorpayWebhookConfigured, isSupabaseConfigured, serverEnv } from '../lib/env.js'
 import { emailConfigurationStatus, sendTransactionalEmail } from '../lib/email/send.js'
 
 export function requireAdminPortal(auth: AuthContext) {
@@ -124,8 +124,17 @@ export function getIntegrationStatus() {
   return {
     supabase: { configured: isSupabaseConfigured() },
     database: { configured: isDatabaseConfigured() },
-    razorpay: { configured: isRazorpayConfigured() },
+    razorpay: {
+      configured: isRazorpayConfigured(),
+      webhookConfigured: isRazorpayWebhookConfigured(),
+    },
     email: emailConfigurationStatus(),
+    cors: {
+      configured: serverEnv.corsOrigins.length > 0,
+      originCount: serverEnv.corsOrigins.length,
+      note:
+        'When empty, browsers use same-origin /api only (recommended for single-domain mucolabs.com). Set CORS_ORIGINS only for additional allowed origins.',
+    },
     note: 'Secrets are stored server-side only and are never returned to the browser.',
   }
 }
