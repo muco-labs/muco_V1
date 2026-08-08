@@ -11,9 +11,57 @@
 }
 
 .lead {
-  margin: 0;
+  margin: 0 0 var(--space-6);
   color: var(--color-text-muted);
   line-height: var(--leading-snug);
+}
+
+.contactCard {
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.contactList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.contactList li {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-small);
+}
+
+.contactList span:first-child {
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.65rem;
+}
+
+.response {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.social {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-small);
+}
+
+.pricingHint {
+  margin-top: var(--space-4);
+  font-size: var(--text-small);
 }
 
 .honeypot {

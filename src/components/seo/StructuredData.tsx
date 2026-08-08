@@ -18,9 +18,12 @@ export function StructuredData({ data }: StructuredDataProps) {
 }
 
 function verifiedSameAs(): string[] {
-  return [site.social.linkedin, site.social.github, site.social.x].filter(
-    (url) => typeof url === 'string' && url.trim().length > 0,
-  )
+  return [
+    site.social.linkedin,
+    site.social.instagram,
+    site.social.x,
+    site.social.github,
+  ].filter((url) => typeof url === 'string' && url.trim().length > 0)
 }
 
 export function OrganizationSchema() {
@@ -82,12 +85,14 @@ export function LocalBusinessSchema() {
         name: site.legalName,
         url: env.siteUrl,
         email: site.contactEmail,
+        telephone: site.contactPhone,
         description: site.defaultDescription,
         image: `${env.siteUrl}/og/og-default.svg`,
         address: {
           '@type': 'PostalAddress',
           addressLocality: company.location.city,
           addressRegion: company.location.region,
+          postalCode: company.location.postalCode,
           addressCountry: company.location.country,
         },
         areaServed: ['Erode', 'Tamil Nadu', 'India'],

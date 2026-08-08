@@ -4,76 +4,148 @@ import styles from './ProjectPreview.module.css'
 type ProjectPreviewProps = {
   visual: PortfolioProject['visual']
   title: string
+  category?: string
 }
 
-export function ProjectPreview({ visual, title }: ProjectPreviewProps) {
+export function ProjectPreview({ visual, title, category }: ProjectPreviewProps) {
   return (
-    <div className={styles.frame} role="img" aria-label={`${title} concept preview`}>
-      {visual === 'commerce' && <CommerceArt />}
-      {visual === 'ai-dashboard' && <DashboardArt />}
-      {visual === 'saas' && <SaasArt />}
-      {visual === 'premium-site' && <SiteArt />}
+    <div
+      className={styles.frame}
+      role="img"
+      aria-label={`${title} — MUCO LABS concept visual${category ? `, ${category}` : ''}`}
+    >
+      <div className={styles.chrome}>
+        <span className={styles.dot} />
+        <span className={styles.dot} />
+        <span className={styles.dot} />
+        <span className={styles.chromeTitle}>Concept preview</span>
+      </div>
+      <div className={styles.art}>
+        {visual === 'commerce' && <CommerceArt />}
+        {visual === 'ai-dashboard' && <DashboardArt />}
+        {visual === 'saas' && <SaasArt />}
+        {visual === 'premium-site' && <SiteArt />}
+        {visual === 'mobile' && <MobileArt />}
+        {visual === 'automation' && <AutomationArt />}
+      </div>
+      <p className={styles.caption}>MUCO LABS concept work — not a client case study</p>
     </div>
   )
 }
 
 function CommerceArt() {
   return (
-    <svg viewBox="0 0 400 260" className={styles.svg} aria-hidden="true">
-      <rect width="400" height="260" fill="#121214" />
-      <rect x="24" y="24" width="120" height="16" rx="4" fill="#2a2a30" />
-      <rect x="24" y="56" width="200" height="28" rx="6" fill="#d4ff5c" opacity="0.85" />
-      <rect x="24" y="100" width="352" height="120" rx="12" fill="#1a1a1f" stroke="#2f2f36" />
-      <rect x="40" y="120" width="96" height="80" rx="8" fill="#25252c" />
-      <rect x="152" y="120" width="96" height="80" rx="8" fill="#25252c" />
-      <rect x="264" y="120" width="96" height="80" rx="8" fill="#25252c" />
+    <svg viewBox="0 0 400 240" className={styles.svg} aria-hidden="true">
+      <rect width="400" height="240" fill="#121214" />
+      <text x="24" y="36" fill="#a8a8b3" fontSize="11" fontFamily="system-ui">
+        Storefront
+      </text>
+      <rect x="24" y="48" width="160" height="20" rx="4" fill="#d4ff5c" opacity="0.9" />
+      <rect x="24" y="88" width="352" height="120" rx="12" fill="#1a1a1f" stroke="#2f2f36" />
+      <rect x="40" y="104" width="96" height="88" rx="8" fill="#25252c" />
+      <rect x="152" y="104" width="96" height="88" rx="8" fill="#25252c" />
+      <rect x="264" y="104" width="96" height="88" rx="8" fill="#25252c" />
+      <rect x="40" y="200" width="80" height="8" rx="2" fill="#d4ff5c" opacity="0.5" />
     </svg>
   )
 }
 
 function DashboardArt() {
   return (
-    <svg viewBox="0 0 400 260" className={styles.svg} aria-hidden="true">
-      <rect width="400" height="260" fill="#101012" />
-      <rect x="20" y="20" width="80" height="220" rx="10" fill="#18181d" />
-      <rect x="116" y="20" width="264" height="100" rx="10" fill="#1d1d24" />
-      <rect x="116" y="136" width="124" height="104" rx="10" fill="#1d1d24" />
-      <rect x="256" y="136" width="124" height="104" rx="10" fill="#1d1d24" />
-      <circle cx="60" cy="60" r="16" fill="#d4ff5c" opacity="0.7" />
+    <svg viewBox="0 0 400 240" className={styles.svg} aria-hidden="true">
+      <rect width="400" height="240" fill="#101012" />
+      <rect x="16" y="16" width="72" height="208" rx="8" fill="#18181d" />
+      <text x="28" y="40" fill="#6f6f7a" fontSize="9" fontFamily="system-ui">
+        Nav
+      </text>
+      <rect x="28" y="52" width="48" height="6" rx="2" fill="#d4ff5c" opacity="0.7" />
+      <rect x="28" y="68" width="40" height="4" rx="1" fill="#333" />
+      <rect x="104" y="16" width="280" height="96" rx="8" fill="#1d1d24" />
+      <text x="120" y="40" fill="#a8a8b3" fontSize="10" fontFamily="system-ui">
+        Operations KPIs
+      </text>
       <polyline
-        points="140,90 180,70 220,82 260,50 300,64 340,40"
+        points="120,88 160,72 200,80 240,56 280,64 320,48 360,60"
         fill="none"
         stroke="#d4ff5c"
-        strokeWidth="3"
+        strokeWidth="2.5"
       />
+      <rect x="104" y="128" width="132" height="96" rx="8" fill="#1d1d24" />
+      <rect x="252" y="128" width="132" height="96" rx="8" fill="#1d1d24" />
+      <text x="120" y="152" fill="#6f6f7a" fontSize="9" fontFamily="system-ui">
+        Approvals
+      </text>
+      <rect x="120" y="164" width="96" height="8" rx="2" fill="#d4ff5c" opacity="0.4" />
     </svg>
   )
 }
 
 function SaasArt() {
   return (
-    <svg viewBox="0 0 400 260" className={styles.svg} aria-hidden="true">
-      <rect width="400" height="260" fill="#0f0f12" />
-      <rect x="28" y="36" width="344" height="188" rx="14" fill="#17171c" stroke="#2c2c34" />
-      <rect x="48" y="60" width="120" height="12" rx="3" fill="#d4ff5c" opacity="0.8" />
-      <rect x="48" y="88" width="304" height="8" rx="2" fill="#2a2a32" />
-      <rect x="48" y="108" width="240" height="8" rx="2" fill="#2a2a32" />
-      <rect x="48" y="140" width="140" height="56" rx="8" fill="#22222a" />
-      <rect x="204" y="140" width="148" height="56" rx="8" fill="#22222a" />
+    <svg viewBox="0 0 400 240" className={styles.svg} aria-hidden="true">
+      <rect width="400" height="240" fill="#0f0f12" />
+      <rect x="24" y="28" width="352" height="184" rx="12" fill="#17171c" stroke="#2c2c34" />
+      <text x="48" y="56" fill="#d4ff5c" fontSize="11" fontFamily="system-ui">
+        Tenant admin
+      </text>
+      <rect x="48" y="68" width="200" height="6" rx="2" fill="#2a2a32" />
+      <rect x="48" y="88" width="140" height="48" rx="6" fill="#22222a" />
+      <rect x="204" y="88" width="148" height="48" rx="6" fill="#22222a" />
+      <rect x="48" y="152" width="304" height="40" rx="6" fill="#1a1a22" />
     </svg>
   )
 }
 
 function SiteArt() {
   return (
-    <svg viewBox="0 0 400 260" className={styles.svg} aria-hidden="true">
-      <rect width="400" height="260" fill="#0c0c0f" />
-      <rect x="32" y="40" width="160" height="24" rx="4" fill="#f6f5f1" opacity="0.9" />
-      <rect x="32" y="80" width="220" height="10" rx="2" fill="#6f6f7a" />
-      <rect x="32" y="100" width="180" height="10" rx="2" fill="#6f6f7a" />
-      <rect x="240" y="48" width="128" height="160" rx="12" fill="#d4ff5c" opacity="0.12" />
-      <rect x="32" y="140" width="96" height="32" rx="16" fill="#d4ff5c" />
-      <line x1="32" y1="220" x2="368" y2="220" stroke="#2a2a32" />
+    <svg viewBox="0 0 400 240" className={styles.svg} aria-hidden="true">
+      <rect width="400" height="240" fill="#0c0c0f" />
+      <text x="32" y="40" fill="#f6f5f1" fontSize="14" fontFamily="system-ui" opacity="0.9">
+        Brand story
+      </text>
+      <rect x="32" y="56" width="200" height="8" rx="2" fill="#6f6f7a" />
+      <rect x="32" y="72" width="160" height="8" rx="2" fill="#6f6f7a" />
+      <rect x="240" y="32" width="128" height="140" rx="10" fill="#d4ff5c" opacity="0.15" />
+      <rect x="32" y="120" width="88" height="28" rx="14" fill="#d4ff5c" />
+    </svg>
+  )
+}
+
+function MobileArt() {
+  return (
+    <svg viewBox="0 0 400 240" className={styles.svg} aria-hidden="true">
+      <rect width="400" height="240" fill="#0e0e11" />
+      <rect x="148" y="16" width="104" height="208" rx="16" fill="#1a1a20" stroke="#333" />
+      <rect x="160" y="40" width="80" height="12" rx="4" fill="#d4ff5c" opacity="0.85" />
+      <rect x="160" y="64" width="80" height="40" rx="6" fill="#252530" />
+      <rect x="160" y="116" width="80" height="40" rx="6" fill="#252530" />
+      <rect x="160" y="168" width="80" height="32" rx="8" fill="#d4ff5c" opacity="0.35" />
+    </svg>
+  )
+}
+
+function AutomationArt() {
+  return (
+    <svg viewBox="0 0 400 240" className={styles.svg} aria-hidden="true">
+      <rect width="400" height="240" fill="#0b0b0e" />
+      <rect x="40" y="100" width="80" height="48" rx="8" fill="#1e1e26" stroke="#d4ff5c" opacity="0.5" />
+      <text x="52" y="128" fill="#a8a8b3" fontSize="9" fontFamily="system-ui">
+        CRM
+      </text>
+      <rect x="160" y="88" width="80" height="72" rx="8" fill="#d4ff5c" opacity="0.2" />
+      <text x="172" y="128" fill="#d4ff5c" fontSize="9" fontFamily="system-ui">
+        Flow
+      </text>
+      <rect x="280" y="100" width="80" height="48" rx="8" fill="#1e1e26" stroke="#d4ff5c" opacity="0.5" />
+      <text x="288" y="128" fill="#a8a8b3" fontSize="9" fontFamily="system-ui">
+        Billing
+      </text>
+      <path d="M120 124 H160 M240 124 H280" stroke="#d4ff5c" strokeWidth="2" markerEnd="url(#arr)" />
+      <defs>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#d4ff5c" />
+        </marker>
+      </defs>
     </svg>
   )
 }

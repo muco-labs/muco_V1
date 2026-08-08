@@ -54,6 +54,13 @@
   margin: var(--space-8) 0 0;
 }
 
+.maintenance {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+  max-width: 40rem;
+}
+
 .cta {
   padding: clamp(var(--space-10), 5vw, var(--space-16));
   display: grid;

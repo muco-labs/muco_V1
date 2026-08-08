@@ -1,4 +1,5 @@
 import { routePaths } from '@/config/routes'
+import { authRoutes } from '@/config/auth'
 
 export type NavItem = {
   label: string
@@ -21,6 +22,11 @@ export const footerNav = {
     { label: 'About', href: routePaths.about },
     { label: 'Insights', href: routePaths.insights },
     { label: 'Contact', href: routePaths.contact },
+    { label: 'Pricing', href: routePaths.pricing },
+  ],
+  customer: [
+    { label: 'Sign in', href: authRoutes.signIn },
+    { label: 'Sign up', href: authRoutes.signUp },
   ],
   legal: [
     { label: 'Privacy Policy', href: routePaths.privacy },

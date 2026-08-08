@@ -12,7 +12,7 @@
 
 @media (min-width: 48rem) {
   .grid {
-    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
   }
 }
 
@@ -36,6 +36,26 @@
   text-decoration: none;
   font-size: var(--text-small);
   font-weight: 600;
+  display: block;
+  margin-top: var(--space-2);
+}
+
+.phone {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--text-small);
+}
+
+.social {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-small);
 }
 
 .title {

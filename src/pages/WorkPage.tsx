@@ -43,17 +43,27 @@ export function WorkPage() {
               {portfolioProjects.map((project, index) => (
                 <Reveal key={project.id} delayMs={index * 80}>
                   <article className={`surface surface--lift ${styles.card}`}>
-                    <ProjectPreview visual={project.visual} title={project.title} />
+                    <ProjectPreview
+                      visual={project.visual}
+                      title={project.title}
+                      category={project.category}
+                    />
                     <div className={styles.body}>
                       <p className={styles.label}>{project.label}</p>
                       <h2 className="text-h3">{project.title}</h2>
                       <p className={styles.category}>{project.category}</p>
+                      <p className={styles.tagline}>{project.tagline}</p>
                       <p>
                         <strong>Problem:</strong> {project.problem}
                       </p>
                       <p>
                         <strong>Concept:</strong> {project.solution}
                       </p>
+                      <ul className={styles.capabilities}>
+                        {project.capabilities.map((cap) => (
+                          <li key={cap}>{cap}</li>
+                        ))}
+                      </ul>
                       <p className={styles.tech}>{project.technology.join(' · ')}</p>
                       {project.relatedServiceSlug ? (
                         <p>

@@ -1,28 +1,15 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
+import { FounderPortrait } from '@/components/content/FounderPortrait'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { pageSeo } from '@/config/seo'
 import { analyticsEvents } from '@/lib/analytics'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
-import { teamArchitectureNote, teamGroups, teamMembers } from '@/data/team'
+import { teamGroups, teamMembers, teamHiringNote } from '@/data/team'
 import { routePaths } from '@/config/routes'
 import styles from './AboutPage.module.css'
-
-const beliefs = [
-  'Technology should reduce chaos—not add another system to fight.',
-  'Design and engineering are one conversation, not a handoff.',
-  'AI belongs where accountability and outcomes are measurable.',
-]
-
-const builds = [
-  'Digital products & platforms',
-  'Customer-facing experiences',
-  'Internal operations software',
-  'Automation & applied AI',
-  'Growth & analytics systems',
-]
 
 export function AboutPage() {
   const about = pageSeo.about
@@ -39,44 +26,54 @@ export function AboutPage() {
           <div className="shell">
             <Reveal>
               <p className="text-label">About</p>
-              <h1 className="text-display">The new MUCO LABS headquarters.</h1>
-              <p className={styles.lead}>{company.mission}</p>
+              <h1 className="text-display">Technology with founder-led accountability.</h1>
+              <p className={styles.lead}>{company.tagline}</p>
             </Reveal>
           </div>
         </section>
 
         <section className="section section--tight">
           <div className="shell">
-            <Reveal className={styles.split}>
-              <h2 className="text-h2">Who we are</h2>
-              <p>{company.positioning}</p>
-            </Reveal>
-          </div>
-        </section>
-
-        <section className="section section--tight">
-          <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">What we believe</h2>
-            </Reveal>
-            <ul className={styles.list}>
-              {beliefs.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+            {company.story.map((paragraph, index) => (
+              <Reveal key={paragraph.slice(0, 24)} delayMs={index * 60}>
+                <p className={styles.story}>{paragraph}</p>
+              </Reveal>
+            ))}
+            <p className={styles.disambiguation}>{company.disambiguation}</p>
           </div>
         </section>
 
         <section className="section section--tight">
           <div className="shell">
             <Reveal>
-              <h2 className="text-h2">What we build</h2>
+              <h2 className="text-h2">Mission & vision</h2>
             </Reveal>
-            <ul className={styles.builds}>
-              {builds.map((item) => (
-                <li key={item}>{item}</li>
+            <div className={styles.split}>
+              <Reveal>
+                <h3 className="text-label">Mission</h3>
+                <p>{company.mission}</p>
+              </Reveal>
+              <Reveal delayMs={80}>
+                <h3 className="text-label">Vision</h3>
+                <p>{company.vision}</p>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--tight">
+          <div className="shell">
+            <Reveal>
+              <h2 className="text-h2">Values</h2>
+            </Reveal>
+            <div className={styles.values}>
+              {company.values.map((value) => (
+                <article key={value.title} className="surface">
+                  <h3 className="text-h3">{value.title}</h3>
+                  <p>{value.body}</p>
+                </article>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
 
@@ -84,16 +81,23 @@ export function AboutPage() {
           <div className="shell">
             <div className={styles.founder}>
               <Reveal>
+                <FounderPortrait name={founder.name} imageSrc={founder.imageSrc} />
+              </Reveal>
+              <Reveal delayMs={100}>
                 <p className="text-label">Founder</p>
-                <h2 className="text-h2">{founder.name ?? 'Founder profile'}</h2>
-                <p className={styles.status}>
-                  {founder.status === 'pending_verification'
-                    ? 'Awaiting verified publication'
-                    : founder.title}
-                </p>
+                <h2 className="text-h2">{founder.name}</h2>
+                <p className={styles.founderTitle}>{founder.title}</p>
                 <p>{founder.introduction}</p>
-                {founder.role ? <p>{founder.role}</p> : null}
-                {founder.vision ? <p className={styles.vision}>{founder.vision}</p> : null}
+                <p>{founder.philosophy}</p>
+                <ul className={styles.links}>
+                  {founder.links.map((link) => (
+                    <li key={link.href}>
+                      <a className="link-underline" href={link.href}>
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </Reveal>
             </div>
           </div>
@@ -103,24 +107,25 @@ export function AboutPage() {
           <div className="shell">
             <Reveal>
               <h2 className="text-h2">Team</h2>
-              <p className={styles.teamNote}>{teamArchitectureNote}</p>
+              <p className={styles.teamNote}>{teamHiringNote}</p>
             </Reveal>
+            <div className={styles.teamGrid}>
+              {teamMembers.map((member) => (
+                <article key={member.id} className={`surface ${styles.memberCard}`}>
+                  <FounderPortrait name={member.name} imageSrc={member.imageSrc} size="md" />
+                  <div>
+                    <h3 className="text-h3">{member.name}</h3>
+                    <p className={styles.memberRole}>{member.role}</p>
+                    {member.bio ? <p>{member.bio}</p> : null}
+                  </div>
+                </article>
+              ))}
+            </div>
             <div className={styles.teamGroups}>
               {teamGroups.map((group) => (
                 <article key={group.id} className="surface">
                   <h3 className="text-label">{group.label}</h3>
-                  <ul>
-                    {teamMembers
-                      .filter((member) => member.group === group.id)
-                      .map((member) => (
-                        <li key={member.id}>
-                          <strong>{member.name}</strong> — {member.role}
-                        </li>
-                      ))}
-                    {teamMembers.filter((m) => m.group === group.id).length === 0 ? (
-                      <li className={styles.empty}>Open — profiles publish when verified.</li>
-                    ) : null}
-                  </ul>
+                  <p className={styles.groupDesc}>{group.description}</p>
                 </article>
               ))}
             </div>
@@ -130,11 +135,8 @@ export function AboutPage() {
         <section className="section section--tight">
           <div className="shell">
             <Reveal className={`surface ${styles.cta}`}>
-              <h2 className="text-h2">Our vision</h2>
-              <p>
-                Build MUCO LABS into a durable technology company from {company.location.city}—trusted
-                locally and competitive globally.
-              </p>
+              <h2 className="text-h2">Work with MUCO LABS</h2>
+              <p>Tell us what you are building—we will respond with a practical next step.</p>
               <div className={styles.ctaActions}>
                 <Button
                   to={routePaths.contact}
@@ -143,9 +145,6 @@ export function AboutPage() {
                 >
                   Start a Project
                 </Button>
-                <Link className="link-underline" to={routePaths.services}>
-                  Our services
-                </Link>
                 <Link className="link-underline" to={routePaths.work}>
                   Concept work
                 </Link>

@@ -1,0 +1,36 @@
+.intro {
+  margin: 0 0 var(--space-8);
+  color: var(--color-text-muted);
+  max-width: 40rem;
+}
+
+.topics {
+  margin-bottom: var(--space-8);
+}
+
+.topicGrid {
+  margin-top: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .topicGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.topicGrid article {
+  padding: var(--space-5);
+}
+
+.topicGrid p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.categories {
+  color: var(--color-text-subtle);
+  font-size: var(--text-small);
+}

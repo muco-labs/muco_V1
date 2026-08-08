@@ -13,7 +13,62 @@
   color: var(--color-text-muted);
 }
 
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 48rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.card {
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-3);
+  height: 100%;
+}
+
 .category {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.from {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--color-text);
+}
+
+.problem {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.delivers {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.cta {
+  margin-top: var(--space-12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.categoryLegacy {
   padding-block: var(--space-10);
   border-bottom: 1px solid var(--color-border);
 }

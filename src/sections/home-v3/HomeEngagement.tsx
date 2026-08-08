@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
-import { pricingNote, pricingTiers } from '@/data/pricing'
+import { pricingNote, pricingTiers, maintenanceNote } from '@/data/pricing'
 import { routePaths } from '@/config/routes'
 import { analyticsEvents } from '@/lib/analytics'
 import styles from './HomeEngagement.module.css'
@@ -44,6 +44,7 @@ export function HomeEngagementSections() {
               View engagement details
             </Link>
           </p>
+          <p className={styles.maintenance}>{maintenanceNote}</p>
         </div>
       </section>
 

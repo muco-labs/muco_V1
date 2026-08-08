@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { Reveal } from '@/components/motion/Reveal'
-import { serviceCategories, resolveOfferingHref } from '@/data/services'
+import { serviceHighlights } from '@/content/services-catalog'
+import { servicePath } from '@/config/routes'
 import { pageSeo } from '@/config/seo'
+import { routePaths } from '@/config/routes'
+import { Button } from '@/components/ui/Button'
 import styles from './ServicesPage.module.css'
 
 const services = pageSeo.services
@@ -22,35 +25,47 @@ export function ServicesPage() {
               <p className="text-label">Services</p>
               <h1 className="text-display">A complete technology ecosystem.</h1>
               <p className={styles.lead}>
-                Organized by how teams buy and scale work—without overwhelming you with a wall of links.
+                Websites, software, mobile, AI, automation and growth—scoped clearly and delivered
+                with founder-led oversight from Erode.
               </p>
             </Reveal>
           </div>
         </header>
         <section className="section">
           <div className="shell">
-            {serviceCategories.map((category) => (
-              <Reveal key={category.id} className={styles.category}>
-                <h2 className="text-h2">{category.title}</h2>
-                <ul>
-                  {category.offerings.map((offering) => {
-                    const href = resolveOfferingHref(offering)
-                    return (
-                      <li key={offering.id}>
-                        {href ? (
-                          <Link to={href} className={styles.link}>
-                            <span>{offering.title}</span>
-                            <span aria-hidden="true">↗</span>
-                          </Link>
-                        ) : (
-                          <span className={styles.soon}>{offering.title}</span>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </Reveal>
-            ))}
+            <div className={styles.grid}>
+              {serviceHighlights.map((service, index) => (
+                <Reveal key={service.slug} delayMs={index * 60}>
+                  <article className={`surface surface--lift ${styles.card}`}>
+                    <p className={styles.category}>{service.category}</p>
+                    <h2 className="text-h3">
+                      <Link to={servicePath(service.slug)}>{service.title}</Link>
+                    </h2>
+                    {service.from ? (
+                      <p className={styles.from}>From {service.from}</p>
+                    ) : null}
+                    <p>{service.summary}</p>
+                    <p className={styles.problem}>
+                      <strong>Problem:</strong> {service.problem}
+                    </p>
+                    <ul className={styles.delivers}>
+                      {service.delivers.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                    <Link className="link-underline" to={servicePath(service.slug)}>
+                      View service details
+                    </Link>
+                  </article>
+                </Reveal>
+              ))}
+            </div>
+            <div className={styles.cta}>
+              <Button to={routePaths.contact}>Start a project</Button>
+              <Link className="link-underline" to={routePaths.pricing}>
+                See pricing
+              </Link>
+            </div>
           </div>
         </section>
       </div>

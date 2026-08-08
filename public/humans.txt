@@ -1,0 +1,11 @@
+# MUCO LABS
+# https://www.mucolabs.com
+
+Founder: Srinivash Mahalingam
+Contact: contact@mucolabs.com
+Phone: +91 6381809844
+Location: Erode, Tamil Nadu, India
+
+Standards: HTML5, CSS3, TypeScript, WCAG 2.2 AA (target)
+Stack: React, Vite, Hono API foundation
+SEO: JSON-LD, Open Graph, sitemap, robots.txt

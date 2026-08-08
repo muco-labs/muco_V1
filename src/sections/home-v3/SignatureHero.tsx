@@ -1,6 +1,7 @@
+import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/motion/Reveal'
-import { routePaths } from '@/config/routes'
+import { company } from '@/content/company'
 import { analyticsEvents } from '@/lib/analytics'
 import styles from './SignatureHero.module.css'
 
@@ -15,10 +16,7 @@ export function SignatureHero() {
               Build what&apos;s next—
               <span className={styles.accent}> with intent.</span>
             </h1>
-            <p className={styles.lead}>
-              We design, engineer and grow digital products for teams who need a serious
-              technology partner—not another generic agency site.
-            </p>
+            <p className={styles.lead}>{company.tagline}</p>
             <div className={styles.actions}>
               <Button
                 to={routePaths.contact}
