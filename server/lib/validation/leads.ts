@@ -33,6 +33,13 @@ export const createLeadSchema = z.object({
   budget: z.string().trim().max(80).optional(),
   timeline: z.string().trim().max(120).optional(),
   source: z.string().trim().max(64).optional(),
+  landingPath: z.string().trim().max(512).optional(),
+  utmSource: z.string().trim().max(120).optional(),
+  utmMedium: z.string().trim().max(120).optional(),
+  utmCampaign: z.string().trim().max(120).optional(),
+  utmContent: z.string().trim().max(120).optional(),
+  referrerHost: z.string().trim().max(120).optional(),
+  pageSource: z.string().trim().max(64).optional(),
 })
 
 export type CreateLeadInput = z.infer<typeof createLeadSchema>

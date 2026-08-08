@@ -57,6 +57,13 @@
       "when": 1786218600000,
       "tag": "0007_business_workflow",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786218700000,
+      "tag": "0008_lead_attribution",
+      "breakpoints": true
     }
   ]
 }

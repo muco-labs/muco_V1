@@ -1,5 +1,6 @@
 import { env } from '@/config/env'
 import {
+  attributionPayloadForLead,
   attributionSummaryForLead,
   leadSourceFromAttribution,
 } from '@/lib/analytics/attribution'
@@ -24,7 +25,7 @@ export type ContactSubmitInput = {
 }
 
 export type ContactResult =
-  | { ok: true; leadId?: string }
+  | { ok: true; leadId?: string; reInquiry?: boolean }
   | { ok: false; error: string }
 
 export async function submitContact(input: ContactSubmitInput): Promise<ContactResult> {
@@ -42,24 +43,29 @@ export async function submitContact(input: ContactSubmitInput): Promise<ContactR
       : validation.data.message
 
   const source = leadSourceFromAttribution(input.pageSource)
+  const attribution = attributionPayloadForLead(input.pageSource)
 
   try {
-    const response = await apiRequest<{ id: string; status: string }>(env.contactApiUrl, {
-      method: 'POST',
-      json: {
-        name: validation.data.name,
-        email: validation.data.email,
-        company: validation.data.company || undefined,
-        phone: validation.data.phone || undefined,
-        message: messageBody,
-        serviceInterest: validation.data.serviceInterest || undefined,
-        budget: validation.data.budget || undefined,
-        timeline: validation.data.timeline || undefined,
-        website: input.website ?? '',
-        source,
+    const response = await apiRequest<{ id: string; status: string; reInquiry?: boolean }>(
+      env.contactApiUrl,
+      {
+        method: 'POST',
+        json: {
+          name: validation.data.name,
+          email: validation.data.email,
+          company: validation.data.company || undefined,
+          phone: validation.data.phone || undefined,
+          message: messageBody,
+          serviceInterest: validation.data.serviceInterest || undefined,
+          budget: validation.data.budget || undefined,
+          timeline: validation.data.timeline || undefined,
+          website: input.website ?? '',
+          source,
+          ...attribution,
+        },
       },
-    })
-    return { ok: true, leadId: response.id }
+    )
+    return { ok: true, leadId: response.id, reInquiry: response.reInquiry }
   } catch (error) {
     if (error instanceof ApiError) {
       return { ok: false, error: error.message }

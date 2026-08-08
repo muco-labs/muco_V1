@@ -30,6 +30,9 @@ export function CrmHomePage() {
   if (pipeError) return <PortalError message={pipeError} onRetry={reloadPipe} />
 
   const byStatus = (metrics?.byStatus as Array<{ status: string; c: number }>) ?? []
+  const byService = (metrics?.byService as Array<{ service: string; count: number }>) ?? []
+  const bySource =
+    (metrics?.bySource as Array<{ source: string; sourceLabel: string; count: number }>) ?? []
   const columns = (pipeline?.columns as Record<string, Array<Record<string, unknown>>>) ?? {}
 
   return (
@@ -63,6 +66,33 @@ export function CrmHomePage() {
           <p className={ui.meta}>Shown when at least 3 closed leads exist.</p>
         </article>
       </div>
+
+      {byService.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Inquiries by service</h2>
+          <ul className={ui.stack}>
+            {byService.map((row) => (
+              <li key={row.service} className={`surface ${ui.dataCard}`}>
+                {row.service} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {bySource.length ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">Inquiries by source</h2>
+          <ul className={ui.stack}>
+            {bySource.map((row) => (
+              <li key={row.source} className={`surface ${ui.dataCard}`}>
+                {row.sourceLabel} ({row.source}) — {row.count}
+              </li>
+            ))}
+          </ul>
+          <p className={ui.meta}>Unknown attribution is not inferred—only stored form data is shown.</p>
+        </section>
+      ) : null}
 
       <section className={styles.pipeline} aria-label="Pipeline board">
         {CRM_PIPELINE_STATUSES.map((status) => {
@@ -159,6 +189,45 @@ export function CrmLeadDetailPage() {
       <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
         <h2 className="text-h3">Message</h2>
         <p>{String(lead.projectDescription)}</p>
+      </section>
+
+      {lead.landingPath ||
+      lead.pageSource ||
+      lead.utmSource ||
+      lead.referrerHost ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">Attribution</h2>
+          <ul className={ui.stack}>
+            {lead.pageSource ? <li className={ui.meta}>Page context: {String(lead.pageSource)}</li> : null}
+            {lead.landingPath ? <li className={ui.meta}>Landing: {String(lead.landingPath)}</li> : null}
+            {lead.utmSource ? (
+              <li className={ui.meta}>
+                UTM: {String(lead.utmSource)}
+                {lead.utmMedium ? ` / ${String(lead.utmMedium)}` : ''}
+                {lead.utmCampaign ? ` / ${String(lead.utmCampaign)}` : ''}
+              </li>
+            ) : null}
+            {lead.referrerHost ? <li className={ui.meta}>Referrer: {String(lead.referrerHost)}</li> : null}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+        <h2 className="text-h3">Activity</h2>
+        {activities.length === 0 ? (
+          <p className={ui.meta}>No activity logged yet.</p>
+        ) : (
+          <ul className={ui.stack}>
+            {activities.map((a) => (
+              <li key={String(a.id)} className={`surface ${ui.dataCard}`}>
+                <span className={ui.meta}>{String(a.action)}</span>
+                <time className={ui.meta} dateTime={String(a.createdAt)}>
+                  {new Date(String(a.createdAt)).toLocaleString()}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>

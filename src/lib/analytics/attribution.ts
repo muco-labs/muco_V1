@@ -56,10 +56,36 @@ export function leadSourceFromAttribution(pageSource?: string): string {
     const slug = pageSource.trim().slice(0, 40)
     return `website_contact_${slug}`
   }
+  if (attr?.utmMedium?.toLowerCase().includes('cpc') || attr?.utmMedium?.toLowerCase() === 'paid') {
+    return 'campaign'
+  }
   if (attr?.utmMedium?.toLowerCase().includes('social')) return 'social'
   if (attr?.utmSource?.toLowerCase().includes('google')) return 'organic_search'
   if (attr?.referrerHost && !attr.referrerHost.includes('mucolabs')) return 'referral'
   return 'website_contact'
+}
+
+export function attributionPayloadForLead(pageSource?: string): {
+  landingPath?: string
+  utmSource?: string
+  utmMedium?: string
+  utmCampaign?: string
+  utmContent?: string
+  referrerHost?: string
+  pageSource?: string
+} {
+  const attr = readAttribution()
+  const landingPath =
+    attr?.landingPath ??
+    (typeof window !== 'undefined' ? window.location.pathname.slice(0, 512) : undefined)
+  return {
+    landingPath,
+    utmSource: attr?.utmSource,
+    utmMedium: attr?.utmMedium,
+    utmCampaign: attr?.utmCampaign,
+    referrerHost: attr?.referrerHost,
+    pageSource: pageSource?.trim() || undefined,
+  }
 }
 
 export function attributionSummaryForLead(): string | undefined {

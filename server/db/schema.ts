@@ -316,6 +316,13 @@ export const leads = pgTable(
     lostReason: leadLostReasonEnum('lost_reason'),
     customerId: uuid('customer_id').references(() => customerProfiles.id, { onDelete: 'set null' }),
     possibleDuplicateOf: uuid('possible_duplicate_of'),
+    landingPath: text('landing_path'),
+    utmSource: text('utm_source'),
+    utmMedium: text('utm_medium'),
+    utmCampaign: text('utm_campaign'),
+    utmContent: text('utm_content'),
+    referrerHost: text('referrer_host'),
+    pageSource: text('page_source'),
     qualificationBusinessType: text('qualification_business_type'),
     qualificationProjectSize: text('qualification_project_size'),
     qualificationUrgency: text('qualification_urgency'),
@@ -331,6 +338,8 @@ export const leads = pgTable(
     index('leads_follow_up_at_idx').on(table.followUpAt),
     index('leads_priority_idx').on(table.priority),
     index('leads_customer_id_idx').on(table.customerId),
+    index('leads_page_source_idx').on(table.pageSource),
+    index('leads_service_interest_idx').on(table.serviceInterest),
   ],
 )
 

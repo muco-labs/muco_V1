@@ -1,4 +1,6 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
 import { Input, Select, Textarea } from '@/components/ui/FormControls'
 import {
@@ -60,6 +62,7 @@ export function InquiryForm({
     if (formStarted.current) return
     formStarted.current = true
     trackEvent(analyticsEvents.contactFormStart, { source: pageSource })
+    trackEvent(analyticsEvents.inquiryStarted, { source: pageSource })
   }
 
   const field = (name: keyof InquiryFormValues) => ({
@@ -98,6 +101,10 @@ export function InquiryForm({
     setStatus('success')
     setLeadRef(result.leadId?.slice(0, 8).toUpperCase() ?? null)
     trackEvent(analyticsEvents.contactFormSubmit, { source: pageSource })
+    trackEvent(analyticsEvents.leadCreated, {
+      source: pageSource,
+      re_inquiry: result.reInquiry ? 'yes' : 'no',
+    })
     formStarted.current = false
   }
 
@@ -216,6 +223,10 @@ export function InquiryForm({
           {error}
         </p>
       ) : null}
+      <p className={styles.privacyNote}>
+        We use your details only to respond to this inquiry. See our{' '}
+        <Link to={routePaths.privacy}>privacy policy</Link>.
+      </p>
       <Button type="submit" disabled={status === 'submitting'} fullWidth>
         {status === 'submitting' ? 'Sending…' : submitLabel}
       </Button>

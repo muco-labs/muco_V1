@@ -45,3 +45,9 @@
 .successHint {
   font-size: var(--text-small);
 }
+
+.privacyNote {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}

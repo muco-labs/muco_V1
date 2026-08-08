@@ -7,6 +7,7 @@ import {
   ilike,
   inArray,
   lt,
+  notInArray,
   or,
   sql,
   sum,
@@ -30,6 +31,7 @@ import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission, roleCanAccessPortal } from '../lib/auth/permissions.js'
 import {
   CRM_PIPELINE_STATUSES,
+  CLOSED_LEAD_STATUSES,
   normalizeLeadSource,
   storageSourceValue,
 } from '../lib/crm/constants.js'
@@ -127,6 +129,24 @@ export async function findDuplicateHints(input: {
   }
 }
 
+/** Latest non-closed lead for the same email (re-inquiry target). */
+export async function findLatestOpenLeadByEmail(email: string) {
+  const db = getDb()
+  if (!db) return null
+
+  const normalized = email.trim().toLowerCase()
+  const [row] = await db
+    .select({ id: leads.id, status: leads.status })
+    .from(leads)
+    .where(
+      and(eq(leads.email, normalized), notInArray(leads.status, [...CLOSED_LEAD_STATUSES])),
+    )
+    .orderBy(desc(leads.createdAt))
+    .limit(1)
+
+  return row ?? null
+}
+
 export async function notifyAdminsOfNewLead(_leadId: string, leadName: string) {
   const db = getDb()
   if (!db) return
@@ -188,8 +208,30 @@ export async function getCrmMetrics(auth: AuthContext) {
       and(scope ?? sql`true`, inArray(proposals.status, ['sent', 'viewed', 'changes_requested'])),
     )
 
+  const serviceRows = await db
+    .select({ service: leads.serviceInterest, c: count() })
+    .from(leads)
+    .where(scope ?? sql`true`)
+    .groupBy(leads.serviceInterest)
+    .orderBy(desc(count()))
+
+  const sourceRows = await db
+    .select({ source: leads.source, c: count() })
+    .from(leads)
+    .where(scope ?? sql`true`)
+    .groupBy(leads.source)
+    .orderBy(desc(count()))
+
   return {
     byStatus: statusRows,
+    byService: serviceRows
+      .filter((r) => r.service?.trim())
+      .map((r) => ({ service: r.service as string, count: Number(r.c) })),
+    bySource: sourceRows.map((r) => ({
+      source: r.source,
+      sourceLabel: normalizeLeadSource(r.source),
+      count: Number(r.c),
+    })),
     overdueFollowUps: overdue?.c ?? 0,
     conversionRate,
     openProposalValue: proposalValue?.total ?? null,

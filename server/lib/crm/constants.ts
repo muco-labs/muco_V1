@@ -16,6 +16,7 @@ export const LEAD_SOURCES = [
   'ORGANIC_SEARCH',
   'REFERRAL',
   'SOCIAL',
+  'CAMPAIGN',
   'EMAIL',
   'DIRECT',
   'MANUAL',
@@ -30,8 +31,11 @@ const sourceAliases: Record<string, LeadSource> = {
   contact_form: 'WEBSITE',
   start_project: 'WEBSITE',
   organic_search: 'ORGANIC_SEARCH',
+  campaign: 'CAMPAIGN',
   referral: 'REFERRAL',
   social: 'SOCIAL',
+  service_page: 'WEBSITE',
+  portfolio: 'WEBSITE',
   email: 'EMAIL',
   direct: 'DIRECT',
   manual: 'MANUAL',
@@ -39,9 +43,12 @@ const sourceAliases: Record<string, LeadSource> = {
   other: 'OTHER',
 }
 
+export const CLOSED_LEAD_STATUSES = ['won', 'lost', 'archived'] as const
+
 export function normalizeLeadSource(raw?: string | null): LeadSource {
   if (!raw?.trim()) return 'WEBSITE'
   const key = raw.trim().toLowerCase()
+  if (key.startsWith('website_contact')) return 'WEBSITE'
   if (sourceAliases[key]) return sourceAliases[key]
   const upper = raw.trim().toUpperCase()
   if ((LEAD_SOURCES as readonly string[]).includes(upper)) return upper as LeadSource

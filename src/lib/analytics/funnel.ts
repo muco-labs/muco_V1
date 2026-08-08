@@ -5,7 +5,9 @@ export const conversionFunnelStages = [
   'service_view',
   'cta_click',
   'contact_form_start',
+  'inquiry_started',
   'contact_form_submit',
+  'lead_created',
   'crm_lead',
 ] as const
 
@@ -23,5 +25,7 @@ export const funnelEventMap: Record<string, ConversionFunnelStage> = {
   portfolio_cta_click: 'cta_click',
   hero_cta_click: 'cta_click',
   contact_form_start: 'contact_form_start',
+  inquiry_started: 'contact_form_start',
   contact_form_submit: 'contact_form_submit',
+  lead_created: 'crm_lead',
 }

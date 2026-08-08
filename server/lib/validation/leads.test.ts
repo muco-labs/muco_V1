@@ -28,4 +28,16 @@ describe('createLeadSchema', () => {
     })
     expect(result.success).toBe(false)
   })
+
+  it('accepts attribution fields', () => {
+    const result = createLeadSchema.safeParse({
+      name: 'Ada',
+      email: 'ada@example.com',
+      message: 'Hello',
+      landingPath: '/services/web-development',
+      utmSource: 'google',
+      pageSource: 'service_detail',
+    })
+    expect(result.success).toBe(true)
+  })
 })

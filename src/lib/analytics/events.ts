@@ -7,6 +7,8 @@ export const analyticsEvents = {
   portfolioCtaClick: 'portfolio_cta_click',
   contactFormStart: 'contact_form_start',
   contactFormSubmit: 'contact_form_submit',
+  inquiryStarted: 'inquiry_started',
+  leadCreated: 'lead_created',
   serviceView: 'service_view',
   portfolioView: 'portfolio_view',
   pricingView: 'pricing_view',
