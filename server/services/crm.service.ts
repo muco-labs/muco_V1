@@ -458,6 +458,10 @@ export async function updateLeadCrm(
     qualificationUrgency: string
     qualificationDecisionMaker: string
     source: string
+    estimatedValue: string
+    expectedCloseAt: string | null
+    salesNextAction: string
+    referralSource: string
   }>,
 ) {
   await assertCanAccessLead(auth, leadId)
@@ -474,6 +478,9 @@ export async function updateLeadCrm(
   const next = { ...existing, ...input }
   if (input.status === 'qualified') {
     assertQualifiedFields(next)
+    await recordLeadActivity(leadId, 'sales.opportunity_qualified', auth.userId, {
+      estimatedValue: input.estimatedValue ?? existing.estimatedValue,
+    })
   }
   if (input.status === 'lost' && !input.lostReason && !existing.lostReason) {
     throw new AppError('VALIDATION_ERROR', 'Select a lost reason.', 400)
@@ -503,6 +510,14 @@ export async function updateLeadCrm(
       qualificationUrgency: input.qualificationUrgency,
       qualificationDecisionMaker: input.qualificationDecisionMaker,
       source: input.source ? storageSourceValue(normalizeLeadSource(input.source)) : undefined,
+      estimatedValue: input.estimatedValue,
+      expectedCloseAt: input.expectedCloseAt
+        ? new Date(input.expectedCloseAt)
+        : input.expectedCloseAt === null
+          ? null
+          : undefined,
+      salesNextAction: input.salesNextAction,
+      referralSource: input.referralSource,
       updatedAt: new Date(),
     })
     .where(eq(leads.id, leadId))

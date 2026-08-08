@@ -27,6 +27,11 @@ export const adminApi = {
   operations: {
     report: () => apiRequest<Record<string, unknown>>(`${base}/operations/report`),
   },
+  sales: {
+    dashboard: () => apiRequest<Record<string, unknown>>(`${base}/sales/dashboard`),
+    revenue: () => apiRequest<Record<string, unknown>>(`${base}/sales/revenue`),
+    monthlyReport: () => apiRequest<Record<string, unknown>>(`${base}/sales/monthly-report`),
+  },
   analytics: () => apiRequest<Record<string, unknown>>(`${base}/analytics`),
   integrations: () => apiRequest<Record<string, unknown>>(`${base}/integrations`),
   search: (q: string) =>

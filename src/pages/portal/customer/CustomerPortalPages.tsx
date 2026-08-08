@@ -209,7 +209,25 @@ export function CustomerProposalDetailPage() {
             <strong>Terms.</strong> {String(data.terms)}
           </p>
         ) : null}
-        {data.amount ? <p className={ui.meta}>Amount: ₹{String(data.amount)}</p> : null}
+        {data.amount ? <p className={ui.meta}>Total: ₹{String(data.amount)}</p> : null}
+        {data.discountAmount ? (
+          <p className={ui.meta}>Includes authorized discount: ₹{String(data.discountAmount)}</p>
+        ) : null}
+        {data.paymentSchedule ? (
+          <p className={ui.meta}>Payment schedule: {String(data.paymentSchedule).replaceAll('_', ' ')}</p>
+        ) : null}
+        {(data.lineItems as Array<Record<string, unknown>> | undefined)?.length ? (
+          <section>
+            <h2 className="text-h3">Pricing breakdown</h2>
+            <ul className={ui.stack}>
+              {(data.lineItems as Array<Record<string, unknown>>).map((item) => (
+                <li key={String(item.id)} className={ui.meta}>
+                  {String(item.description)} — {String(item.quantity)} × ₹{String(item.unitAmount)}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
       </div>
       {canDecide ? (
         <form

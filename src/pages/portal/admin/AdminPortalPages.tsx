@@ -595,6 +595,125 @@ export function AdminAnalyticsPage() {
   )
 }
 
+function formatInrDashboard(amount: unknown) {
+  const n = Number.parseFloat(String(amount ?? '0'))
+  if (Number.isNaN(n)) return `₹${String(amount ?? '0')}`
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n)
+}
+
+export function AdminSalesPage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.sales.dashboard(), [])
+
+  if (loading) return <ListSkeleton rows={8} />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data) return null
+
+  return (
+    <>
+      <PageIntro
+        title="Sales pipeline"
+        description="Opportunities are qualified leads in CRM — real counts only, labeled pipeline (not revenue)."
+      />
+      <div className={ui.cardGrid}>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Open opportunities</h2>
+          <p className="text-h2">{String(data.openOpportunities ?? 0)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Pipeline value</h2>
+          <p className="text-h2">
+            {data.pipelineValue != null ? formatInrDashboard(data.pipelineValue) : '—'}
+          </p>
+          <p className={ui.meta}>Open proposals linked to active leads.</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Won revenue (proposals)</h2>
+          <p className="text-h2">
+            {data.wonRevenue != null ? formatInrDashboard(data.wonRevenue) : '—'}
+          </p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Win rate</h2>
+          <p className="text-h2">
+            {data.conversionRate != null
+              ? `${Math.round(Number(data.conversionRate) * 100)}%`
+              : '—'}
+          </p>
+          {data.averageDealValueNote ? <p className={ui.meta}>{String(data.averageDealValueNote)}</p> : null}
+        </article>
+      </div>
+      {(data.byService as Array<{ service: string; count: number }> | undefined)?.length ? (
+        <section style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Demand by service</h2>
+          <ul className={ui.stack}>
+            {(data.byService as Array<{ service: string; count: number }>).map((row) => (
+              <li key={row.service} className={`surface ${ui.dataCard}`}>
+                {row.service} — {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {(data.lostByReason as Array<{ reason: string; count: number }> | undefined)?.length ? (
+        <section style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">Lost reasons</h2>
+          <ul className={ui.stack}>
+            {(data.lostByReason as Array<{ reason: string; count: number }>).map((row) => (
+              <li key={row.reason} className={ui.meta}>
+                {row.reason.replaceAll('_', ' ')}: {row.count}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </>
+  )
+}
+
+export function AdminRevenuePage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.sales.revenue(), [])
+
+  if (loading) return <ListSkeleton rows={8} />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data) return null
+
+  return (
+    <>
+      <PageIntro
+        title="Revenue"
+        description="Actual collected payments and outstanding invoices — not pipeline forecasts."
+      />
+      <div className={ui.cardGrid}>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">This month</h2>
+          <p className="text-h2">{formatInrDashboard(data.revenueThisMonth)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">This quarter</h2>
+          <p className="text-h2">{formatInrDashboard(data.revenueThisQuarter)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">This year</h2>
+          <p className="text-h2">{formatInrDashboard(data.revenueThisYear)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Outstanding</h2>
+          <p className="text-h2">{formatInrDashboard(data.outstandingInvoices)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Active retainers</h2>
+          <p className="text-h2">{String(data.recurringAgreementsActive ?? 0)}</p>
+          <p className={ui.meta}>Tracking only — not auto-billed.</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Renewals (45 days)</h2>
+          <p className="text-h2">{String(data.renewalsApproaching ?? 0)}</p>
+        </article>
+      </div>
+    </>
+  )
+}
+
 export function AdminOperationsPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.operations.report(), [])
 

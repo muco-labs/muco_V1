@@ -323,6 +323,10 @@ export const leads = pgTable(
     utmContent: text('utm_content'),
     referrerHost: text('referrer_host'),
     pageSource: text('page_source'),
+    estimatedValue: numeric('estimated_value', { precision: 12, scale: 2 }),
+    expectedCloseAt: timestamp('expected_close_at', { withTimezone: true }),
+    salesNextAction: text('sales_next_action'),
+    referralSource: text('referral_source'),
     qualificationBusinessType: text('qualification_business_type'),
     qualificationProjectSize: text('qualification_project_size'),
     qualificationUrgency: text('qualification_urgency'),
@@ -408,10 +412,58 @@ export const proposals = pgTable(
     validUntil: timestamp('valid_until', { withTimezone: true }),
     customerDecidedAt: timestamp('customer_decided_at', { withTimezone: true }),
     customerDecisionNote: text('customer_decision_note'),
+    version: integer('version').notNull().default(1),
+    revisedFromId: uuid('revised_from_id'),
+    discountAmount: numeric('discount_amount', { precision: 12, scale: 2 }),
+    discountNote: text('discount_note'),
+    approvedForSendAt: timestamp('approved_for_send_at', { withTimezone: true }),
+    approvedForSendBy: uuid('approved_for_send_by'),
+    paymentSchedule: text('payment_schedule'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('proposals_status_idx').on(table.status)],
+)
+
+export const proposalLineItems = pgTable(
+  'proposal_line_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    proposalId: uuid('proposal_id')
+      .notNull()
+      .references(() => proposals.id, { onDelete: 'cascade' }),
+    description: text('description').notNull(),
+    quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull().default('1'),
+    unitAmount: numeric('unit_amount', { precision: 12, scale: 2 }).notNull(),
+    itemType: text('item_type').notNull().default('service'),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [index('proposal_line_items_proposal_id_idx').on(table.proposalId)],
+)
+
+export const recurringAgreements = pgTable(
+  'recurring_agreements',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id, { onDelete: 'cascade' }),
+    projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    serviceCategory: text('service_category'),
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    billingInterval: text('billing_interval').notNull().default('monthly'),
+    status: text('status').notNull().default('active'),
+    startsAt: timestamp('starts_at', { withTimezone: true }),
+    renewsAt: timestamp('renews_at', { withTimezone: true }),
+    ownerUserId: uuid('owner_user_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('recurring_agreements_customer_id_idx').on(table.customerId),
+    index('recurring_agreements_renews_at_idx').on(table.renewsAt),
+  ],
 )
 
 export const invoices = pgTable(

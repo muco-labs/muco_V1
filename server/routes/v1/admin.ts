@@ -20,6 +20,7 @@ import {
   adminSearch,
   assignProjectMemberAdmin,
   assertCanChangeUserStatus,
+  approveProposalForSend,
   createInvoiceAdmin,
   createInvoiceWithLineItemsAdmin,
   createLeadAdmin,
@@ -44,6 +45,7 @@ import {
   listSupportAdmin,
   listTasksAdmin,
   requireFinancialPermission,
+  setProposalDiscount,
   sendProposalAdmin,
   updateSupportAdmin,
   updateTaskAdmin,
@@ -69,6 +71,11 @@ import {
   getProjectBusinessTimeline,
 } from '../../services/workflow.service.js'
 import { PROJECT_TEMPLATE_IDS } from '../../lib/workflow/project-templates.js'
+import {
+  getMonthlyManagementReport,
+  getRevenueDashboard,
+  getSalesDashboard,
+} from '../../services/sales.service.js'
 import { normalizeLeadSource } from '../../lib/crm/constants.js'
 
 export const adminRoutes = new Hono()
@@ -179,6 +186,32 @@ adminRoutes.get('/workflow/templates', requirePermission('projects.view'), async
 adminRoutes.get('/operations/report', requirePermission('analytics.view'), async (c) => {
   try {
     return jsonSuccess(c, await getOperationsReport())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/sales/dashboard', requirePermission('leads.view'), async (c) => {
+  try {
+    return jsonSuccess(c, await getSalesDashboard(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/sales/revenue', requirePermission('invoices.view'), async (c) => {
+  try {
+    requireFinancialPermission(c.get('auth'))
+    return jsonSuccess(c, await getRevenueDashboard())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/sales/monthly-report', requirePermission('analytics.view'), async (c) => {
+  try {
+    requireFinancialPermission(c.get('auth'))
+    return jsonSuccess(c, await getMonthlyManagementReport(c.get('auth')))
   } catch (error) {
     return handleRouteError(c, error)
   }
@@ -621,7 +654,33 @@ adminRoutes.post('/proposals', requirePermission('proposals.create'), async (c) 
 adminRoutes.post('/proposals/:id/send', requirePermission('proposals.create'), async (c) => {
   try {
     const auth = c.get('auth')
-    return jsonSuccess(c, await sendProposalAdmin(auth.userId, paramId(c)))
+    return jsonSuccess(c, await sendProposalAdmin(auth.userId, paramId(c), auth.roles))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/proposals/:id/approve-send', requirePermission('proposals.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await approveProposalForSend(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/proposals/:id/discount', requirePermission('proposals.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = z
+      .object({
+        discountAmount: z.string(),
+        discountNote: z.string().optional(),
+      })
+      .safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid discount.', 400)
+    return jsonSuccess(c, await setProposalDiscount(auth, paramId(c), parsed.data))
   } catch (error) {
     return handleRouteError(c, error)
   }

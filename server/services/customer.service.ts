@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, or, sql } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
 import {
   auditLogs,
@@ -12,6 +12,7 @@ import {
   payments,
   projects,
   proposalApprovals,
+  proposalLineItems,
   proposals,
   supportTicketReplies,
   supportTickets,
@@ -403,6 +404,12 @@ export async function getCustomerProposal(ctx: CustomerContext, proposalId: stri
     row.status = 'viewed'
   }
 
+  const lineItems = await db
+    .select()
+    .from(proposalLineItems)
+    .where(eq(proposalLineItems.proposalId, proposalId))
+    .orderBy(asc(proposalLineItems.sortOrder))
+
   return {
     id: row.id,
     title: row.title ?? 'Proposal',
@@ -412,10 +419,20 @@ export async function getCustomerProposal(ctx: CustomerContext, proposalId: stri
     timeline: row.timeline,
     terms: row.terms,
     amount: row.amount,
+    discountAmount: row.discountAmount,
+    paymentSchedule: row.paymentSchedule,
+    version: row.version,
     validUntil: row.validUntil,
     projectId: row.projectId,
     customerDecidedAt: row.customerDecidedAt,
     customerDecisionNote: row.customerDecisionNote,
+    lineItems: lineItems.map((item) => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unitAmount: item.unitAmount,
+      itemType: item.itemType,
+    })),
   }
 }
 

@@ -14,6 +14,7 @@ import {
   projectMembers,
   projects,
   proposals,
+  proposalLineItems,
   roles,
   supportTickets,
   tasks,
@@ -24,6 +25,7 @@ import { AppError } from '../lib/errors.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission, roleCanAccessPortal } from '../lib/auth/permissions.js'
 import { isDatabaseConfigured, isRazorpayConfigured, isRazorpayWebhookConfigured, isSupabaseConfigured, serverEnv } from '../lib/env.js'
+import { sumProposalLineItems } from '../lib/sales/metrics.js'
 import { emailConfigurationStatus, sendTransactionalEmail } from '../lib/email/send.js'
 
 export function requireAdminPortal(auth: AuthContext) {
@@ -488,6 +490,13 @@ export async function listProposalsAdmin() {
   return db.select().from(proposals).orderBy(desc(proposals.updatedAt)).limit(100)
 }
 
+export function requirePricingAuthority(auth: AuthContext) {
+  const allowed = new Set(['FOUNDER', 'ADMIN', 'SUPER_ADMIN'])
+  if (!auth.roles.some((r) => allowed.has(r))) {
+    throw new AppError('FORBIDDEN', 'Pricing and discount approval requires admin.', 403)
+  }
+}
+
 export async function createProposalAdmin(
   actorUserId: string,
   input: {
@@ -497,10 +506,21 @@ export async function createProposalAdmin(
     scope?: string
     projectId?: string
     leadId?: string
+    paymentSchedule?: string
+    lineItems?: Array<{
+      description: string
+      quantity?: string
+      unitAmount: string
+      itemType?: string
+    }>
   },
 ) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  let amount = input.amount ?? null
+  const lineItems = input.lineItems?.filter((i) => i.description?.trim()) ?? []
+
   const [row] = await db
     .insert(proposals)
     .values({
@@ -508,11 +528,32 @@ export async function createProposalAdmin(
       leadId: input.leadId ?? null,
       projectId: input.projectId ?? null,
       title: input.title?.trim() || 'Proposal',
-      amount: input.amount ?? null,
+      amount,
       scope: input.scope?.trim() || null,
+      paymentSchedule: input.paymentSchedule?.trim() || null,
       status: 'draft',
     })
     .returning()
+
+  if (lineItems.length > 0) {
+    const inserted = await db
+      .insert(proposalLineItems)
+      .values(
+        lineItems.map((item, index) => ({
+          proposalId: row.id,
+          description: item.description.trim(),
+          quantity: item.quantity ?? '1',
+          unitAmount: item.unitAmount,
+          itemType: item.itemType ?? 'service',
+          sortOrder: index,
+        })),
+      )
+      .returning()
+    amount = sumProposalLineItems(inserted)
+    await db.update(proposals).set({ amount, updatedAt: new Date() }).where(eq(proposals.id, row.id))
+    row.amount = amount
+  }
+
   await db.insert(auditLogs).values({
     actorUserId,
     action: 'proposal.created',
@@ -522,9 +563,89 @@ export async function createProposalAdmin(
   return row
 }
 
-export async function sendProposalAdmin(actorUserId: string, proposalId: string) {
+export async function approveProposalForSend(auth: AuthContext, proposalId: string) {
+  requirePricingAuthority(auth)
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+  const [updated] = await db
+    .update(proposals)
+    .set({
+      approvedForSendAt: new Date(),
+      approvedForSendBy: auth.userId,
+      updatedAt: new Date(),
+    })
+    .where(eq(proposals.id, proposalId))
+    .returning()
+  if (!updated) throw new AppError('NOT_FOUND', 'Proposal not found.', 404)
+  await db.insert(auditLogs).values({
+    actorUserId: auth.userId,
+    action: 'proposal.approved_for_send',
+    entity: 'proposals',
+    entityId: proposalId,
+  })
+  return updated
+}
+
+export async function setProposalDiscount(
+  auth: AuthContext,
+  proposalId: string,
+  input: { discountAmount: string; discountNote?: string },
+) {
+  requirePricingAuthority(auth)
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+  const discount = Number(input.discountAmount)
+  if (Number.isNaN(discount) || discount < 0) {
+    throw new AppError('VALIDATION_ERROR', 'Invalid discount.', 400)
+  }
+  const [updated] = await db
+    .update(proposals)
+    .set({
+      discountAmount: input.discountAmount,
+      discountNote: input.discountNote?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(proposals.id, proposalId), eq(proposals.status, 'draft')))
+    .returning()
+  if (!updated) throw new AppError('CONFLICT', 'Discount can only be set on draft proposals.', 409)
+
+  const lines = await db
+    .select()
+    .from(proposalLineItems)
+    .where(eq(proposalLineItems.proposalId, proposalId))
+  if (lines.length > 0) {
+    const amount = sumProposalLineItems(lines, input.discountAmount)
+    await db.update(proposals).set({ amount, updatedAt: new Date() }).where(eq(proposals.id, proposalId))
+    updated.amount = amount
+  }
+
+  await db.insert(auditLogs).values({
+    actorUserId: auth.userId,
+    action: 'proposal.discount_applied',
+    entity: 'proposals',
+    entityId: proposalId,
+    metadata: JSON.stringify({ discountAmount: input.discountAmount }),
+  })
+  return updated
+}
+
+export async function sendProposalAdmin(actorUserId: string, proposalId: string, actorRoles: string[]) {
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [existing] = await db.select().from(proposals).where(eq(proposals.id, proposalId)).limit(1)
+  if (!existing) throw new AppError('NOT_FOUND', 'Proposal not found.', 404)
+
+  const pricingRoles = new Set(['FOUNDER', 'ADMIN', 'SUPER_ADMIN'])
+  const canSendWithoutApproval = actorRoles.some((r) => pricingRoles.has(r))
+  if (!canSendWithoutApproval && !existing.approvedForSendAt) {
+    throw new AppError(
+      'FORBIDDEN',
+      'This proposal needs admin approval before it can be sent.',
+      403,
+    )
+  }
+
   const [updated] = await db
     .update(proposals)
     .set({ status: 'sent', updatedAt: new Date() })
