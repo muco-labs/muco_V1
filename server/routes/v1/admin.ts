@@ -80,6 +80,7 @@ import { normalizeLeadSource } from '../../lib/crm/constants.js'
 import { getErodeMarketDashboard } from '../../services/local.service.js'
 import { getNationalMarketDashboard } from '../../services/market.service.js'
 import { getInternationalMarketDashboard } from '../../services/international.service.js'
+import { listProductWaitlistForAdmin } from '../../services/product-waitlist.service.js'
 
 export const adminRoutes = new Hono()
 
@@ -306,6 +307,18 @@ adminRoutes.get('/local/india-dashboard', requirePermission('leads.view'), async
 adminRoutes.get('/local/international-dashboard', requirePermission('leads.view'), async (c) => {
   try {
     return jsonSuccess(c, await getInternationalMarketDashboard(c.get('auth')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/product/waitlist', requirePermission('settings.manage'), async (c) => {
+  try {
+    const productSlug = c.req.query('productSlug')
+    const items = await listProductWaitlistForAdmin({
+      productSlug: productSlug || undefined,
+    })
+    return jsonSuccess(c, { items, count: items.length })
   } catch (error) {
     return handleRouteError(c, error)
   }

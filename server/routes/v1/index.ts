@@ -11,6 +11,7 @@ import { adminRoutes } from './admin.js'
 import { customerRoutes } from './customer.js'
 import { employeeRoutes } from './employee.js'
 import { webhookRoutes } from './webhooks.js'
+import { productRoutes } from './product.js'
 
 export const v1 = new Hono()
 
@@ -57,6 +58,7 @@ v1.post('/leads', async (c) => {
 })
 
 v1.route('/auth', authRoutes)
+v1.route('/product', productRoutes)
 v1.route('/webhooks', webhookRoutes)
 v1.route('/admin', adminRoutes)
 v1.route('/customer', customerRoutes)

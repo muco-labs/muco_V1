@@ -662,6 +662,64 @@ export const auditLogs = pgTable(
   ],
 )
 
+export const productOrgStatusEnum = pgEnum('product_org_status', ['active', 'suspended'])
+export const productOrgMemberRoleEnum = pgEnum('product_org_member_role', [
+  'owner',
+  'admin',
+  'member',
+])
+
+export const productWaitlist = pgTable(
+  'product_waitlist',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    productSlug: text('product_slug').notNull(),
+    email: text('email').notNull(),
+    fullName: text('full_name'),
+    company: text('company'),
+    useCase: text('use_case'),
+    marketingConsent: boolean('marketing_consent').notNull().default(false),
+    sourcePath: text('source_path'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('product_waitlist_product_email_idx').on(table.productSlug, table.email),
+    index('product_waitlist_product_slug_idx').on(table.productSlug),
+    index('product_waitlist_created_at_idx').on(table.createdAt),
+  ],
+)
+
+export const productOrganizations = pgTable(
+  'product_organizations',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: text('slug').notNull(),
+    name: text('name').notNull(),
+    status: productOrgStatusEnum('status').notNull().default('active'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('product_organizations_slug_idx').on(table.slug)],
+)
+
+export const productOrganizationMembers = pgTable(
+  'product_organization_members',
+  {
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => productOrganizations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: productOrgMemberRoleEnum('role').notNull().default('member'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.organizationId, table.userId] }),
+    index('product_organization_members_user_id_idx').on(table.userId),
+  ],
+)
+
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
 }))

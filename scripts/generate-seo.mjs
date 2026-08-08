@@ -52,6 +52,8 @@ const indexablePaths = [
   '/tamil-nadu',
   '/india',
   '/international',
+  '/products',
+  '/products/client-hub',
   '/contact',
   '/pricing',
   '/privacy-policy',

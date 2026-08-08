@@ -99,6 +99,20 @@
       "when": 1786219200000,
       "tag": "0013_proposal_currency",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786219300000,
+      "tag": "0014_product_waitlist",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1786219400000,
+      "tag": "0015_product_saas_tenant_foundation",
+      "breakpoints": true
     }
   ]
 }

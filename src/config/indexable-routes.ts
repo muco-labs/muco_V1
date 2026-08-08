@@ -19,6 +19,8 @@ export const indexablePaths: string[] = [
   pageSeo.tamilNadu.path,
   pageSeo.india.path,
   pageSeo.international.path,
+  pageSeo.products.path,
+  pageSeo.clientHubProduct.path,
   pageSeo.about.path,
   pageSeo.contact.path,
   pageSeo.pricing.path,

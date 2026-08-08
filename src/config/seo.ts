@@ -75,6 +75,18 @@ export const pageSeo = {
     description:
       'Remote web, software, mobile and AI development for global teams—US, UK, Canada, Australia, UAE, Singapore and beyond. Based in India, no fake offices.',
   },
+  products: {
+    path: '/products',
+    documentTitle: `MUCO Products | SaaS in validation`,
+    description:
+      'Software products from MUCO LABS in research and validation. Join a waitlist to shape the roadmap—no inflated claims.',
+  },
+  clientHubProduct: {
+    path: '/products/client-hub',
+    documentTitle: `MUCO Client Hub (waitlist) | Client workspace`,
+    description:
+      'Waitlist for MUCO Client Hub—a client portal for agencies and service businesses. In validation; not generally available.',
+  },
   contact: {
     path: '/contact',
     documentTitle: `Start a Project | ${brand}`,

@@ -40,6 +40,12 @@ export const adminApi = {
   },
   analytics: () => apiRequest<Record<string, unknown>>(`${base}/analytics`),
   integrations: () => apiRequest<Record<string, unknown>>(`${base}/integrations`),
+  product: {
+    waitlist: (productSlug?: string) =>
+      apiRequest<{ items: unknown[]; count: number }>(
+        `${base}/product/waitlist${productSlug ? `?productSlug=${encodeURIComponent(productSlug)}` : ''}`,
+      ),
+  },
   search: (q: string) =>
     apiRequest<Record<string, unknown>>(`${base}/search?q=${encodeURIComponent(q)}`),
   auditLogs: () => apiRequest<{ items: unknown[] }>(`${base}/audit-logs`),
