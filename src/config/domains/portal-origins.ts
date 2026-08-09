@@ -1,4 +1,4 @@
-import { DEFAULT_CANONICAL_SITE_URL } from '@/config/canonical-site'
+import { DEFAULT_CANONICAL_SITE_URL, resolveCanonicalSiteUrl } from '@/config/canonical-site'
 import type { PortalKind } from './types'
 
 /** Production portal origins (no trailing slash). */
@@ -20,11 +20,26 @@ export type PortalOriginsConfig = {
   admin: string
 }
 
+function readNodeVercelEnv(): string | undefined {
+  const rawNodeEnv =
+    typeof globalThis !== 'undefined' &&
+    'process' in globalThis &&
+    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+  const nodeEnv = rawNodeEnv && typeof rawNodeEnv === 'object' ? rawNodeEnv : undefined
+  return nodeEnv?.VERCEL_ENV
+}
+
 export function readPortalOriginsFromEnv(): PortalOriginsConfig {
-  const publicUrl =
-    (typeof import.meta.env !== 'undefined' &&
-      (import.meta.env.VITE_SITE_URL as string | undefined)?.trim()) ||
-    productionPortalOrigins.public
+  const publicUrl = resolveCanonicalSiteUrl({
+    viteSiteUrl:
+      typeof import.meta.env !== 'undefined'
+        ? (import.meta.env.VITE_SITE_URL as string | undefined)
+        : undefined,
+    vercelEnv:
+      typeof import.meta.env !== 'undefined'
+        ? (import.meta.env as { VERCEL_ENV?: string }).VERCEL_ENV
+        : readNodeVercelEnv(),
+  })
 
   return {
     public: publicUrl.replace(/\/$/, ''),

@@ -25,6 +25,9 @@ function generateSeoArtifacts() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    'import.meta.env.VERCEL_ENV': JSON.stringify(process.env.VERCEL_ENV ?? ''),
+  },
   plugins: [
     react(),
     {

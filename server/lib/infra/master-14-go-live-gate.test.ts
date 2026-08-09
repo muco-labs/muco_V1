@@ -17,5 +17,11 @@ describe('MASTER 14 go-live static gates', () => {
     const xml = readFileSync('public/sitemap.xml', 'utf8')
     expect(xml).toContain('https://www.mucolabs.com')
     expect(xml).not.toMatch(/<loc>https:\/\/mucolabs\.com[^<]/)
+    expect(xml).not.toContain('muco-v1.vercel.app')
+  })
+
+  it('robots.txt does not reference vercel staging host', () => {
+    const robots = readFileSync('public/robots.txt', 'utf8')
+    expect(robots).not.toContain('muco-v1.vercel.app')
   })
 })

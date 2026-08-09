@@ -68,11 +68,11 @@ const mappings = [
   ['SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY'],
 ]
 
-// muco-v1 pre-cutover QA host
+// Production marketing canonical (www)
 const staticVars = {
-  VITE_SITE_URL: 'https://muco-v1.vercel.app',
-  VITE_AUTH_REDIRECT_URL: 'https://muco-v1.vercel.app',
-  AUTH_REDIRECT_URL: 'https://muco-v1.vercel.app',
+  VITE_SITE_URL: 'https://www.mucolabs.com',
+  VITE_AUTH_REDIRECT_URL: 'https://www.mucolabs.com',
+  AUTH_REDIRECT_URL: 'https://www.mucolabs.com',
   SUPABASE_STORAGE_BUCKET: 'customer-files',
 }
 

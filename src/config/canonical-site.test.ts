@@ -1,8 +1,50 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CANONICAL_SITE_URL } from './canonical-site'
+import { getRobotsTxt } from '@/config/robots'
+import { getSitemapXml } from '@/config/sitemap'
+import {
+  DEFAULT_CANONICAL_SITE_URL,
+  resolveCanonicalSiteUrl,
+} from './canonical-site'
 
 describe('canonical-site', () => {
   it('uses www production host', () => {
     expect(DEFAULT_CANONICAL_SITE_URL).toBe('https://www.mucolabs.com')
+  })
+
+  it('forces www on Vercel production even when VITE_SITE_URL is staging', () => {
+    expect(
+      resolveCanonicalSiteUrl({
+        viteSiteUrl: 'https://muco-v1.vercel.app',
+        vercelEnv: 'production',
+      }),
+    ).toBe('https://www.mucolabs.com')
+  })
+
+  it('allows preview override for staging QA', () => {
+    expect(
+      resolveCanonicalSiteUrl({
+        viteSiteUrl: 'https://muco-v1.vercel.app',
+        vercelEnv: 'preview',
+      }),
+    ).toBe('https://muco-v1.vercel.app')
+  })
+
+  it('defaults to www when env is empty', () => {
+    expect(resolveCanonicalSiteUrl({ viteSiteUrl: '', vercelEnv: 'development' })).toBe(
+      'https://www.mucolabs.com',
+    )
+  })
+
+  it('production SEO artifacts never include muco-v1.vercel.app', () => {
+    const siteUrl = resolveCanonicalSiteUrl({
+      viteSiteUrl: 'https://muco-v1.vercel.app',
+      vercelEnv: 'production',
+    })
+    const robots = getRobotsTxt(siteUrl)
+    const sitemap = getSitemapXml(siteUrl)
+    expect(robots).not.toContain('muco-v1.vercel.app')
+    expect(sitemap).not.toContain('muco-v1.vercel.app')
+    expect(robots).toContain('https://www.mucolabs.com/sitemap.xml')
+    expect(sitemap).toContain('https://www.mucolabs.com/services')
   })
 })

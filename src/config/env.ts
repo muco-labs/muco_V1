@@ -1,4 +1,4 @@
-import { DEFAULT_CANONICAL_SITE_URL } from './canonical-site'
+import { resolveCanonicalSiteUrl } from './canonical-site'
 
 const trimTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
@@ -15,9 +15,27 @@ function readViteEnv(key: string): string | undefined {
   return nodeEnv?.[key]
 }
 
+function readVercelEnv(): string | undefined {
+  if (typeof import.meta.env !== 'undefined') {
+    const fromVite = (import.meta.env as ImportMetaEnv & { VERCEL_ENV?: string }).VERCEL_ENV
+    if (fromVite) return fromVite
+  }
+  const rawNodeEnv =
+    typeof globalThis !== 'undefined' &&
+    'process' in globalThis &&
+    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+  const nodeEnv = rawNodeEnv && typeof rawNodeEnv === 'object' ? rawNodeEnv : undefined
+  return nodeEnv?.VERCEL_ENV
+}
+
 /** Values exposed to the browser bundle — never put server secrets in VITE_*. */
 export const env = {
-  siteUrl: trimTrailingSlash(readViteEnv('VITE_SITE_URL') ?? DEFAULT_CANONICAL_SITE_URL),
+  siteUrl: trimTrailingSlash(
+    resolveCanonicalSiteUrl({
+      viteSiteUrl: readViteEnv('VITE_SITE_URL'),
+      vercelEnv: readVercelEnv(),
+    }),
+  ),
   appUrl: trimTrailingSlash(readViteEnv('VITE_APP_URL') ?? 'https://app.mucolabs.com'),
   apiBaseUrl: trimTrailingSlash(readViteEnv('VITE_API_BASE_URL') ?? ''),
   contactApiUrl: readViteEnv('VITE_CONTACT_API_URL')?.trim() || '/api/v1/leads',

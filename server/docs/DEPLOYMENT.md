@@ -26,7 +26,7 @@ One Vercel deployment serves everything on the apex domain:
 - `https://mucolabs.com/admin/*` — admin portal
 - `https://mucolabs.com/api/*` — API (same origin; no separate `api.` subdomain required)
 
-Optional future subdomains (`app.`, `team.`, `admin.`) only need DNS + `CORS_ORIGINS` if you split origins. Do not create extra Vercel projects unless you have a clear need.
+Optional future subdomains (`app.`, `team.`, `admin.`, `freelancers.`) only need DNS + Vercel domain attach on the **same** `muco-v1` project + `CORS_ORIGINS` if browsers call `/api` cross-origin. See `src/docs/PHASE4.44-PORTAL-HOSTING-SUBDOMAIN-DEPLOYMENT-MASTER-REPORT.md` and `node scripts/master-17-portal-hosting-discovery.mjs`. Do not create extra Vercel projects unless you have a clear need.
 
 ### API routes (high level)
 

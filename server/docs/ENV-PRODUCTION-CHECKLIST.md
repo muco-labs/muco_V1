@@ -16,7 +16,7 @@ Cross-checked against `server/lib/env.ts`, `server/lib/ai/config.ts`, `src/confi
 | `VITE_SUPABASE_URL` | Browser Supabase client | Client | **Required** for sign-in | `src/config/env.ts`, auth UI | **SET** |
 | `VITE_SUPABASE_ANON_KEY` | Browser anon key | Client | **Required** (or publishable) | Auth UI | **SET** |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Browser publishable key | Client | Optional alias | `src/config/env.ts` | **SET** |
-| `VITE_SITE_URL` | Canonical site URL (SEO, OG) | Client | Recommended | Vite build, SEO script | **SET** (`https://muco-v1.vercel.app` for pre-cutover QA) |
+| `VITE_SITE_URL` | Canonical site URL (SEO, OG) | Client | Recommended | Vite build, SEO script | **SET** (`https://www.mucolabs.com`) |
 | `VITE_APP_URL` | App origin label | Client | Optional | `src/config/env.ts` | Optional |
 | `VITE_API_BASE_URL` | Cross-origin API | Client | Optional | API client | Empty = same-origin `/api` |
 | `VITE_CONTACT_API_URL` | Lead form endpoint | Client | Optional | Contact forms | Default `/api/v1/leads` |
