@@ -6,7 +6,7 @@ type RevealProps = {
   children: ReactNode
   className?: string
   as?: ElementType
-  variant?: 'up' | 'fade' | 'slide-left'
+  variant?: 'up' | 'fade' | 'slide-left' | 'scale'
   delayMs?: number
 }
 
@@ -50,6 +50,7 @@ export function Reveal({
         'reveal',
         variant === 'fade' && 'reveal--fade',
         variant === 'slide-left' && 'reveal--slide-left',
+        variant === 'scale' && 'reveal--scale',
         visible && 'is-visible',
         className,
       )}

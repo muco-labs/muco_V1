@@ -72,6 +72,14 @@
   }
 }
 
+/* The seventh stage is the odd one out in a 2/3-col grid; let it span the
+   full width so the sequence reads as deliberate instead of leaving a gap. */
+@media (min-width: 48rem) {
+  .process > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 .processStep {
   display: flex;
   gap: var(--space-4);
@@ -79,6 +87,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: rgba(0, 0, 0, 0.2);
+  height: 100%;
 }
 
 .processIndex {
@@ -122,6 +131,8 @@
   padding: var(--space-5);
   display: grid;
   gap: var(--space-3);
+  height: 100%;
+  align-content: start;
 }
 
 .techCard ul {

@@ -9,6 +9,7 @@ import { SiteOpening } from '@/components/opening/SiteOpening'
 import { shouldPlaySiteOpening, preloadIntroBrandAssets } from '@/components/opening/site-opening-session'
 import { StickyStartCta } from '@/components/conversion/StickyStartCta'
 import { PageTransition } from '@/components/ui/PageTransition'
+import { RouteProgress } from '@/components/ui/RouteProgress'
 import styles from './MainLayout.module.css'
 
 export function MainLayout() {
@@ -31,6 +32,7 @@ export function MainLayout() {
   return (
     <div className={introActive ? styles.introActive : undefined}>
       <RouteAnalytics />
+      <RouteProgress />
       <LegacyPortalRedirect />
       <a href="#main-content" className="skip-link">
         Skip to content
