@@ -17,13 +17,23 @@ export function resolveSafeCustomerReturnPath(
   if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return fallback
   if (/^https?:/i.test(trimmed)) return fallback
   if (trimmed.includes('\\')) return fallback
+  // eslint-disable-next-line no-control-regex -- reject control chars in return paths
+  if (/[\u0000-\u001f\u007f]/.test(trimmed)) return fallback
 
   const queryIndex = trimmed.indexOf('?')
   const pathOnly = queryIndex === -1 ? trimmed : trimmed.slice(0, queryIndex)
   const search = queryIndex === -1 ? '' : trimmed.slice(queryIndex)
 
+  let decodedPath = pathOnly
+  try {
+    decodedPath = decodeURIComponent(pathOnly)
+  } catch {
+    return fallback
+  }
+
   if (!pathOnly.startsWith('/app')) return fallback
-  if (pathOnly.includes('..')) return fallback
+  if (pathOnly.includes('..') || decodedPath.includes('..')) return fallback
+  if (decodedPath.includes('\\')) return fallback
 
   return `${pathOnly}${search}`
 }

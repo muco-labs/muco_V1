@@ -26,6 +26,7 @@ import { hasPermission } from '../lib/auth/permissions.js'
 import { getSupabaseAdmin } from '../lib/supabase.js'
 import { isRazorpayConfigured, serverEnv } from '../lib/env.js'
 import { createRazorpayOrder } from '../lib/payments/razorpay-order.js'
+import { assertCustomerPaymentReadyForRazorpayVerify } from '../lib/payments/payment-verify-eligibility.js'
 import {
   finalizeSuccessfulPayment,
   syncOverdueInvoices,
@@ -985,13 +986,7 @@ export async function verifyRazorpayPayment(
 
   if (!payment) throw new AppError('NOT_FOUND', 'Payment not found.', 404)
 
-  if (
-    payment.status === 'processing' &&
-    payment.gatewayReference &&
-    payment.gatewayReference !== input.razorpayOrderId
-  ) {
-    throw new AppError('FORBIDDEN', 'Payment verification failed.', 403)
-  }
+  assertCustomerPaymentReadyForRazorpayVerify(payment, input.razorpayOrderId)
 
   return finalizeSuccessfulPayment({
     paymentId: payment.id,

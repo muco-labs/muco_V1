@@ -20,5 +20,10 @@ describe('resolveSafeCustomerReturnPath', () => {
 
   it('rejects path traversal', () => {
     expect(resolveSafeCustomerReturnPath('/app/../admin')).toBe('/app')
+    expect(resolveSafeCustomerReturnPath('/app/%2e%2e/admin')).toBe('/app')
+  })
+
+  it('rejects control characters', () => {
+    expect(resolveSafeCustomerReturnPath('/app/\x08dashboard')).toBe('/app')
   })
 })

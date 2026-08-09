@@ -122,10 +122,87 @@
       "breakpoints": true
     },
     {
+      "idx": 17,
+      "version": "7",
+      "when": 1786219600000,
+      "tag": "0017_website_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786219650000,
+      "tag": "0018_website_intelligence_coverage",
+      "breakpoints": true
+    },
+    {
       "idx": 19,
       "version": "7",
       "when": 1786219800000,
       "tag": "0019_careers_talent",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786219850000,
+      "tag": "0020_proposal_status_cancelled",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786219900000,
+      "tag": "0021_payments_proposal",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1786219950000,
+      "tag": "0022_customer_conversations",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1786220000000,
+      "tag": "0023_project_files_metadata",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1786220050000,
+      "tag": "0024_task_status_cancelled",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1786220100000,
+      "tag": "0025_freelancer_network",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1786220150000,
+      "tag": "0026_project_freelancers",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1786220200000,
+      "tag": "0027_freelancer_services_skills",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1786220250000,
+      "tag": "0028_freelancer_availability_capacity",
       "breakpoints": true
     }
   ]
