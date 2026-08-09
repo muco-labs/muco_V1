@@ -76,7 +76,7 @@ export function ProjectDocumentsSection({ projectId }: Props) {
 
   return (
     <>
-      <section style={{ marginTop: 'var(--space-8)' }} aria-labelledby="project-documents">
+      <section id="project-files" style={{ marginTop: 'var(--space-8)' }} aria-labelledby="project-documents">
         <h2 id="project-documents" className="text-h3">
           Documents
         </h2>
