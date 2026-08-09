@@ -1,0 +1,199 @@
+{
+  "master": "MASTER-21",
+  "generatedAt": "2026-08-09T20:15:30.082Z",
+  "vercelCli": "BLOCKED (not in PATH)",
+  "environmentMatrix": [
+    {
+      "variable": "VITE_SITE_URL",
+      "required": true,
+      "scope": "client",
+      "localStatus": "PRESENT",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "VITE_SUPABASE_URL",
+      "required": true,
+      "scope": "client",
+      "localStatus": "PRESENT",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "VITE_SUPABASE_PUBLISHABLE_KEY",
+      "required": true,
+      "scope": "client",
+      "localStatus": "PRESENT",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "VITE_SUPABASE_ANON_KEY",
+      "required": false,
+      "scope": "client",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "VITE_AUTH_REDIRECT_URL",
+      "required": false,
+      "scope": "client",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "VITE_API_BASE_URL",
+      "required": false,
+      "scope": "client",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "SUPABASE_URL",
+      "required": true,
+      "scope": "server",
+      "localStatus": "PRESENT",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "SUPABASE_SERVICE_ROLE_KEY",
+      "required": true,
+      "scope": "server",
+      "localStatus": "PRESENT",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "SUPABASE_ANON_KEY",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "DATABASE_URL",
+      "required": true,
+      "scope": "server",
+      "localStatus": "PRESENT",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "FOUNDER_BOOTSTRAP_SECRET",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "CORS_ORIGINS",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "AUTH_REDIRECT_URL",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "AUTH_INVITE_REDIRECT_URL",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "RAZORPAY_KEY_ID",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "RAZORPAY_KEY_SECRET",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    },
+    {
+      "variable": "SUPABASE_STORAGE_BUCKET",
+      "required": false,
+      "scope": "server",
+      "localStatus": "MISSING",
+      "productionStatus": "VERCEL DASHBOARD VERIFICATION REQUIRED"
+    }
+  ],
+  "corsProbes": {
+    "note": "CORS middleware mounts only when CORS_ORIGINS is non-empty (createV1App). /api/health is outside v1 app.",
+    "healthOptions": {
+      "method": "OPTIONS",
+      "url": "https://www.mucolabs.com/api/health",
+      "status": 404,
+      "allowOrigin": null,
+      "allowMethods": null
+    },
+    "authMeOptions": {
+      "method": "OPTIONS",
+      "url": "https://www.mucolabs.com/api/v1/auth/me",
+      "status": 404,
+      "allowOrigin": null,
+      "allowMethods": null
+    },
+    "authMeGetWithOrigin": {
+      "method": "GET",
+      "url": "https://app.mucolabs.com/api/v1/auth/me",
+      "status": 401,
+      "allowOrigin": null,
+      "allowMethods": null
+    },
+    "leadsOptions": {
+      "method": "OPTIONS",
+      "url": "https://www.mucolabs.com/api/v1/leads",
+      "status": 404,
+      "allowOrigin": null,
+      "allowMethods": null
+    },
+    "perOriginAuthMeOptions": [
+      {
+        "method": "OPTIONS",
+        "url": "https://www.mucolabs.com/api/v1/auth/me",
+        "status": 404,
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://www.mucolabs.com/api/v1/auth/me",
+        "status": 404,
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://www.mucolabs.com/api/v1/auth/me",
+        "status": 404,
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://www.mucolabs.com/api/v1/auth/me",
+        "status": 404,
+        "allowOrigin": null,
+        "allowMethods": null
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://www.mucolabs.com/api/v1/auth/me",
+        "status": 404,
+        "allowOrigin": null,
+        "allowMethods": null
+      }
+    ]
+  },
+  "founderBootstrapSecretLocal": "MISSING",
+  "oauthEnvLocal": {
+    "GOOGLE_CLIENT_ID": "MISSING",
+    "GITHUB_CLIENT_ID": "MISSING"
+  }
+}
