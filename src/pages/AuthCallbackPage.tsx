@@ -13,38 +13,120 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { waitForAuthSession } from '@/lib/supabase/wait-for-auth-session'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
 import { logAuthDiag, listSbStorageKeyNames, hasSbPkceVerifierCookieKey } from '@/lib/auth/auth-diagnostics'
+import {
+  buildOAuthHostDiagnosticFields,
+  buildStorageDiagnosticFields,
+  createEmptyOAuthCallbackSnapshot,
+  formatOAuthCallbackDiagnosticSnapshot,
+  mapSessionFailureToStage,
+  shouldShowOAuthCallbackDiagnostics,
+  type OAuthCallbackDiagnosticSnapshot,
+} from '@/lib/auth/oauth-callback-diagnostics'
 import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
+
+function apiErrorStatus(error: unknown): number | null {
+  if (error && typeof error === 'object' && 'status' in error) {
+    return Number((error as { status: number }).status)
+  }
+  return null
+}
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { refreshProfile } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [diagSnapshot, setDiagSnapshot] = useState<OAuthCallbackDiagnosticSnapshot | null>(null)
+  const showDiagnostics = shouldShowOAuthCallbackDiagnostics()
 
   useEffect(() => {
     let cancelled = false
 
+    function publishDiag(snapshot: OAuthCallbackDiagnosticSnapshot) {
+      if (!showDiagnostics) return
+      setDiagSnapshot(snapshot)
+      logAuthDiag('callback_report', {
+        failureStage: snapshot.failureStage,
+        sessionExists: snapshot.sessionExists,
+        userExists: snapshot.userExists,
+        storageKeyExpected: snapshot.storageKeyExpected,
+        storageKeyActual: snapshot.storageKeyActual,
+        verifierReadable: snapshot.verifierReadable,
+        verifierCookieKeyPresent: snapshot.verifierCookieKeyPresent,
+        meHttpStatus: snapshot.meHttpStatus,
+        profileSuccess: snapshot.profileSuccess,
+      })
+    }
+
     async function finish() {
+      const hasOAuthCode = new URLSearchParams(window.location.search).has('code')
+      let snapshot = createEmptyOAuthCallbackSnapshot({
+        pathname: window.location.pathname,
+        hasOAuthCode,
+        ...buildOAuthHostDiagnosticFields(),
+      })
+
       logAuthDiag('callback_reached', { callbackReached: true })
       const client = getSupabaseClient()
       if (!client) {
+        snapshot = {
+          ...snapshot,
+          failureStage: 'A_initialize',
+          authInitializeErrorMessage: 'Authentication is not configured.',
+        }
+        publishDiag(snapshot)
         setError('Authentication is not configured.')
         return
       }
 
-      const { session, error: sessionError, failurePoint } = await waitForAuthSession(client)
-      logAuthDiag('callback_session', {
-        sessionExists: Boolean(session),
-        sessionUserIdExists: Boolean(session?.user?.id),
-        failurePoint: failurePoint ?? null,
+      snapshot = { ...snapshot, ...buildStorageDiagnosticFields(client) }
+
+      const {
+        session,
+        error: sessionError,
+        failurePoint,
+        initializeOk,
+        initializeError,
+      } = await waitForAuthSession(client)
+
+      snapshot = {
+        ...snapshot,
+        ...buildStorageDiagnosticFields(client),
+        initializeCalled: true,
+        authInitializeOk: initializeOk,
+        authInitializeErrorName: initializeError?.name ?? null,
+        authInitializeErrorMessage: initializeError?.message ?? null,
         getSessionErrorName: sessionError?.name ?? null,
         getSessionErrorMessage: sessionError?.message ?? null,
+        sessionExists: Boolean(session),
+        userExists: Boolean(session?.user?.id),
+        failureStage: mapSessionFailureToStage(failurePoint),
+      }
+
+      logAuthDiag('callback_session', {
+        sessionExists: snapshot.sessionExists,
+        sessionUserIdExists: snapshot.userExists,
+        failurePoint: failurePoint ?? null,
+        failureStage: snapshot.failureStage,
+        hostname: snapshot.hostname,
+        callbackHost: snapshot.callbackHost,
+        oauthRedirectToRequested: snapshot.oauthRedirectToRequested,
+        hostChangedFromRedirectTo: snapshot.hostChangedFromRedirectTo,
+        pkceCallbackWouldRun: snapshot.pkceCallbackWouldRun,
+        getSessionErrorName: snapshot.getSessionErrorName,
+        getSessionErrorMessage: snapshot.getSessionErrorMessage,
         sbStorageKeyCount: listSbStorageKeyNames().length,
         pkceVerifierCookieKeyPresent: hasSbPkceVerifierCookieKey(),
-        urlHasOAuthCode: new URLSearchParams(window.location.search).has('code'),
+        storageKeyExpected: snapshot.storageKeyExpected,
+        storageKeyActual: snapshot.storageKeyActual,
+        verifierReadable: snapshot.verifierReadable,
+        verifierSlotReadable: snapshot.verifierSlotReadable,
+        urlHasOAuthCode: hasOAuthCode,
       })
+
       if (sessionError || !session?.user) {
+        publishDiag(snapshot)
         if (!cancelled) {
           setError(friendlyAuthError(sessionError, 'Sign-in could not be completed. Try again.'))
         }
@@ -55,22 +137,37 @@ export function AuthCallbackPage() {
       try {
         me = await ensureAppProfileAfterSignIn()
       } catch (profileError) {
-        const status =
-          profileError && typeof profileError === 'object' && 'status' in profileError
-            ? Number((profileError as { status: number }).status)
-            : null
+        const status = apiErrorStatus(profileError)
+        snapshot = {
+          ...snapshot,
+          meHttpStatus: status,
+          profileSuccess: false,
+          failureStage: 'E_auth_me',
+        }
         logAuthDiag('callback_profile', {
           profileLoaded: false,
           httpStatus: status,
+          failureStage: snapshot.failureStage,
         })
+        publishDiag(snapshot)
         if (!cancelled) {
           setError('Sign-in could not be completed. Try again.')
         }
         return
       }
+
+      snapshot = {
+        ...snapshot,
+        meHttpStatus: 200,
+        profileSuccess: true,
+        registrationAttempted: !me.registered,
+        registrationFailed: !me.registered,
+        failureStage: !me.registered ? 'F_profile_registration' : null,
+      }
       logAuthDiag('callback_profile', {
         profileLoaded: true,
         registered: me.registered ?? null,
+        failureStage: snapshot.failureStage,
       })
 
       await refreshProfile()
@@ -78,6 +175,8 @@ export function AuthCallbackPage() {
       const fromState = (location.state as { from?: string } | null)?.from
       const from = fromState ?? consumeOAuthReturnPath()
       const destination = resolvePostAuthDestination(me, from)
+      snapshot = { ...snapshot, finalDestination: destination }
+
       let destinationHost: string | null = null
       let destinationPath: string | null = null
       try {
@@ -93,8 +192,26 @@ export function AuthCallbackPage() {
         registered: me.registered ?? null,
         profileRole: me.roles?.[0] ?? null,
       })
-      if (!cancelled) {
-        completeAuthNavigation(navigate, destination)
+
+      try {
+        if (!cancelled) {
+          snapshot = { ...snapshot, navigationStarted: true }
+          publishDiag(snapshot)
+          completeAuthNavigation(navigate, destination)
+        }
+      } catch (navError) {
+        snapshot = {
+          ...snapshot,
+          failureStage: 'G_post_auth_navigation',
+          navigationStarted: false,
+          getSessionErrorName: navError instanceof Error ? navError.name : 'Error',
+          getSessionErrorMessage:
+            navError instanceof Error ? navError.message : 'Navigation failed',
+        }
+        publishDiag(snapshot)
+        if (!cancelled) {
+          setError('Sign-in could not be completed. Try again.')
+        }
       }
     }
 
@@ -102,7 +219,7 @@ export function AuthCallbackPage() {
     return () => {
       cancelled = true
     }
-  }, [location.state, navigate, refreshProfile])
+  }, [location.state, navigate, refreshProfile, showDiagnostics])
 
   return (
     <>
@@ -120,6 +237,15 @@ export function AuthCallbackPage() {
                 <p className={formStyles.error} role="alert">
                   {error}
                 </p>
+                {showDiagnostics && diagSnapshot ? (
+                  <pre
+                    className={formStyles.hint}
+                    data-testid="oauth-callback-diag"
+                    style={{ whiteSpace: 'pre-wrap', fontSize: '0.75rem', marginTop: '1rem' }}
+                  >
+                    {formatOAuthCallbackDiagnosticSnapshot(diagSnapshot)}
+                  </pre>
+                ) : null}
                 <p className={formStyles.hint}>
                   <Link className="link-underline" to={authRoutes.signIn}>
                     Return to sign in

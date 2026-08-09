@@ -13,14 +13,28 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
   session: Session | null
   error: Error | null
   failurePoint: AuthSessionFailurePoint
+  initializeOk: boolean
+  initializeError: Error | null
 }> {
   const init = await client.auth.initialize()
   if (init.error) {
-    return { session: null, error: init.error, failurePoint: 'initialize' }
+    return {
+      session: null,
+      error: init.error,
+      failurePoint: 'initialize',
+      initializeOk: false,
+      initializeError: init.error,
+    }
   }
   const { data, error } = await client.auth.getSession()
   if (error) {
-    return { session: null, error, failurePoint: 'get_session' }
+    return {
+      session: null,
+      error,
+      failurePoint: 'get_session',
+      initializeOk: true,
+      initializeError: null,
+    }
   }
   const session = data.session ?? null
   const hasOAuthCode =
@@ -33,7 +47,15 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
         'OAuth callback did not produce a session (PKCE exchange may have been skipped or storage read failed).',
       ),
       failurePoint: 'pkce_exchange_skipped_or_failed',
+      initializeOk: true,
+      initializeError: null,
     }
   }
-  return { session, error: null, failurePoint: null }
+  return {
+    session,
+    error: null,
+    failurePoint: null,
+    initializeOk: true,
+    initializeError: null,
+  }
 }

@@ -1,5 +1,6 @@
 import { env } from '@/config/env'
 import { buildAuthRedirectUrl } from '@/lib/auth/auth-redirect-url'
+import { recordOAuthFlowDiagnosticsAtStart } from '@/lib/auth/oauth-callback-diagnostics'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
 import type { User } from '@supabase/supabase-js'
@@ -100,10 +101,13 @@ export async function signInWithOAuth(provider: OAuthProvider) {
     throw new Error('Authentication is not configured.')
   }
 
+  const redirectTo = redirectUrl('/auth/callback')
+  recordOAuthFlowDiagnosticsAtStart(redirectTo)
+
   const { error } = await client.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: redirectUrl('/auth/callback'),
+      redirectTo,
     },
   })
   if (error) throw error
