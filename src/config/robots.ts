@@ -1,6 +1,7 @@
-import { env } from '@/config/env'
+import { resolveCanonicalSiteUrl } from '@/config/canonical-site'
 
-export function getRobotsTxt(siteUrl = env.siteUrl): string {
+export function getRobotsTxt(siteUrl?: string): string {
+  const origin = (siteUrl ?? resolveCanonicalSiteUrl()).replace(/\/$/, '')
   return `User-agent: *
 Allow: /
 
@@ -15,6 +16,6 @@ Disallow: /team/
 Disallow: /start-project/
 Disallow: /freelancers/
 
-Sitemap: ${siteUrl}/sitemap.xml
+Sitemap: ${origin}/sitemap.xml
 `
 }

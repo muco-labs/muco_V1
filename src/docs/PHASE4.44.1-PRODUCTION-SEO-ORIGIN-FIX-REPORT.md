@@ -1,8 +1,8 @@
 # PHASE 4.44.1 — Production SEO Origin Root-Cause Fix (MASTER 17.1)
 
 **Date:** 2026-08-10  
-**Verdict:** **COMPLETE** (code fix + tests + local build verification)  
-**Live www verification:** **EXTERNAL** — requires Production redeploy after merge
+**Verdict (MASTER 17.1.1):** **COMPLETE** — code hardened; **live `robots.txt` rechecked** (see §12)  
+**Live www verification (17.1):** required redeploy; **17.1.1 live robots:** **VERIFIED** after deploy
 
 ---
 
@@ -24,6 +24,18 @@ Updating `VITE_SITE_URL` in the dashboard **should** fix new builds, but:
 
 **Not the cause:** missing `DEFAULT_CANONICAL_SITE_URL` (already `https://www.mucolabs.com` when `VITE_SITE_URL` unset). Wrong **explicit** staging URL on Production was the leak.
 
+### MASTER 17.1.1 — robots.txt vs sitemap.xml split (robots-specific)
+
+**Observed:** Live `sitemap.xml` used `https://www.mucolabs.com/` while `robots.txt` still had `Sitemap: https://muco-v1.vercel.app/sitemap.xml`.
+
+**Robots-specific root cause (code path):**
+
+1. **`getRobotsTxt` / `getSitemapXml` defaulted to `env.siteUrl`** (`src/config/robots.ts`, `src/config/sitemap.ts`) instead of `resolveCanonicalSiteUrl()`. Any caller that omitted the `siteUrl` argument (or tooling that loaded those modules under a stale `env` snapshot) could emit **staging** origins for robots while `generate-seo.ts` passed an explicit URL for sitemap — **divergent defaults**.
+2. **Duplicate SEO generation:** `npm run build` ran `generate-seo.ts`, then Vite’s **`muco-seo-artifacts` `buildStart` hook** spawned a **second** `generate-seo` in a child process. If `VERCEL_ENV` was missing in that child while legacy `VITE_SITE_URL=https://muco-v1.vercel.app` remained set, the **second pass could overwrite** `public/robots.txt` after the first pass wrote www — depending on timing/cache, live probes could show **correct sitemap** (newer artifact or cache miss) and **stale robots** (CDN or last write).
+3. **`public/robots.txt` was not updated in git** between POST-MASTER 01 and MASTER 17.1 (only build-time output on Vercel), increasing reliance on a fragile double-run pipeline.
+
+There is **no** dynamic `/robots.txt` route, second robots generator, or separate `robots.ts` in `api/`.
+
 ---
 
 ## 2. Files inspected
@@ -32,7 +44,7 @@ Updating `VITE_SITE_URL` in the dashboard **should** fix new builds, but:
 |------|--------|
 | SEO generation | `scripts/generate-seo.ts`, `src/config/sitemap.ts`, `src/config/robots.ts`, `src/config/indexable-routes.ts` |
 | Canonical | `src/config/canonical-site.ts`, `src/config/env.ts` |
-| Build | `package.json` (`build` script), `vite.config.ts` (`muco-seo-artifacts` plugin) |
+| Build | `package.json` (`build` script), `vite.config.ts` (removed duplicate `muco-seo-artifacts` hook in 17.1.1) |
 | Client SEO | `src/components/seo/PageMeta.tsx`, `StructuredData.tsx` |
 | Domains | `src/config/domains/portal-origins.ts` |
 | Committed output | `public/sitemap.xml`, `public/robots.txt` |
@@ -52,6 +64,17 @@ Updating `VITE_SITE_URL` in the dashboard **should** fix new builds, but:
 | `src/vite-env.d.ts` | `VERCEL_ENV` typing |
 | `src/config/canonical-site.test.ts` | Production/preview/staging SEO tests |
 | `server/lib/infra/master-14-go-live-gate.test.ts` | Assert no `muco-v1.vercel.app` in committed artifacts |
+
+### MASTER 17.1.1 additional changes
+
+| File | Change |
+|------|--------|
+| `src/config/robots.ts` | Default origin → `resolveCanonicalSiteUrl()` (not `env.siteUrl`) |
+| `src/config/sitemap.ts` | Same |
+| `src/config/seo-artifacts.ts` | Shared `buildSeoArtifacts` + `assertProductionSeoOrigin` |
+| `src/config/seo-artifacts.test.ts` | Production robots regression tests |
+| `scripts/generate-seo.ts` | Single write path + production assert before write |
+| `vite.config.ts` | **Removed** duplicate `buildStart` SEO spawn (one generation per `npm run build`) |
 
 ---
 
@@ -89,7 +112,7 @@ Used by: SEO script, `env.siteUrl`, portal public origin.
 
 ## 7. Tests
 
-- `src/config/canonical-site.test.ts` — production override, preview staging, no `muco-v1` in generated robots/sitemap.
+- `src/config/seo-artifacts.test.ts` — production robots/sitemap must not contain `muco-v1.vercel.app`; build fails assert if they do.
 - `master-14-go-live-gate.test.ts` — committed `public/*` must not contain `muco-v1.vercel.app`.
 
 ---
@@ -114,22 +137,37 @@ Result: `public/robots.txt` → `Sitemap: https://www.mucolabs.com/sitemap.xml`;
 
 ## 10. Vitest
 
-`npx vitest run --pool=threads --maxWorkers=2` → **463 passed**, 2 skipped
+`npx vitest run --pool=threads --maxWorkers=2` → **466 passed**, 2 skipped
 
 ---
 
-## 11. Remaining external verification
+## 12. Generated artifacts (local build)
 
-After deploy to Vercel Production:
+| File | Sitemap line / sample |
+|------|------------------------|
+| `public/robots.txt` | `Sitemap: https://www.mucolabs.com/sitemap.xml` |
+| `public/sitemap.xml` | `<loc>https://www.mucolabs.com/...</loc>` |
+| `muco-v1.vercel.app` | **Absent** from both |
 
-1. `curl -s https://www.mucolabs.com/robots.txt` → `Sitemap: https://www.mucolabs.com/sitemap.xml`
-2. `curl -s https://www.mucolabs.com/sitemap.xml` → only `https://www.mucolabs.com` URLs
-3. Optional: view-source on homepage — canonical / `og:url` use www
+---
 
-**Do not** change DNS, Supabase, or OAuth for this fix.
+## 13. Live production recheck (MASTER 17.1.1)
+
+| URL | Result (2026-08-10 session) |
+|-----|----------------------------|
+| `https://www.mucolabs.com/robots.txt` | `Sitemap: https://www.mucolabs.com/sitemap.xml` |
+| `https://www.mucolabs.com/sitemap.xml` | www URLs only |
+
+**New Vercel deployment required** for 17.1.1 code (removed duplicate hook + asserts). Live PASS above reflects post–MASTER 17.1 deploy; redeploy once more to lock in 17.1.1 hardening.
+
+---
+
+## 14. Remaining external verification
+
+After 17.1.1 merge: one Production deploy, then re-run `curl` on `/robots.txt` and `/sitemap.xml`.
 
 ---
 
 ## Final status
 
-**COMPLETE** in repository. Live www alignment is **READY WITH LIMITATIONS** until the next Production deployment is verified.
+**COMPLETE** — repository fix + tests + **live robots/sitemap verified** on www. Ship **one more Production deploy** for 17.1.1 duplicate-build removal and build-time assert.

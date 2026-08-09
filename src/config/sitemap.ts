@@ -1,10 +1,11 @@
-import { env } from '@/config/env'
+import { resolveCanonicalSiteUrl } from '@/config/canonical-site'
 import { getSitemapIndexablePaths } from '@/config/indexable-routes'
 
-export function getSitemapXml(siteUrl = env.siteUrl, additionalPaths: string[] = []): string {
+export function getSitemapXml(siteUrl?: string, additionalPaths: string[] = []): string {
+  const origin = (siteUrl ?? resolveCanonicalSiteUrl()).replace(/\/$/, '')
   const urls = getSitemapIndexablePaths(additionalPaths)
     .map((path) => {
-      const loc = path === '/' ? siteUrl : `${siteUrl}${path}`
+      const loc = path === '/' ? origin : `${origin}${path}`
       return `  <url><loc>${escapeXml(loc)}</loc></url>`
     })
     .join('\n')

@@ -4,18 +4,15 @@
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { resolveCanonicalSiteUrl } from '@/config/canonical-site'
 import { careersOpeningPath } from '@/config/routes'
-import { getSitemapIndexablePaths } from '@/config/indexable-routes'
-import { getSitemapXml } from '@/config/sitemap'
-import { getRobotsTxt } from '@/config/robots'
+import {
+  assertProductionSeoOrigin,
+  buildSeoArtifacts,
+  resolveSeoSiteUrl,
+} from '@/config/seo-artifacts'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(rootDir, '..')
-
-function siteUrlFromEnv(): string {
-  return resolveCanonicalSiteUrl()
-}
 
 /** Optional comma-separated job slugs for build-time sitemap (published openings). */
 function careersOpeningsFromEnv(): string[] {
@@ -28,11 +25,13 @@ function careersOpeningsFromEnv(): string[] {
     .map((slug) => careersOpeningPath(slug))
 }
 
-const siteUrl = siteUrlFromEnv()
+const siteUrl = resolveSeoSiteUrl()
 const extraPaths = careersOpeningsFromEnv()
-const pathCount = getSitemapIndexablePaths(extraPaths).length
+const { robots, sitemap, urlCount } = buildSeoArtifacts(siteUrl, extraPaths)
 
-writeFileSync(path.join(projectRoot, 'public/sitemap.xml'), getSitemapXml(siteUrl, extraPaths))
-writeFileSync(path.join(projectRoot, 'public/robots.txt'), getRobotsTxt(siteUrl))
+assertProductionSeoOrigin(siteUrl, robots, sitemap)
 
-console.log(`SEO artifacts written for ${siteUrl} (${pathCount} URLs)`)
+writeFileSync(path.join(projectRoot, 'public/sitemap.xml'), sitemap)
+writeFileSync(path.join(projectRoot, 'public/robots.txt'), robots)
+
+console.log(`SEO artifacts written for ${siteUrl} (${urlCount} URLs)`)

@@ -1,42 +1,16 @@
 import path from 'node:path'
-import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
-const seoScript = path.join(rootDir, 'scripts/generate-seo.ts')
-
-function generateSeoArtifacts() {
-  const tsconfig = path.join(rootDir, 'scripts/tsconfig.json')
-  const result = spawnSync(
-    process.execPath,
-    [path.join(rootDir, 'node_modules/tsx/dist/cli.mjs'), '--tsconfig', tsconfig, seoScript],
-    {
-      stdio: 'inherit',
-      cwd: rootDir,
-      env: process.env,
-    },
-  )
-  if (result.status !== 0) {
-    throw new Error('generate-seo failed')
-  }
-}
 
 // https://vite.dev/config/
 export default defineConfig({
   define: {
     'import.meta.env.VERCEL_ENV': JSON.stringify(process.env.VERCEL_ENV ?? ''),
   },
-  plugins: [
-    react(),
-    {
-      name: 'muco-seo-artifacts',
-      buildStart() {
-        generateSeoArtifacts()
-      },
-    },
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(rootDir, './src'),
