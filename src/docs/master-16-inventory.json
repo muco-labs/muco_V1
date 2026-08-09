@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-08-09T18:30:07.517Z",
+  "master": "MASTER-16",
+  "fileCountsByDomain": {
+    "SHARED": 102,
+    "UNCLASSIFIED": 79,
+    "AUTH": 15,
+    "CONFIG": 22,
+    "TEST": 86,
+    "CONFIG:domains": 7,
+    "ADMIN": 13,
+    "CUSTOMER": 3,
+    "EMPLOYEE": 3,
+    "FREELANCER": 2,
+    "PUBLIC": 32,
+    "SERVER:shared": 103,
+    "SERVER:auth": 3,
+    "SERVER:customer": 4,
+    "SERVER:crm": 4,
+    "SERVER:files": 1,
+    "SERVER:freelancer": 16,
+    "SERVER:notifications": 1,
+    "SERVER:payments": 4,
+    "SERVER:admin": 2,
+    "TOOLING": 16
+  },
+  "totalClassified": 518,
+  "notes": [
+    "Heuristic paths only; ambiguous modules may be SHARED until phased file moves.",
+    "Server remains single API; counts reflect folder naming not separate deployables."
+  ]
+}

@@ -20,6 +20,8 @@ describe('resolvePostAuthDestination', () => {
       profile({
         portals: { customer: true, employee: false, admin: true, freelancer: false },
       }),
+      null,
+      'localhost',
     )
     expect(dest).toBe('/admin')
   })
@@ -40,8 +42,20 @@ describe('resolvePostAuthDestination', () => {
         portals: { customer: false, employee: true, admin: false, freelancer: false },
       }),
       'https://evil.test/app',
+      'localhost',
     )
     expect(dest).toBe('/team')
+  })
+
+  it('uses subdomain origin on www for admin', () => {
+    const dest = resolvePostAuthDestination(
+      profile({
+        portals: { customer: false, employee: false, admin: true, freelancer: false },
+      }),
+      null,
+      'www.mucolabs.com',
+    )
+    expect(dest).toBe('https://admin.mucolabs.com/')
   })
 
   it('sends unregistered users to sign up', () => {

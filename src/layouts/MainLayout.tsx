@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom'
 import { RouteAnalytics } from '@/components/analytics/RouteAnalytics'
+import { LegacyPortalRedirect } from '@/components/portal/LegacyPortalRedirect'
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { SiteOpening } from '@/components/opening/SiteOpening'
@@ -30,6 +31,7 @@ export function MainLayout() {
   return (
     <div className={introActive ? styles.introActive : undefined}>
       <RouteAnalytics />
+      <LegacyPortalRedirect />
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>

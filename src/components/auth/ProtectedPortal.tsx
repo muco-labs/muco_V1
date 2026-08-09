@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth-context'
 import { authRoutes, portalRoutes } from '@/config/auth'
+import { DomainPortalEnforcer } from '@/components/portal/DomainPortalEnforcer'
 import { LoadingState } from '@/components/ui/LoadingState'
 import type { PortalKind } from '@/config/access'
 
@@ -66,5 +67,5 @@ export function ProtectedPortal({ portal, children }: ProtectedPortalProps) {
     return <Navigate to={portalRoutes.unauthorized} replace />
   }
 
-  return children
+  return <DomainPortalEnforcer portal={portal}>{children}</DomainPortalEnforcer>
 }

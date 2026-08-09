@@ -1,15 +1,19 @@
 /**
  * Hostname + path conventions for multi-portal routing.
- * Production: app.*, team.*, admin.* — local dev uses path prefixes.
+ * @deprecated Import from `@/config/domains` for new code.
  */
+import type { PortalKind as DomainPortalKind } from '@/config/domains'
+import { readPortalOriginsFromEnv, resolveApplicationDomain } from '@/config/domains'
+
 export type PortalKind = 'marketing' | 'customer' | 'employee' | 'admin'
 
 export function resolvePortal(hostname: string, pathname: string): PortalKind {
-  const host = hostname.toLowerCase()
-  if (host.startsWith('app.')) return 'customer'
-  if (host.startsWith('team.')) return 'employee'
-  if (host.startsWith('admin.')) return 'admin'
+  const domain = resolveApplicationDomain(hostname)
+  if (domain === 'customer') return 'customer'
+  if (domain === 'employee') return 'employee'
+  if (domain === 'admin') return 'admin'
 
+  if (pathname.startsWith('/app/freelancer')) return 'customer'
   if (pathname.startsWith('/app')) return 'customer'
   if (pathname.startsWith('/team')) return 'employee'
   if (pathname.startsWith('/admin')) return 'admin'
@@ -17,9 +21,13 @@ export function resolvePortal(hostname: string, pathname: string): PortalKind {
   return 'marketing'
 }
 
+const origins = readPortalOriginsFromEnv()
+
 export const portalOrigins = {
-  customer: 'https://app.mucolabs.com',
-  employee: 'https://team.mucolabs.com',
-  admin: 'https://admin.mucolabs.com',
+  customer: origins.customer,
+  employee: origins.employee,
+  admin: origins.admin,
   api: 'https://api.mucolabs.com',
 } as const
+
+export type { DomainPortalKind }
