@@ -210,6 +210,12 @@ type AuditReport = {
     categoryScores: Record<string, number | null>
     opportunityLevel: string | null
     opportunityScore: number | null
+    pagesDiscovered: number | null
+    pagesCrawled: number | null
+    auditConfidence: string | null
+    coverageLabel: string | null
+    coverageNote: string | null
+    crawlLimitations: string | null
     createdAt: string
     completedAt: string | null
   }
@@ -226,6 +232,39 @@ type AuditReport = {
   }>
   pages: Array<{ url: string; statusCode: number | null; title: string | null }>
   metrics: Array<{ category: string; metricKey: string; metricValue: string | null; measured: boolean }>
+  businessAnalysis?: {
+    summary: {
+      websiteHealth: number | null
+      crawlConfidence: string | null
+      pagesAnalyzed: number | null
+      keyFindingsCount: number
+      topOpportunityServices: string[]
+      topPriorityTitle: string | null
+      importantLimitation: string | null
+    }
+    confidence: { level: string | null; warning: string | null }
+    opportunityLevel: string
+    opportunityExplanation: string
+    issueInsights: Array<{
+      issueTitle: string
+      category: string
+      scannerSeverity: string
+      priority: string
+      businessImpact: string
+      recommendedAction: string
+      mucoServices: string[]
+    }>
+    serviceRecommendations: Array<{
+      service: string
+      reason: string
+      relatedIssueTitles: string[]
+      priority: string
+      confidence: string | null
+    }>
+    topPriorities: string[]
+    limitations: string[]
+    performanceStatus: { measured: boolean; message: string }
+  }
 }
 
 export function WebsiteIntelligenceReportPage() {
@@ -248,10 +287,14 @@ export function WebsiteIntelligenceReportPage() {
   if (!data) return null
 
   const report = data as AuditReport
-  const { audit, issues, pages, metrics } = report
+  const { audit, issues, pages, metrics, businessAnalysis } = report
   const running = audit.status === 'queued' || audit.status === 'running'
 
-  const bySeverity = ['critical', 'high', 'medium', 'low', 'informational'] as const
+  const insightByTitle = new Map(
+    (businessAnalysis?.issueInsights ?? []).map((i) => [i.issueTitle, i]),
+  )
+
+  const formatOpportunity = (level: string) => level.replace(/_/g, ' ').toUpperCase()
 
   return (
     <>
@@ -273,13 +316,119 @@ export function WebsiteIntelligenceReportPage() {
       <div className={ui.cardGrid}>
         <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">Overall health</h2>
-          <p className="text-h2">{audit.overallScore ?? '—'}</p>
+          <p className="text-h2">{audit.overallScore != null ? `${audit.overallScore}/100` : '—'}</p>
+          <p className={ui.meta}>Heuristic score for analyzed pages only.</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Audit confidence</h2>
+          <p className="text-h2">{audit.auditConfidence?.toUpperCase() ?? '—'}</p>
+          <p className={ui.meta}>{audit.coverageLabel ?? 'Pending crawl'}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Pages analyzed</h2>
+          <p className="text-h2">{audit.pagesCrawled ?? pages.length}</p>
+          {audit.pagesDiscovered != null && audit.pagesDiscovered > (audit.pagesCrawled ?? 0) ? (
+            <p className={ui.meta}>{audit.pagesDiscovered} URLs discovered</p>
+          ) : null}
         </article>
         <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">Opportunity</h2>
           <p className="text-h2">{audit.opportunityLevel ?? '—'}</p>
         </article>
       </div>
+
+      {audit.coverageNote || audit.crawlLimitations ? (
+        <p className={ui.meta} style={{ marginTop: 'var(--space-4)' }}>
+          {audit.coverageNote}
+          {audit.crawlLimitations ? ` ${audit.crawlLimitations}` : ''}
+        </p>
+      ) : null}
+
+      {businessAnalysis && audit.status === 'completed' ? (
+        <section style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h2">Business opportunity</h2>
+          <div className={ui.cardGrid}>
+            <article className={`surface ${ui.dataCard}`}>
+              <h3 className="text-h3">Opportunity</h3>
+              <p className="text-h2">{formatOpportunity(businessAnalysis.opportunityLevel)}</p>
+              <p className={ui.meta}>{businessAnalysis.opportunityExplanation}</p>
+            </article>
+            <article className={`surface ${ui.dataCard}`}>
+              <h3 className="text-h3">Assessment confidence</h3>
+              <p className="text-h2">{businessAnalysis.confidence.level?.toUpperCase() ?? '—'}</p>
+              {businessAnalysis.confidence.warning ? (
+                <p className={ui.meta}>{businessAnalysis.confidence.warning}</p>
+              ) : null}
+            </article>
+            <article className={`surface ${ui.dataCard}`}>
+              <h3 className="text-h3">Key findings</h3>
+              <p className="text-h2">{businessAnalysis.summary.keyFindingsCount}</p>
+              {businessAnalysis.summary.topPriorityTitle ? (
+                <p className={ui.meta}>Top priority: {businessAnalysis.summary.topPriorityTitle}</p>
+              ) : null}
+            </article>
+          </div>
+
+          {businessAnalysis.serviceRecommendations.length > 0 ? (
+            <div style={{ marginTop: 'var(--space-4)' }}>
+              <h3 className="text-h3">MUCO opportunities</h3>
+              <ul className={ui.stack}>
+                {businessAnalysis.serviceRecommendations.map((rec) => (
+                  <li key={rec.service} className={`surface ${ui.dataCard}`}>
+                    <strong>{rec.service}</strong>
+                    <span className={ui.meta}> · Priority: {rec.priority}</span>
+                    <p className={ui.meta}>{rec.reason}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {businessAnalysis.issueInsights.length > 0 ? (
+            <div style={{ marginTop: 'var(--space-4)' }}>
+              <h3 className="text-h3">Top findings (business view)</h3>
+              <ul className={ui.stack}>
+                {businessAnalysis.topPriorities.map((title) => {
+                  const insight = insightByTitle.get(title)
+                  if (!insight) return null
+                  return (
+                    <li key={title} className={`surface ${ui.dataCard}`}>
+                      <strong>{insight.issueTitle}</strong>
+                      <span className={ui.meta}> · {insight.priority}</span>
+                      <p className={ui.meta}>
+                        <em>Business impact:</em> {insight.businessImpact}
+                      </p>
+                      <p className={ui.meta}>
+                        <em>Recommended action:</em> {insight.recommendedAction}
+                      </p>
+                      <p className={ui.meta}>
+                        <em>MUCO services:</em> {insight.mucoServices.join(' · ')}
+                      </p>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ) : null}
+
+          {businessAnalysis.limitations.length > 0 ? (
+            <div style={{ marginTop: 'var(--space-4)' }}>
+              <h3 className="text-h3">Crawl limitations</h3>
+              <ul className={ui.stack}>
+                {businessAnalysis.limitations.map((line) => (
+                  <li key={line} className={ui.meta}>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <p className={ui.meta} style={{ marginTop: 'var(--space-3)' }}>
+            {businessAnalysis.performanceStatus.message}
+          </p>
+        </section>
+      ) : null}
 
       <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
         <h2 className="text-h2">Category scores</h2>
@@ -299,7 +448,7 @@ export function WebsiteIntelligenceReportPage() {
           ))}
       </section>
 
-      {bySeverity.map((severity) => {
+      {(['critical', 'high', 'medium', 'low', 'informational'] as const).map((severity) => {
         const group = issues.filter((i) => i.severity === severity)
         if (!group.length) return null
         return (

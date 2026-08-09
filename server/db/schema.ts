@@ -130,6 +130,7 @@ export const wiIssueStatusEnum = pgEnum('wi_issue_status', [
   'ignored',
 ])
 export const wiOpportunityLevelEnum = pgEnum('wi_opportunity_level', ['low', 'medium', 'high'])
+export const wiAuditConfidenceEnum = pgEnum('wi_audit_confidence', ['high', 'medium', 'low'])
 
 export const users = pgTable(
   'users',
@@ -793,6 +794,11 @@ export const wiAudits = pgTable(
     categoryScores: text('category_scores'),
     opportunityLevel: wiOpportunityLevelEnum('opportunity_level'),
     opportunityScore: integer('opportunity_score'),
+    pagesDiscovered: integer('pages_discovered'),
+    pagesCrawled: integer('pages_crawled'),
+    auditConfidence: wiAuditConfidenceEnum('audit_confidence'),
+    coverageNote: text('coverage_note'),
+    crawlLimitations: text('crawl_limitations'),
     createdByUserId: uuid('created_by_user_id').references(() => users.id, {
       onDelete: 'set null',
     }),

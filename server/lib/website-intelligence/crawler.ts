@@ -1,4 +1,5 @@
 import { parseHtmlPage } from './html-parser.js'
+import { discoverUrlsFromSitemaps, assertSafeRedirectChain } from './sitemap.js'
 import { assertSafeResolvedHost, canonicalizeCrawlUrl } from './url-security.js'
 
 export type CrawlConfig = {
@@ -34,6 +35,9 @@ export type CrawlResult = {
   robotsTxtFound: boolean
   robotsDisallowAll: boolean
   sitemapUrls: string[]
+  sitemapWasHtmlFallback: boolean
+  pagesDiscovered: number
+  internalLinksFound: number
   pages: CrawledPage[]
 }
 
@@ -41,15 +45,26 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function fetchSafe(url: URL, config: CrawlConfig): Promise<Response> {
-  await assertSafeResolvedHost(url.hostname)
-  return fetch(url, {
-    redirect: 'follow',
-    signal: AbortSignal.timeout(config.requestTimeoutMs),
-    headers: {
-      'User-Agent': config.userAgent,
-      Accept: 'text/html,application/xhtml+xml',
-    },
+function isLikelyHtmlDocument(body: string, contentType: string | null): boolean {
+  if (contentType?.includes('text/html')) return true
+  const trimmed = body.trimStart().toLowerCase()
+  return trimmed.startsWith('<!doctype html') || trimmed.startsWith('<html')
+}
+
+async function fetchWithSafeRedirects(
+  url: URL,
+  config: CrawlConfig,
+): Promise<{ response: Response; finalUrl: URL }> {
+  return assertSafeRedirectChain(url, async (current) => {
+    await assertSafeResolvedHost(current.hostname)
+    return fetch(current, {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(config.requestTimeoutMs),
+      headers: {
+        'User-Agent': config.userAgent,
+        Accept: 'text/html,application/xhtml+xml,application/xml,text/xml,*/*',
+      },
+    })
   })
 }
 
@@ -72,22 +87,22 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
   const cfg = { ...defaultCrawlConfig, ...config }
   await assertSafeResolvedHost(seedUrl.hostname)
 
-  const start = Date.now()
-  const initial = await fetchSafe(seedUrl, cfg)
-  const finalUrl = new URL(initial.url)
+  const initial = await fetchWithSafeRedirects(seedUrl, cfg)
+  const finalUrl = initial.finalUrl
   await assertSafeResolvedHost(finalUrl.hostname)
 
   const isHttps = finalUrl.protocol === 'https:'
   let robotsTxtFound = false
   let robotsDisallowAll = false
   const sitemapUrls: string[] = []
+  let sitemapWasHtmlFallback = false
 
   try {
     const robotsUrl = new URL('/robots.txt', finalUrl.origin)
-    const robotsRes = await fetchSafe(robotsUrl, cfg)
-    if (robotsRes.ok) {
+    const robotsRes = await fetchWithSafeRedirects(robotsUrl, cfg)
+    if (robotsRes.response.ok) {
       robotsTxtFound = true
-      const text = await robotsRes.text()
+      const text = await robotsRes.response.text()
       const parsed = parseRobots(text)
       robotsDisallowAll = parsed.disallowAll
       sitemapUrls.push(...parsed.sitemaps)
@@ -100,8 +115,14 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
     for (const path of ['/sitemap.xml', '/sitemap_index.xml']) {
       try {
         const sm = new URL(path, finalUrl.origin)
-        const res = await fetchSafe(sm, cfg)
-        if (res.ok) sitemapUrls.push(sm.toString())
+        const res = await fetchWithSafeRedirects(sm, cfg)
+        if (res.response.ok) {
+          sitemapUrls.push(sm.toString())
+          const body = await res.response.text()
+          if (isLikelyHtmlDocument(body, res.response.headers.get('content-type'))) {
+            sitemapWasHtmlFallback = true
+          }
+        }
       } catch {
         /* ignore */
       }
@@ -111,6 +132,28 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
   const pages: CrawledPage[] = []
   const seen = new Set<string>()
   const queue: Array<{ url: string; depth: number }> = [{ url: finalUrl.toString(), depth: 0 }]
+  let sitemapDiscoveredCount = 0
+
+  if (!robotsDisallowAll && sitemapUrls.length > 0) {
+    const fromSitemap = await discoverUrlsFromSitemaps(sitemapUrls, finalUrl, async (smUrl) => {
+      const res = await fetchWithSafeRedirects(smUrl, cfg)
+      const body = await res.response.text()
+      const contentType = res.response.headers.get('content-type')
+      if (isLikelyHtmlDocument(body, contentType)) {
+        sitemapWasHtmlFallback = true
+      }
+      return { body, contentType }
+    })
+    sitemapDiscoveredCount = fromSitemap.length
+    for (const url of fromSitemap) {
+      if (!seen.has(url) && !queue.some((q) => q.url === url)) {
+        queue.push({ url, depth: 1 })
+      }
+    }
+  }
+
+  const pagesDiscovered = Math.max(queue.length, sitemapDiscoveredCount, 1)
+  let internalLinksFound = 0
 
   while (queue.length > 0 && pages.length < cfg.maxPages) {
     const next = queue.shift()!
@@ -122,8 +165,7 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
     const pageUrl = new URL(next.url)
     const started = Date.now()
     try {
-      await assertSafeResolvedHost(pageUrl.hostname)
-      const res = await fetchSafe(pageUrl, cfg)
+      const { response: res, finalUrl: pageFinal } = await fetchWithSafeRedirects(pageUrl, cfg)
       const responseTimeMs = Date.now() - started
       const contentType = res.headers.get('content-type')
       const statusCode = res.status
@@ -133,9 +175,10 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
       if (contentType?.includes('text/html') && res.ok) {
         html = await res.text()
         if (html.length > 1_500_000) html = html.slice(0, 1_500_000)
-        parsed = parseHtmlPage(html, pageUrl)
+        parsed = parseHtmlPage(html, pageFinal)
+        internalLinksFound += parsed.internalLinks.length
 
-        if (next.depth < cfg.maxDepth) {
+        if (next.depth < cfg.maxDepth && !robotsDisallowAll) {
           for (const link of parsed.internalLinks) {
             const canon = canonicalizeCrawlUrl(finalUrl, link)
             if (canon && !seen.has(canon)) {
@@ -167,11 +210,8 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
     if (cfg.delayMs > 0) await sleep(cfg.delayMs)
   }
 
-  if (robotsDisallowAll && pages.length <= 1) {
-    // Respect broad disallow — keep seed only
-  }
+  const discoveredTotal = Math.max(pagesDiscovered, seen.size + queue.length, pages.length)
 
-  void start
   return {
     seedUrl,
     finalUrl,
@@ -179,6 +219,9 @@ export async function crawlWebsite(seedUrl: URL, config: Partial<CrawlConfig> = 
     robotsTxtFound,
     robotsDisallowAll,
     sitemapUrls,
+    sitemapWasHtmlFallback,
+    pagesDiscovered: discoveredTotal,
+    internalLinksFound,
     pages,
   }
 }

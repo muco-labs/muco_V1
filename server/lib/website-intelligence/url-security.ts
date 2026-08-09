@@ -46,6 +46,17 @@ export function normalizeAuditUrl(input: string): URL {
 }
 
 export function validatePublicHttpUrl(input: string): { ok: true; url: URL } | { ok: false; error: string } {
+  const trimmed = input.trim()
+  const lower = trimmed.toLowerCase()
+  if (
+    lower.startsWith('file:') ||
+    lower.startsWith('javascript:') ||
+    lower.startsWith('data:') ||
+    lower.startsWith('ftp:')
+  ) {
+    return { ok: false, error: 'Only http and https URLs are allowed.' }
+  }
+
   let url: URL
   try {
     url = normalizeAuditUrl(input)

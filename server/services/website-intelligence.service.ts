@@ -10,6 +10,8 @@ import {
 } from '../db/schema.js'
 import { AppError } from '../lib/errors.js'
 import { validatePublicHttpUrl } from '../lib/website-intelligence/url-security.js'
+import { formatCoverageLabel } from '../lib/website-intelligence/crawl-coverage.js'
+import { buildBusinessAnalysis } from '../lib/website-intelligence/business-analysis.js'
 import type { CreateWebsiteAuditInput } from '../lib/validation/website-intelligence.js'
 import { scheduleWebsiteAuditJob } from './website-intelligence.runner.js'
 
@@ -211,6 +213,40 @@ export async function getWebsiteAuditReport(auditId: string) {
     categoryScores = {}
   }
 
+  const mappedIssues = issues.map((i) => ({
+    id: i.id,
+    category: i.category,
+    severity: i.severity,
+    status: i.status,
+    title: i.title,
+    description: i.description,
+    affectedUrls: i.affectedUrls ? JSON.parse(i.affectedUrls) : [],
+    evidence: i.evidence ? JSON.parse(i.evidence) : {},
+    recommendation: i.recommendation,
+  }))
+
+  const performanceMeasured = metrics.some(
+    (m) => m.category === 'performance' && m.measured && m.metricKey === 'performance_score',
+  )
+
+  const businessAnalysis = buildBusinessAnalysis({
+    issues: mappedIssues.map((i) => ({
+      category: i.category,
+      severity: i.severity,
+      title: i.title,
+      description: i.description,
+      recommendation: i.recommendation ?? '',
+    })),
+    overallScore: row.audit.overallScore,
+    auditConfidence: row.audit.auditConfidence,
+    pagesCrawled: row.audit.pagesCrawled,
+    pagesDiscovered: row.audit.pagesDiscovered,
+    coverageNote: row.audit.coverageNote,
+    crawlLimitations: row.audit.crawlLimitations,
+    categoryScores,
+    performanceMeasured,
+  })
+
   return {
     audit: {
       id: row.audit.id,
@@ -223,6 +259,15 @@ export async function getWebsiteAuditReport(auditId: string) {
       categoryScores,
       opportunityLevel: row.audit.opportunityLevel,
       opportunityScore: row.audit.opportunityScore,
+      pagesDiscovered: row.audit.pagesDiscovered,
+      pagesCrawled: row.audit.pagesCrawled,
+      auditConfidence: row.audit.auditConfidence,
+      coverageNote: row.audit.coverageNote,
+      crawlLimitations: row.audit.crawlLimitations,
+      coverageLabel:
+        row.audit.pagesCrawled != null
+          ? formatCoverageLabel(row.audit.pagesCrawled, row.audit.pagesDiscovered ?? row.audit.pagesCrawled)
+          : null,
       createdAt: row.audit.createdAt.toISOString(),
       startedAt: row.audit.startedAt?.toISOString() ?? null,
       completedAt: row.audit.completedAt?.toISOString() ?? null,
@@ -244,18 +289,9 @@ export async function getWebsiteAuditReport(auditId: string) {
       imagesMissingAlt: p.imagesMissingAlt,
       responseTimeMs: p.responseTimeMs,
     })),
-    issues: issues.map((i) => ({
-      id: i.id,
-      category: i.category,
-      severity: i.severity,
-      status: i.status,
-      title: i.title,
-      description: i.description,
-      affectedUrls: i.affectedUrls ? JSON.parse(i.affectedUrls) : [],
-      evidence: i.evidence ? JSON.parse(i.evidence) : {},
-      recommendation: i.recommendation,
-    })),
+    issues: mappedIssues,
     metrics,
+    businessAnalysis,
     events: events.map((e) => ({
       event: e.event,
       detail: e.detail,

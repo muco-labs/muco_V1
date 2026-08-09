@@ -8,6 +8,7 @@ import {
   wiAudits,
 } from '../db/schema.js'
 import { analyzeSiteContext, computeOpportunityLevel, type IssueDraft } from '../lib/website-intelligence/analyze.js'
+import { computeAuditCoverage } from '../lib/website-intelligence/crawl-coverage.js'
 import { crawlWebsite } from '../lib/website-intelligence/crawler.js'
 import { createPerformanceProvider } from '../lib/website-intelligence/performance-provider.js'
 import {
@@ -54,6 +55,37 @@ function groupIssuesByCategory(issues: IssueDraft[]): Record<ScoreCategory, Reco
   return map
 }
 
+function toUserFacingAuditError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return 'The audit could not be completed. Check the URL and try again.'
+  }
+  const msg = error.message.toLowerCase()
+  if (msg.includes('blocked') || msg.includes('private') || msg.includes('not allowed')) {
+    return 'This URL is not allowed for security reasons.'
+  }
+  if (msg.includes('too many redirects')) {
+    return 'The website redirected too many times.'
+  }
+  if (msg.includes('timeout') || msg.includes('aborted')) {
+    return 'The website took too long to respond.'
+  }
+  if (msg.includes('fetch failed') || msg.includes('enotfound') || msg.includes('getaddrinfo')) {
+    return 'We could not reach that website. Check the domain and try again.'
+  }
+  return 'The audit could not be completed. Check the URL and try again.'
+}
+
+async function isAuditCancelled(auditId: string): Promise<boolean> {
+  const db = getDb()
+  if (!db) return false
+  const [row] = await db
+    .select({ status: wiAudits.status })
+    .from(wiAudits)
+    .where(eq(wiAudits.id, auditId))
+    .limit(1)
+  return row?.status === 'cancelled'
+}
+
 export async function runWebsiteAuditJob(auditId: string): Promise<void> {
   const db = getDb()
   if (!db) return
@@ -74,6 +106,8 @@ export async function runWebsiteAuditJob(auditId: string): Promise<void> {
     await setPhase(auditId, 'Discovering website...')
     await logEvent(auditId, 'crawl.started')
     const crawl = await crawlWebsite(seedUrl)
+
+    if (await isAuditCancelled(auditId)) return
 
     await setPhase(auditId, 'Scanning pages...')
     for (const page of crawl.pages) {
@@ -118,6 +152,34 @@ export async function runWebsiteAuditJob(auditId: string): Promise<void> {
         parsed: p.parsed,
       })),
     })
+
+    const pagesCrawled = crawl.pages.filter((p) => p.statusCode != null && p.statusCode < 500).length
+    const coverage = computeAuditCoverage({
+      pagesCrawled,
+      pagesDiscovered: crawl.pagesDiscovered,
+      sitemapUrlCount: crawl.sitemapUrls.length,
+      internalLinksOnPages: crawl.internalLinksFound,
+      robotsDisallowAll: crawl.robotsDisallowAll,
+      sitemapWasHtmlFallback: crawl.sitemapWasHtmlFallback,
+    })
+
+    if (coverage.confidence === 'low') {
+      issues.push({
+        category: 'technicalSeo',
+        severity: 'informational',
+        title: 'Limited crawl coverage',
+        description: coverage.coverageNote,
+        affectedUrls: crawl.pages.map((p) => p.url),
+        evidence: {
+          pagesCrawled,
+          pagesDiscovered: crawl.pagesDiscovered,
+          coverageLabel: coverage.coverageLabel,
+          crawlLimitations: coverage.crawlLimitations,
+        },
+        recommendation:
+          'Treat health scores as directional for scanned pages only. Broader crawls (sitemap XML, static links, or future JS rendering) improve confidence.',
+      })
+    }
 
     await setPhase(auditId, 'Analyzing performance...')
     const perf = createPerformanceProvider()
@@ -189,6 +251,8 @@ export async function runWebsiteAuditJob(auditId: string): Promise<void> {
       return acc
     }, 0)
 
+    if (await isAuditCancelled(auditId)) return
+
     await db
       .update(wiAudits)
       .set({
@@ -199,12 +263,17 @@ export async function runWebsiteAuditJob(auditId: string): Promise<void> {
         categoryScores: JSON.stringify(categoryScores),
         opportunityLevel,
         opportunityScore,
+        pagesDiscovered: crawl.pagesDiscovered,
+        pagesCrawled,
+        auditConfidence: coverage.confidence,
+        coverageNote: coverage.coverageNote,
+        crawlLimitations: coverage.crawlLimitations || null,
       })
       .where(eq(wiAudits.id, auditId))
 
     await logEvent(auditId, 'audit.completed')
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Audit failed'
+    const message = toUserFacingAuditError(error)
     await db
       .update(wiAudits)
       .set({
