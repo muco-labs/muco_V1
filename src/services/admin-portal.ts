@@ -141,6 +141,18 @@ export const adminApi = {
     listSkills: (id: string) => apiRequest<{ items: unknown[] }>(`${base}/freelancers/${id}/skills`),
     getWorkload: (id: string) =>
       apiRequest<Record<string, unknown>>(`${base}/freelancers/${id}/workload`),
+    serviceCatalog: () =>
+      apiRequest<{ items: unknown[] }>(`${base}/freelancers/service-catalog`),
+    discover: (params?: Record<string, string | undefined>) => {
+      const search = new URLSearchParams()
+      for (const [key, value] of Object.entries(params ?? {})) {
+        if (value) search.set(key, value)
+      }
+      const qs = search.toString()
+      return apiRequest<Record<string, unknown>>(
+        `${base}/freelancers/discover${qs ? `?${qs}` : ''}`,
+      )
+    },
     patchService: (freelancerId: string, serviceId: string, body: Record<string, unknown>) =>
       apiRequest(`${base}/freelancers/${freelancerId}/services/${serviceId}`, {
         method: 'PATCH',

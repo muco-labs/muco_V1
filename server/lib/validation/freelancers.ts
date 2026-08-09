@@ -58,6 +58,20 @@ export const freelancerNoteSchema = z.object({
   content: z.string().min(1).max(8000),
 })
 
+export const freelancerDiscoverQuerySchema = z.object({
+  service: z.string().max(80).optional(),
+  skill: z.string().max(80).optional(),
+  projectId: z.string().uuid().optional(),
+  taskId: z.string().uuid().optional(),
+  q: z.string().max(200).optional(),
+  availability: z.enum(['available', 'limited']).optional(),
+  pricingType: z
+    .enum(['fixed', 'starting_from', 'hourly', 'per_project', 'custom_quote'])
+    .optional(),
+  page: z.coerce.number().int().min(1).max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+})
+
 const pricingTypeSchema = z.enum([
   'fixed',
   'starting_from',

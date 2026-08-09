@@ -143,10 +143,13 @@ import {
   listFreelancerServicesAdmin,
   listFreelancerSkillsAdmin,
   patchFreelancerServiceAdmin,
+  getMucoServiceCatalogForAdmin,
 } from '../../services/freelancer-offerings.service.js'
 import { getFreelancerWorkloadAdmin } from '../../services/freelancer-workload.service.js'
+import { discoverFreelancersAdmin } from '../../services/freelancer-discovery.service.js'
 import {
   freelancerAdminPatchSchema,
+  freelancerDiscoverQuerySchema,
   freelancerNoteSchema,
   freelancerServiceAdminPatchSchema,
 } from '../../lib/validation/freelancers.js'
@@ -584,6 +587,36 @@ adminRoutes.get('/freelancers', requirePermission('freelancers.view'), async (c)
         professionalRole: c.req.query('professionalRole'),
       }),
     })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/freelancers/discover', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const parsed = freelancerDiscoverQuerySchema.safeParse({
+      service: c.req.query('service'),
+      skill: c.req.query('skill'),
+      projectId: c.req.query('projectId'),
+      taskId: c.req.query('taskId'),
+      q: c.req.query('q'),
+      availability: c.req.query('availability'),
+      pricingType: c.req.query('pricingType'),
+      page: c.req.query('page'),
+      limit: c.req.query('limit'),
+    })
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid discovery query.', 400)
+    return jsonSuccess(c, await discoverFreelancersAdmin(auth, parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/freelancers/service-catalog', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, getMucoServiceCatalogForAdmin(auth))
   } catch (error) {
     return handleRouteError(c, error)
   }

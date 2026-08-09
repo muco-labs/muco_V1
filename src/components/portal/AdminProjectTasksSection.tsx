@@ -54,6 +54,8 @@ type Props = {
   milestones: MilestoneOption[]
   members: MemberOption[]
   freelancers: FreelancerOption[]
+  canDiscoverFreelancer?: boolean
+  onFindFreelancerForTask?: (taskId: string) => void
 }
 
 export function AdminProjectTasksSection({
@@ -63,6 +65,8 @@ export function AdminProjectTasksSection({
   milestones,
   members,
   freelancers,
+  canDiscoverFreelancer,
+  onFindFreelancerForTask,
 }: Props) {
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
@@ -330,6 +334,16 @@ export function AdminProjectTasksSection({
                       ) : null}
                     </select>
                   </label>
+                  {canDiscoverFreelancer && onFindFreelancerForTask ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() => onFindFreelancerForTask(task.id)}
+                    >
+                      Find freelancer
+                    </Button>
+                  ) : null}
                   <Button type="button" disabled={busy} onClick={() => void completeTask(task.id)}>
                     Complete
                   </Button>

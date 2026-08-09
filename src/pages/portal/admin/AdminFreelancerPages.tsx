@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   EmptyState,
   ListSkeleton,
@@ -11,6 +11,8 @@ import { adminPortalPaths } from '@/config/admin-portal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import { Button } from '@/components/ui/Button'
+import { AdminFreelancerDiscoveryPanel } from '@/components/portal/AdminFreelancerDiscoveryPanel'
+import { useAuth } from '@/contexts/AuthProvider'
 
 export function AdminFreelancersPage() {
   const [q, setQ] = useState('')
@@ -26,6 +28,11 @@ export function AdminFreelancersPage() {
   return (
     <>
       <PageIntro title="Freelancers" description="Approved network onboarding and verification." />
+      <p>
+        <Link className="link-underline" to={adminPortalPaths.freelancersDiscover}>
+          Discover freelancers for projects and tasks
+        </Link>
+      </p>
       <label className={ui.field}>
         Search
         <input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search freelancers" />
@@ -216,6 +223,42 @@ export function AdminFreelancerDetailPage() {
         </form>
       </section>
       <Link to={adminPortalPaths.freelancers}>Back to freelancers</Link>
+    </>
+  )
+}
+
+export function AdminFreelancerDiscoverPage() {
+  const [searchParams] = useSearchParams()
+  const { profile } = useAuth()
+  const projectId = searchParams.get('projectId') ?? undefined
+  const taskId = searchParams.get('taskId') ?? undefined
+  const initialService = searchParams.get('service') ?? ''
+  const canAssignProject = Boolean(profile?.permissions.includes('projects.assign'))
+  const canAssignTask = Boolean(profile?.permissions.includes('tasks.update'))
+
+  return (
+    <>
+      <PageIntro
+        title="Discover freelancers"
+        description="Internal candidate search by MUCO service, skill, availability, and workload. Assignments use existing project and task flows."
+      />
+      <p className={ui.meta}>
+        <Link to={adminPortalPaths.freelancers}>← Freelancers</Link>
+        {projectId ? (
+          <>
+            {' '}
+            ·{' '}
+            <Link to={adminPortalPaths.projectDetail(projectId)}>Back to project</Link>
+          </>
+        ) : null}
+      </p>
+      <AdminFreelancerDiscoveryPanel
+        projectId={projectId}
+        taskId={taskId}
+        initialService={initialService}
+        canAssignProject={canAssignProject && Boolean(projectId)}
+        canAssignTask={canAssignTask && Boolean(projectId && taskId)}
+      />
     </>
   )
 }

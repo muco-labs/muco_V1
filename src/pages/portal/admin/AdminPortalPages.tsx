@@ -22,6 +22,7 @@ import { AdminProjectFilesSection } from '@/components/portal/AdminProjectFilesS
 import { AdminProjectTasksSection } from '@/components/portal/AdminProjectTasksSection'
 import { AdminProjectTeamSection } from '@/components/portal/AdminProjectTeamSection'
 import { AdminProjectFreelancersSection } from '@/components/portal/AdminProjectFreelancersSection'
+import { AdminFreelancerDiscoveryPanel } from '@/components/portal/AdminFreelancerDiscoveryPanel'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -519,12 +520,15 @@ export function AdminProjectsPage() {
 
 export function AdminProjectDetailPage() {
   const { id = '' } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const discoverTaskId = searchParams.get('discoverTask') ?? undefined
   const { profile } = useAuth()
   const canUpdate = Boolean(profile?.permissions.includes('projects.update'))
   const canManageFiles = Boolean(profile?.permissions.includes('files.delete'))
   const canCreateTasks = Boolean(profile?.permissions.includes('tasks.create'))
   const canManageTasks = Boolean(profile?.permissions.includes('tasks.update'))
   const canAssignTeam = Boolean(profile?.permissions.includes('projects.assign'))
+  const canDiscoverFreelancers = Boolean(profile?.permissions.includes('freelancers.view'))
   const { data, error, loading, reload } = useFetch(() => adminApi.projects.get(id), [id])
   const freelancersFetch = useFetch(() => adminApi.projects.listFreelancers(id), [id])
   const [statusDraft, setStatusDraft] = useState('')
@@ -804,6 +808,11 @@ export function AdminProjectDetailPage() {
           freelancerId: String(m.freelancerId),
           displayName: String(m.displayName),
         }))}
+        canDiscoverFreelancer={canDiscoverFreelancers}
+        onFindFreelancerForTask={(taskId) => {
+          setSearchParams({ discoverTask: taskId })
+          document.getElementById('fl-discover-heading')?.scrollIntoView({ behavior: 'smooth' })
+        }}
       />
 
       <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }} aria-labelledby="admin-project-team-heading">
@@ -826,6 +835,19 @@ export function AdminProjectDetailPage() {
           void freelancersFetch.reload()
         }}
       />
+      {canDiscoverFreelancers ? (
+        <AdminFreelancerDiscoveryPanel
+          projectId={id}
+          taskId={discoverTaskId}
+          initialService={String(project.service ?? '')}
+          canAssignProject={canAssignTeam}
+          canAssignTask={canManageTasks}
+          onAssigned={() => {
+            void reload()
+            void freelancersFetch.reload()
+          }}
+        />
+      ) : null}
       </section>
 
       {canUpdate ? (

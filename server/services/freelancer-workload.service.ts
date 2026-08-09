@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
 import { projectFreelancers, projects, tasks, freelancerProfiles } from '../db/schema.js'
 import { AppError } from '../lib/errors.js'
@@ -104,4 +104,68 @@ export async function getFreelancerWorkloadAdmin(auth: AuthContext, freelancerId
 
   const summary = await computeFreelancerWorkloadSummary(freelancerId)
   return { ...summary, freelancerId }
+}
+
+const emptyWorkload = (): FreelancerWorkloadSummary => ({
+  activeProjectCount: 0,
+  activeTaskCount: 0,
+  overdueTaskCount: 0,
+  blockedTaskCount: 0,
+})
+
+/** Batch workload for discovery (same rules as computeFreelancerWorkloadSummary). */
+export async function computeFreelancerWorkloadSummariesBatch(
+  freelancerIds: string[],
+): Promise<Map<string, FreelancerWorkloadSummary>> {
+  const result = new Map<string, FreelancerWorkloadSummary>()
+  if (!freelancerIds.length) return result
+  for (const id of freelancerIds) result.set(id, emptyWorkload())
+
+  const db = getDb()
+  if (!db) return result
+
+  const taskRows = await db
+    .select({
+      freelancerId: tasks.assignedFreelancerId,
+      status: tasks.status,
+      dueDate: tasks.dueDate,
+    })
+    .from(tasks)
+    .where(inArray(tasks.assignedFreelancerId, freelancerIds))
+
+  const projectRows = await db
+    .select({
+      freelancerId: projectFreelancers.freelancerId,
+      status: projects.status,
+    })
+    .from(projectFreelancers)
+    .innerJoin(projects, eq(projectFreelancers.projectId, projects.id))
+    .where(inArray(projectFreelancers.freelancerId, freelancerIds))
+
+  const tasksByFreelancer = new Map<string, Array<{ status: string; dueDate: Date | null }>>()
+  for (const row of taskRows) {
+    if (!row.freelancerId) continue
+    const list = tasksByFreelancer.get(row.freelancerId) ?? []
+    list.push({ status: row.status, dueDate: row.dueDate })
+    tasksByFreelancer.set(row.freelancerId, list)
+  }
+
+  const projectsByFreelancer = new Map<string, Array<{ status: string }>>()
+  for (const row of projectRows) {
+    const list = projectsByFreelancer.get(row.freelancerId) ?? []
+    list.push({ status: row.status })
+    projectsByFreelancer.set(row.freelancerId, list)
+  }
+
+  for (const id of freelancerIds) {
+    const taskWorkload = summarizeFreelancerTaskRows(tasksByFreelancer.get(id) ?? [])
+    result.set(id, {
+      activeProjectCount: countActiveFreelancerProjects(projectsByFreelancer.get(id) ?? []),
+      activeTaskCount: taskWorkload.activeTaskCount,
+      overdueTaskCount: taskWorkload.overdueTaskCount,
+      blockedTaskCount: taskWorkload.blockedTaskCount,
+    })
+  }
+
+  return result
 }

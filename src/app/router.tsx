@@ -239,6 +239,10 @@ const AdminFreelancerDetailPage = lazyPage(
   () => import('@/pages/portal/admin/AdminFreelancerPages'),
   'AdminFreelancerDetailPage',
 )
+const AdminFreelancerDiscoverPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminFreelancerPages'),
+  'AdminFreelancerDiscoverPage',
+)
 const WebsiteIntelligenceDashboardPage = lazyPage(
   () => import('@/pages/portal/admin/WebsiteIntelligencePages'),
   'WebsiteIntelligenceDashboardPage',
@@ -399,6 +403,7 @@ export const router = createBrowserRouter([
           { path: 'careers/jobs/:id', element: <AdminCareersJobEditPage /> },
           { path: 'careers/applications/:id', element: <AdminCareerApplicationDetailPage /> },
           { path: 'freelancers', element: <AdminFreelancersPage /> },
+          { path: 'freelancers/discover', element: <AdminFreelancerDiscoverPage /> },
           { path: 'freelancers/:id', element: <AdminFreelancerDetailPage /> },
           { path: 'executive', element: <AdminExecutivePage /> },
           { path: 'team/access', element: <AdminTeamAccessPage /> },

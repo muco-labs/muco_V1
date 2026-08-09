@@ -13,6 +13,7 @@ export const adminPortalPaths = {
   careersApplicationDetail: (id: string) => `/admin/careers/applications/${id}`,
   freelancers: '/admin/freelancers',
   freelancerDetail: (id: string) => `/admin/freelancers/${id}`,
+  freelancersDiscover: '/admin/freelancers/discover',
   executive: '/admin/executive',
   teamAccess: '/admin/team/access',
   websiteIntelligence: '/admin/website-intelligence',

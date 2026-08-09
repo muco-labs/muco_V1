@@ -107,6 +107,13 @@ export function getMucoServiceCatalogForPortal() {
   return { items: listMucoServiceCatalog() }
 }
 
+export function getMucoServiceCatalogForAdmin(auth: AuthContext) {
+  if (!hasPermission(auth.permissions, 'freelancers.view')) {
+    throw new AppError('FORBIDDEN', 'You cannot view the service catalog.', 403)
+  }
+  return { items: listMucoServiceCatalog() }
+}
+
 export async function listFreelancerServicesPortal(auth: AuthContext) {
   const ctx = await requireFreelancerContext(auth)
   const profile = await loadFreelancerProfile(ctx.freelancerId)

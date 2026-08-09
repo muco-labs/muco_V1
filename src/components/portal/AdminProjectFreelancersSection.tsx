@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { EmptyState, ListSkeleton, PortalError } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { Button } from '@/components/ui/Button'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { adminPortalPaths } from '@/config/admin-portal'
 import {
   PROJECT_MEMBER_ROLES,
   presentProjectMemberRoleLabel,
@@ -130,6 +132,14 @@ export function AdminProjectFreelancersSection({
       <h3 id="admin-project-freelancers" className="text-h4">
         Freelancers
       </h3>
+      <p className={ui.meta}>
+        <Link
+          className="link-underline"
+          to={`${adminPortalPaths.freelancersDiscover}?projectId=${encodeURIComponent(projectId)}`}
+        >
+          Find freelancer (service &amp; skill discovery)
+        </Link>
+      </p>
       <p className={ui.meta} role="status" aria-live="polite">
         {message}
       </p>
