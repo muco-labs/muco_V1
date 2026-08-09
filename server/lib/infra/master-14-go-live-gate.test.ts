@@ -8,8 +8,14 @@ describe('MASTER 14 go-live static gates', () => {
     expect(count).toBe(44)
   })
 
-  it('robots.txt references production sitemap host', () => {
+  it('robots.txt references production sitemap host (www canonical)', () => {
     const robots = readFileSync('public/robots.txt', 'utf8')
-    expect(robots).toMatch(/Sitemap:\s*https:\/\/mucolabs\.com\/sitemap\.xml/)
+    expect(robots).toMatch(/Sitemap:\s*https:\/\/www\.mucolabs\.com\/sitemap\.xml/)
+  })
+
+  it('sitemap uses www canonical URLs', () => {
+    const xml = readFileSync('public/sitemap.xml', 'utf8')
+    expect(xml).toContain('https://www.mucolabs.com')
+    expect(xml).not.toMatch(/<loc>https:\/\/mucolabs\.com[^<]/)
   })
 })

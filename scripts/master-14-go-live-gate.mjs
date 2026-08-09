@@ -102,4 +102,4 @@ const sitemap = readFileSync('public/sitemap.xml', 'utf8')
 const urlCount = (sitemap.match(/<url>/g) || []).length
 console.log(`sitemap_url_count: ${urlCount}`)
 console.log(`sitemap_uses_www: ${sitemap.includes('https://www.mucolabs.com')}`)
-console.log(`sitemap_muco_root: ${sitemap.includes('https://mucolabs.com') && !sitemap.includes('https://www.mucolabs.com')}`)
+console.log(`sitemap_apex_without_www: ${/<loc>https:\/\/mucolabs\.com/.test(sitemap)}`)

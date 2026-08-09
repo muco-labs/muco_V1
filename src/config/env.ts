@@ -1,3 +1,5 @@
+import { DEFAULT_CANONICAL_SITE_URL } from './canonical-site'
+
 const trimTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
 function readViteEnv(key: string): string | undefined {
@@ -15,7 +17,7 @@ function readViteEnv(key: string): string | undefined {
 
 /** Values exposed to the browser bundle — never put server secrets in VITE_*. */
 export const env = {
-  siteUrl: trimTrailingSlash(readViteEnv('VITE_SITE_URL') ?? 'https://mucolabs.com'),
+  siteUrl: trimTrailingSlash(readViteEnv('VITE_SITE_URL') ?? DEFAULT_CANONICAL_SITE_URL),
   appUrl: trimTrailingSlash(readViteEnv('VITE_APP_URL') ?? 'https://app.mucolabs.com'),
   apiBaseUrl: trimTrailingSlash(readViteEnv('VITE_API_BASE_URL') ?? ''),
   contactApiUrl: readViteEnv('VITE_CONTACT_API_URL')?.trim() || '/api/v1/leads',

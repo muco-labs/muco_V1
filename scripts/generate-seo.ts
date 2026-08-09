@@ -4,6 +4,7 @@
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { DEFAULT_CANONICAL_SITE_URL } from '@/config/canonical-site'
 import { careersOpeningPath } from '@/config/routes'
 import { getSitemapIndexablePaths } from '@/config/indexable-routes'
 import { getSitemapXml } from '@/config/sitemap'
@@ -13,7 +14,7 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(rootDir, '..')
 
 function siteUrlFromEnv(): string {
-  return (process.env.VITE_SITE_URL ?? 'https://mucolabs.com').replace(/\/$/, '')
+  return (process.env.VITE_SITE_URL ?? DEFAULT_CANONICAL_SITE_URL).replace(/\/$/, '')
 }
 
 /** Optional comma-separated job slugs for build-time sitemap (published openings). */
