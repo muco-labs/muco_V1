@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { projectIntakeSchema } from '../lib/validation/project-intake.js'
-import { buildProjectDescription } from './project-intake.service.js'
+import { buildProjectDescription, buildIntakeMetadata, shapeCustomerProjectRequest } from './project-intake.service.js'
 
 const basePayload = {
   fullName: 'Jane Doe',
@@ -67,6 +67,52 @@ describe('projectIntakeSchema', () => {
     if (parsed.success) {
       expect(parsed.data.additionalServices).toEqual([])
     }
+  })
+})
+
+describe('shapeCustomerProjectRequest', () => {
+  it('does not expose internal lead notes to customers', () => {
+    const dto = shapeCustomerProjectRequest({
+      id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      status: 'new',
+      name: 'Jane',
+      email: 'jane@example.com',
+      phone: null,
+      company: null,
+      website: null,
+      serviceInterest: 'Web',
+      budget: 'TBD',
+      timeline: 'Flexible',
+      projectDescription: 'Need a site',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+    })
+    expect(dto).not.toHaveProperty('notes')
+    expect(Object.keys(dto).sort()).toEqual(
+      [
+        'budget',
+        'company',
+        'createdAt',
+        'email',
+        'id',
+        'name',
+        'phone',
+        'projectDescription',
+        'serviceInterest',
+        'status',
+        'timeline',
+        'updatedAt',
+        'website',
+      ].sort(),
+    )
+  })
+})
+
+describe('buildIntakeMetadata', () => {
+  it('stores structured intake on the lead notes field', () => {
+    const meta = buildIntakeMetadata(projectIntakeSchema.parse(basePayload))
+    expect(meta.primaryServiceSlug).toBe('web-development')
+    expect(meta.additionalServiceSlugs).toEqual(['seo'])
   })
 })
 

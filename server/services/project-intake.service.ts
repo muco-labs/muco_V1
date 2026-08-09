@@ -10,6 +10,7 @@ import { validatePublicHttpUrl } from '../lib/website-intelligence/url-security.
 import type { CustomerContext } from './customer.service.js'
 import { updateCustomerProfile } from './customer.service.js'
 import { notifyAdminsOfNewLead, recordLeadActivity } from './crm.service.js'
+import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
 import { sendTransactionalEmail } from '../lib/email/send.js'
 
 const BUDGET_LABELS: Record<ProjectIntakeInput['budgetPreference'], string> = {
@@ -220,7 +221,11 @@ export async function createCustomerProjectRequest(
     intake: true,
   })
 
-  await notifyAdminsOfNewLead(lead.id, input.fullName)
+  await notifyAdminsOfNewLead(lead.id, input.fullName, {
+    variant: 'start_project',
+    service: serviceInterest,
+    reference: formatProjectRequestReference(lead.id),
+  })
   await sendTransactionalEmail('inquiry_confirmation', input.email, { name: input.fullName })
 
   return { id: lead.id, status: lead.status }
@@ -278,6 +283,25 @@ export async function getCustomerProjectRequest(ctx: CustomerContext, requestId:
 
   if (!row) throw new AppError('NOT_FOUND', 'Project request not found.', 404)
 
+  return shapeCustomerProjectRequest(row)
+}
+
+/** Customer-visible project request fields only (no internal notes / CRM data). */
+export function shapeCustomerProjectRequest(row: {
+  id: string
+  status: string
+  name: string
+  email: string
+  phone: string | null
+  company: string | null
+  website: string | null
+  serviceInterest: string | null
+  budget: string | null
+  timeline: string | null
+  projectDescription: string
+  createdAt: Date
+  updatedAt: Date
+}) {
   return {
     id: row.id,
     status: row.status,
@@ -290,7 +314,6 @@ export async function getCustomerProjectRequest(ctx: CustomerContext, requestId:
     budget: row.budget,
     timeline: row.timeline,
     projectDescription: row.projectDescription,
-    notes: row.notes,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }

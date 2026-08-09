@@ -341,6 +341,7 @@ adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
     const auth = c.get('auth')
     const items = await listLeadsForCrm(auth, {
       status: c.req.query('status'),
+      channel: c.req.query('channel') as 'start_project' | 'contact' | 'other' | undefined,
       priority: c.req.query('priority'),
       source: c.req.query('source'),
       assignedEmployeeId: c.req.query('assignedEmployeeId'),

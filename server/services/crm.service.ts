@@ -44,6 +44,15 @@ import {
 } from '../lib/market/conditions.js'
 import type { Tier1MarketId } from '../lib/market/constants.js'
 import { inviteCustomerFromLead } from './auth.service.js'
+import type { LeadEntryChannel } from '../lib/intake/lead-channel.js'
+import {
+  leadChannelFilterCondition,
+  leadEntryChannel,
+  leadEntryChannelLabel,
+} from '../lib/intake/lead-channel.js'
+import { parseStartProjectLeadNotes } from '../lib/intake/lead-intake-notes.js'
+import { PROJECT_INTAKE_PAGE_SOURCE } from '../lib/intake/project-intake-constants.js'
+import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
 
@@ -155,7 +164,11 @@ export async function findLatestOpenLeadByEmail(email: string) {
   return row ?? null
 }
 
-export async function notifyAdminsOfNewLead(_leadId: string, leadName: string) {
+export async function notifyAdminsOfNewLead(
+  _leadId: string,
+  leadName: string,
+  detail?: { variant?: 'default' | 'start_project'; service?: string; reference?: string },
+) {
   const db = getDb()
   if (!db) return
 
@@ -168,12 +181,20 @@ export async function notifyAdminsOfNewLead(_leadId: string, leadName: string) {
   const unique = [...new Set(adminUsers.map((r) => r.userId))]
   if (unique.length === 0) return
 
+  const isStart = detail?.variant === 'start_project'
+  const title = isStart ? 'New Start Project request received' : 'New enquiry received'
+  const servicePart = detail?.service?.trim() ? ` · ${detail.service.trim()}` : ''
+  const refPart = detail?.reference?.trim() ? ` · Ref. ${detail.reference.trim()}` : ''
+  const message = isStart
+    ? `${leadName}${servicePart}${refPart}. Review in the CRM.`
+    : `New lead: ${leadName}. Review in the CRM.`
+
   await db.insert(notifications).values(
     unique.map((userId) => ({
       userId,
-      type: 'crm.lead_created',
-      title: 'New enquiry received',
-      message: `New lead: ${leadName}. Review in the CRM.`,
+      type: isStart ? 'crm.start_project_received' : 'crm.lead_created',
+      title,
+      message,
     })),
   )
 }
@@ -264,6 +285,7 @@ export async function listLeadsForCrm(
     source?: string
     assignedEmployeeId?: string
     q?: string
+    channel?: LeadEntryChannel
     followUp?: 'overdue' | 'upcoming'
     locality?: 'erode' | 'tamil_nadu' | 'india' | 'international'
     market?: Tier1MarketId
@@ -294,6 +316,9 @@ export async function listLeadsForCrm(
   if (query.assignedEmployeeId && isFullCrmAccessor(auth)) {
     conditions.push(eq(leads.assignedEmployeeId, query.assignedEmployeeId))
   }
+  if (query.channel) {
+    conditions.push(leadChannelFilterCondition(query.channel))
+  }
   if (query.q?.trim()) {
     const term = `%${query.q.trim()}%`
     conditions.push(
@@ -302,6 +327,7 @@ export async function listLeadsForCrm(
         ilike(leads.email, term),
         ilike(leads.company, term),
         ilike(leads.phone, term),
+        ilike(leads.serviceInterest, term),
       )!,
     )
   }
@@ -358,6 +384,12 @@ export async function listLeadsForCrm(
     ...r.lead,
     assignedName: r.assigneeName,
     sourceLabel: normalizeLeadSource(r.lead.source),
+    entryChannel: leadEntryChannel(r.lead.pageSource),
+    entryChannelLabel: leadEntryChannelLabel(leadEntryChannel(r.lead.pageSource)),
+    customerRequestReference:
+      r.lead.pageSource === PROJECT_INTAKE_PAGE_SOURCE
+        ? formatProjectRequestReference(r.lead.id)
+        : null,
   }))
 }
 
@@ -426,10 +458,17 @@ export async function getLeadDetailCrm(auth: AuthContext, leadId: string) {
     relatedCustomer = c ?? null
   }
 
+  const intake = parseStartProjectLeadNotes(lead.notes)
+  const isStartProject = lead.pageSource === PROJECT_INTAKE_PAGE_SOURCE
+
   return {
     lead: {
       ...lead,
       sourceLabel: normalizeLeadSource(lead.source),
+      entryChannel: leadEntryChannel(lead.pageSource),
+      entryChannelLabel: leadEntryChannelLabel(leadEntryChannel(lead.pageSource)),
+      customerRequestReference: isStartProject ? formatProjectRequestReference(lead.id) : null,
+      startProjectIntake: intake,
     },
     notes: notes.map((n) => ({
       id: n.note.id,

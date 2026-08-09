@@ -17,6 +17,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
+import { CrmEntryChannelBadge } from '@/components/portal/crm/CrmStartProjectLeadPanel'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -40,15 +41,17 @@ export function AdminLeadsPage() {
     const v = searchParams.get('market')
     return v === 'us' || v === 'uk' || v === 'ca' || v === 'au' || v === 'ae' || v === 'sg' ? v : ''
   })
+  const [channel, setChannel] = useState<'' | 'start_project' | 'contact' | 'other'>('')
   const { data, error, loading, reload } = useFetch(
     () =>
       adminApi.leads.list({
         status: status || undefined,
         q: q || undefined,
+        channel: channel || undefined,
         locality: locality || undefined,
         market: market || undefined,
       }),
-    [status, q, locality, market],
+    [status, q, channel, locality, market],
   )
   const items = asRecords(data)
 
@@ -66,6 +69,16 @@ export function AdminLeadsPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
+        <select
+          aria-label="Filter by entry channel"
+          value={channel}
+          onChange={(e) => setChannel(e.target.value as '' | 'start_project' | 'contact' | 'other')}
+        >
+          <option value="">All channels</option>
+          <option value="start_project">Start Project</option>
+          <option value="contact">Contact</option>
+          <option value="other">Other</option>
+        </select>
         <select aria-label="Filter by status" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">All statuses</option>
           {leadStatusOptions.map((s) => (
@@ -110,6 +123,15 @@ export function AdminLeadsPage() {
                 {String(lead.name)}
               </Link>
               <span className={ui.meta}>{String(lead.email)}</span>
+              {lead.entryChannelLabel ? (
+                <CrmEntryChannelBadge label={String(lead.entryChannelLabel)} />
+              ) : null}
+              {lead.customerRequestReference ? (
+                <span className={ui.meta}>Ref. {String(lead.customerRequestReference)}</span>
+              ) : null}
+              {lead.serviceInterest ? (
+                <span className={ui.meta}>{String(lead.serviceInterest)}</span>
+              ) : null}
               {lead.businessCity ? (
                 <span className={ui.meta}>{String(lead.businessCity)}</span>
               ) : null}

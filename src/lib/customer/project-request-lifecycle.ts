@@ -40,7 +40,7 @@ export const PROJECT_REQUEST_LIFECYCLE = [
 const LEAD_STATUS_MAP: Record<string, CustomerRequestPresentation> = {
   new: {
     label: 'Submitted',
-    headline: 'Under review',
+    headline: 'Submitted',
     description:
       'Your project request has been received. The MUCO Labs team will review your requirements.',
     tone: 'active',
@@ -48,13 +48,13 @@ const LEAD_STATUS_MAP: Record<string, CustomerRequestPresentation> = {
   },
   contacted: {
     label: 'Under review',
-    headline: 'In contact',
+    headline: 'Contacted',
     description: 'We are in touch about your request. Watch for updates from our team.',
     tone: 'active',
     lifecycleIndex: 1,
   },
   qualified: {
-    label: 'Under review',
+    label: 'Planning',
     headline: 'Qualified',
     description: 'Your request has been qualified. We will share next steps when ready.',
     tone: 'active',
@@ -69,21 +69,21 @@ const LEAD_STATUS_MAP: Record<string, CustomerRequestPresentation> = {
   },
   proposal: {
     label: 'Planning',
-    headline: 'Proposal stage',
+    headline: 'Proposal',
     description: 'A proposal or quote may be prepared based on your requirements.',
     tone: 'active',
     lifecycleIndex: 2,
   },
   negotiation: {
     label: 'Planning',
-    headline: 'Negotiation',
+    headline: 'In discussion',
     description: 'We are aligning on scope, timeline, or commercial terms.',
     tone: 'active',
     lifecycleIndex: 2,
   },
   won: {
     label: 'In progress',
-    headline: 'Project started',
+    headline: 'Project confirmed',
     description: 'This request progressed to an active project. See Projects for delivery status.',
     tone: 'complete',
     lifecycleIndex: 3,

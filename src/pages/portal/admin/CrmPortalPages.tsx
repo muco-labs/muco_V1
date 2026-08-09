@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   EmptyState,
@@ -10,7 +10,8 @@ import {
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import layout from '@/layouts/EmployeeAppLayout.module.css'
-import { adminPortalPaths, CRM_PIPELINE_STATUSES } from '@/config/admin-portal'
+import { CrmEntryChannelBadge, CrmStartProjectLeadPanel, type StartProjectIntakeView } from '@/components/portal/crm/CrmStartProjectLeadPanel'
+import { adminPortalPaths, CRM_PIPELINE_STATUSES, leadStatusOptions } from '@/config/admin-portal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import { Button } from '@/components/ui/Button'
@@ -115,6 +116,12 @@ export function CrmHomePage() {
                         {String(lead.name)}
                       </Link>
                       <span className={ui.meta}>{String(lead.serviceInterest ?? 'Service TBD')}</span>
+                      {lead.entryChannelLabel ? (
+                        <CrmEntryChannelBadge label={String(lead.entryChannelLabel)} />
+                      ) : null}
+                      {lead.customerRequestReference ? (
+                        <span className={ui.meta}>Ref. {String(lead.customerRequestReference)}</span>
+                      ) : null}
                       <StatusPill status={String(lead.priority)} />
                       {lead.followUpAt ? (
                         <time className={ui.meta} dateTime={String(lead.followUpAt)}>
@@ -138,16 +145,26 @@ export function CrmLeadDetailPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.leads.get(id), [id])
   const [note, setNote] = useState('')
   const [interactionSummary, setInteractionSummary] = useState('')
+  const [statusDraft, setStatusDraft] = useState('')
+
+  const lead = data?.lead as Record<string, unknown> | undefined
+
+  useEffect(() => {
+    if (lead?.status) setStatusDraft(String(lead.status))
+  }, [lead?.status])
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
-  if (!data) return null
+  if (!data || !lead) return null
 
-  const lead = data.lead as Record<string, unknown>
   const notes = (data.notes as Array<Record<string, unknown>>) ?? []
   const activities = (data.activities as Array<Record<string, unknown>>) ?? []
   const proposals = (data.proposals as Array<Record<string, unknown>>) ?? []
   const duplicateHints = data.duplicateHints as Record<string, unknown> | undefined
+  const isStartProject = lead.entryChannel === 'start_project'
+  const intake = (lead.startProjectIntake as StartProjectIntakeView | null) ?? null
+  const channelLabel = lead.entryChannelLabel ? String(lead.entryChannelLabel) : ''
+  const introDesc = `${String(lead.company ?? lead.email)}${channelLabel ? ` · ${channelLabel}` : ''}`
 
   async function addNote(e: FormEvent) {
     e.preventDefault()
@@ -173,32 +190,79 @@ export function CrmLeadDetailPage() {
     }
   }
 
+  async function saveStatus() {
+    try {
+      await adminApi.leads.update(id, { status: statusDraft })
+      reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Failed to update status')
+    }
+  }
+
   return (
     <>
-      <PageIntro
-        title={String(lead.name)}
-        description={`${String(lead.company ?? lead.email)} · Source: ${String(lead.sourceLabel ?? lead.source)}`}
-      />
-      <StatusPill status={String(lead.status)} />
-      <StatusPill status={String(lead.priority)} />
+      <PageIntro title={String(lead.name)} description={introDesc} />
+      <div className={styles.statusRow}>
+        <StatusPill status={String(lead.status)} />
+        <StatusPill status={String(lead.priority)} />
+        {channelLabel ? <CrmEntryChannelBadge label={channelLabel} /> : null}
+      </div>
 
       {duplicateHints?.leadMatchId || duplicateHints?.customerMatchId ? (
         <p className={styles.duplicateBanner}>Possible duplicate — review before converting.</p>
       ) : null}
 
-      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
-        <h2 className="text-h3">Message</h2>
-        <p>{String(lead.projectDescription)}</p>
+      {isStartProject ? (
+        <CrmStartProjectLeadPanel lead={lead} intake={intake} />
+      ) : (
+        <>
+          <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+            <h2 className="text-h3">Customer</h2>
+            <p className={ui.meta}>
+              {String(lead.email)}
+              {lead.phone ? ` · ${String(lead.phone)}` : ''}
+            </p>
+            {lead.company ? <p className={ui.meta}>{String(lead.company)}</p> : null}
+          </section>
+          <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+            <h2 className="text-h3">Message</h2>
+            <p>{String(lead.projectDescription)}</p>
+          </section>
+        </>
+      )}
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }} aria-labelledby="crm-status">
+        <h2 id="crm-status" className="text-h3">
+          Status
+        </h2>
+        <div className={layout.filterRow}>
+          <select
+            id="crm-lead-status"
+            aria-label="Lead status"
+            value={statusDraft}
+            onChange={(e) => setStatusDraft(e.target.value)}
+          >
+            {leadStatusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s.replace(/_/g, ' ')}
+              </option>
+            ))}
+          </select>
+          <Button type="button" onClick={() => void saveStatus()}>
+            Update status
+          </Button>
+        </div>
       </section>
 
-      {lead.landingPath ||
-      lead.pageSource ||
-      lead.utmSource ||
-      lead.referrerHost ||
-      lead.businessCity ||
-      lead.businessState ||
-      lead.businessCountry ||
-      lead.contactTimezone ? (
+      {!isStartProject &&
+      (lead.landingPath ||
+        lead.pageSource ||
+        lead.utmSource ||
+        lead.referrerHost ||
+        lead.businessCity ||
+        lead.businessState ||
+        lead.businessCountry ||
+        lead.contactTimezone) ? (
         <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
           <h2 className="text-h3">Attribution</h2>
           <ul className={ui.stack}>
@@ -295,21 +359,6 @@ export function CrmLeadDetailPage() {
             {proposals.map((p) => (
               <li key={String(p.id)}>
                 {String(p.title)} <StatusPill status={String(p.status)} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
-        <h2 className="text-h3">Activity</h2>
-        {activities.length === 0 ? (
-          <p className={ui.meta}>No activity recorded.</p>
-        ) : (
-          <ul className={ui.stack}>
-            {activities.map((a) => (
-              <li key={String(a.id)} className={ui.meta}>
-                {new Date(String(a.createdAt)).toLocaleString()} — {String(a.action)}
               </li>
             ))}
           </ul>

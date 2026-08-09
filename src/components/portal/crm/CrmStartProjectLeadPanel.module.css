@@ -1,0 +1,52 @@
+.section {
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.dl {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+}
+
+.dl dt {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin: 0;
+}
+
+.dl dd {
+  margin: var(--space-1) 0 0;
+}
+
+.subhead {
+  margin: var(--space-6) 0 var(--space-2);
+  font-size: var(--text-h3);
+}
+
+.requirement {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: var(--leading-snug);
+}
+
+.entryBadge {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: var(--space-4);
+  }
+}

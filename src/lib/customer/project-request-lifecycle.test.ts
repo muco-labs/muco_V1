@@ -6,14 +6,19 @@ import {
 } from './project-request-lifecycle'
 
 describe('presentProjectRequestStatus', () => {
+  it('maps CRM statuses to customer-facing labels', () => {
+    expect(presentProjectRequestStatus('contacted').label).toBe('Under review')
+    expect(presentProjectRequestStatus('proposal').headline).toBe('Proposal')
+    expect(presentProjectRequestStatus('negotiation').headline).toBe('In discussion')
+  })
   it('maps new lead status to submitted presentation', () => {
     const p = presentProjectRequestStatus('new')
     expect(p.label).toBe('Submitted')
     expect(p.tone).toBe('active')
   })
 
-  it('maps won to project-started presentation', () => {
-    expect(presentProjectRequestStatus('won').label).toBe('In progress')
+  it('maps won to project-confirmed presentation', () => {
+    expect(presentProjectRequestStatus('won').headline).toBe('Project confirmed')
   })
 })
 
