@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { PortalStatusTone } from '@/lib/customer/portal-errors'
 import styles from './CustomerPortalUi.module.css'
 
 type EmptyStateProps = {
@@ -40,8 +41,44 @@ export function PortalError({ message, onRetry }: { message: string; onRetry?: (
   )
 }
 
-export function StatusPill({ status }: { status: string }) {
-  return <span className={styles.pill}>{status.replace(/_/g, ' ')}</span>
+export function StatusPill({ status, tone = 'default' }: { status: string; tone?: PortalStatusTone }) {
+  return (
+    <span className={`${styles.pill} ${styles[`pill_${tone}`] ?? ''}`}>
+      {status.replace(/_/g, ' ')}
+    </span>
+  )
+}
+
+type PortalAttentionProps = {
+  title: string
+  description?: string
+  children?: ReactNode
+}
+
+export function PortalAttention({ title, description, children }: PortalAttentionProps) {
+  return (
+    <aside className={styles.attention} role="status">
+      <p className={styles.attentionTitle}>{title}</p>
+      {description ? <p className={styles.attentionDesc}>{description}</p> : null}
+      {children ? <div className={styles.attentionActions}>{children}</div> : null}
+    </aside>
+  )
+}
+
+export function ProjectSectionNav({ items }: { items: Array<{ href: string; label: string }> }) {
+  return (
+    <nav className={styles.sectionNav} aria-label="On this page">
+      <ul>
+        {items.map((item) => (
+          <li key={item.href}>
+            <a className={styles.sectionNavLink} href={item.href}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
 }
 
 export function PageIntro({ label, title, description }: { label?: string; title: string; description?: string }) {

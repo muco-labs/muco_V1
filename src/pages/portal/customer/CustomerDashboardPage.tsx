@@ -1,25 +1,26 @@
 import { Link } from 'react-router-dom'
-import { EmptyState, ListSkeleton, PortalError } from '@/components/portal/CustomerPortalUi'
+import {
+  EmptyState,
+  ListSkeleton,
+  PortalAttention,
+  PortalError,
+} from '@/components/portal/CustomerPortalUi'
 import { ProjectRequestListItem } from '@/components/portal/ProjectRequestListItem'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { customerPortalPaths } from '@/config/customer-portal'
 import { Button } from '@/components/ui/Button'
 import { useFetch } from '@/hooks/useFetch'
-import { customerApi, type CustomerDashboard } from '@/services/customer-portal'
+import { customerApi } from '@/services/customer-portal'
 import { StatusPill } from '@/components/portal/CustomerPortalUi'
+import { friendlyCustomerPortalError } from '@/lib/customer/portal-errors'
 import styles from './CustomerDashboardPage.module.css'
-
-function friendlyPortalError(message: string): string {
-  if (/unauthorized|401/i.test(message)) return 'Please sign in again to continue.'
-  return 'We could not load your dashboard. Please try again.'
-}
 
 export function CustomerDashboardPage() {
   const { data, error, loading, reload } = useFetch(() => customerApi.dashboard(), [])
   const requests = useFetch(() => customerApi.projectRequests.list(), [])
 
   if (loading) return <ListSkeleton rows={6} />
-  if (error) return <PortalError message={friendlyPortalError(error)} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const pendingCount =
@@ -32,8 +33,40 @@ export function CustomerDashboardPage() {
     data.recentPayments.length > 0 ||
     recentRequests.length > 0
 
+  const unreadMessages = data.messagesUnreadCount ?? 0
+  const needsAttention = pendingCount > 0 || unreadMessages > 0
+
   return (
     <>
+      {needsAttention ? (
+        <PortalAttention
+          title={
+            pendingCount > 0 && unreadMessages > 0
+              ? `${pendingCount} item${pendingCount === 1 ? '' : 's'} need your attention · ${unreadMessages} unread message${unreadMessages === 1 ? '' : 's'}`
+              : pendingCount > 0
+                ? `${pendingCount} item${pendingCount === 1 ? '' : 's'} need your attention`
+                : `${unreadMessages} unread message${unreadMessages === 1 ? '' : 's'}`
+          }
+          description="Review proposals, invoices, or messages below."
+        >
+          {data.pendingApprovals[0] ? (
+            <Link className="link-underline" to={customerPortalPaths.proposalDetail(data.pendingApprovals[0].id)}>
+              Review proposal
+            </Link>
+          ) : null}
+          {data.outstandingInvoices[0] ? (
+            <Link className="link-underline" to={customerPortalPaths.invoiceDetail(data.outstandingInvoices[0].id)}>
+              View invoice
+            </Link>
+          ) : null}
+          {unreadMessages > 0 ? (
+            <Link className="link-underline" to={customerPortalPaths.messages}>
+              Open messages
+            </Link>
+          ) : null}
+        </PortalAttention>
+      ) : null}
+
       <header className={styles.hero}>
         <div>
           <p className="text-label">Dashboard</p>
@@ -181,7 +214,10 @@ export function CustomerDashboardPage() {
           Messages
         </h2>
         {(data.messagesUnreadCount ?? 0) === 0 && !data.latestConversation ? (
-          <EmptyState title="No messages yet" description="No messages yet." />
+          <EmptyState
+            title="No messages yet"
+            description="When your team replies, conversations will appear here."
+          />
         ) : (
           <article className={`surface ${ui.dataCard}`}>
             {(data.messagesUnreadCount ?? 0) > 0 ? (
@@ -264,4 +300,4 @@ export function CustomerDashboardPage() {
   )
 }
 
-export type { CustomerDashboard }
+export type { CustomerDashboard } from '@/services/customer-portal'

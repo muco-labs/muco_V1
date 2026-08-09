@@ -28,6 +28,7 @@ export const customerNavPrimary = [
   { label: 'Projects', path: customerPortalPaths.projects },
   { label: 'Proposals', path: customerPortalPaths.proposals },
   { label: 'Payments', path: customerPortalPaths.payments },
+  { label: 'Files', path: customerPortalPaths.files },
   { label: 'Messages', path: customerPortalPaths.messages },
   { label: 'Profile', path: customerPortalPaths.profile },
 ] as const
@@ -36,7 +37,6 @@ export const customerNavPrimary = [
 export const customerNavMore = [
   { label: 'Start a project', path: customerPortalPaths.startProject },
   { label: 'Invoices', path: customerPortalPaths.invoices },
-  { label: 'Files', path: customerPortalPaths.files },
   { label: 'Support', path: customerPortalPaths.support },
   { label: 'Notifications', path: customerPortalPaths.notifications },
   { label: 'Settings', path: customerPortalPaths.settings },

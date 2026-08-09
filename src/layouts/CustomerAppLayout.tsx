@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { customerNavMore, customerNavPrimary, customerPortalPaths } from '@/config/customer-portal'
@@ -11,6 +11,15 @@ export function CustomerAppLayout() {
   const { profile, signOut } = useAuth()
   const [navOpen, setNavOpen] = useState(false)
 
+  useEffect(() => {
+    if (!navOpen) return
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setNavOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [navOpen])
+
   return (
     <>
       <PageMeta
@@ -20,6 +29,9 @@ export function CustomerAppLayout() {
         noIndex
       />
       <div className={styles.shell}>
+        <a href="#customer-main" className={styles.skipLink}>
+          Skip to main content
+        </a>
         <header className={styles.topbar}>
           <div className={styles.topbarInner}>
             <Link to={customerPortalPaths.root} className={styles.brand}>
@@ -30,9 +42,10 @@ export function CustomerAppLayout() {
               className={styles.menuBtn}
               aria-expanded={navOpen}
               aria-controls="customer-nav"
+              aria-label={navOpen ? 'Close menu' : 'Open menu'}
               onClick={() => setNavOpen((open) => !open)}
             >
-              Menu
+              {navOpen ? 'Close' : 'Menu'}
             </button>
             <div className={styles.topActions}>
               <span className={styles.userChip}>{profile?.fullName ?? profile?.email}</span>
@@ -44,6 +57,14 @@ export function CustomerAppLayout() {
         </header>
 
         <div className={styles.body}>
+          {navOpen ? (
+            <button
+              type="button"
+              className={styles.navBackdrop}
+              aria-label="Close menu"
+              onClick={() => setNavOpen(false)}
+            />
+          ) : null}
           <nav
             id="customer-nav"
             className={`${styles.nav} ${navOpen ? styles.navOpen : ''}`}
@@ -86,7 +107,7 @@ export function CustomerAppLayout() {
             </Link>
           </nav>
 
-          <main className={styles.main}>
+          <main id="customer-main" className={styles.main} tabIndex={-1}>
             <Outlet />
           </main>
         </div>
