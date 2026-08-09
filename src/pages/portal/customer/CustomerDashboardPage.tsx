@@ -1,42 +1,101 @@
 import { Link } from 'react-router-dom'
-import { EmptyState, ListSkeleton, PageIntro, PortalError, StatusPill } from '@/components/portal/CustomerPortalUi'
+import { EmptyState, ListSkeleton, PortalError } from '@/components/portal/CustomerPortalUi'
+import { ProjectRequestListItem } from '@/components/portal/ProjectRequestListItem'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { customerPortalPaths } from '@/config/customer-portal'
+import { Button } from '@/components/ui/Button'
 import { useFetch } from '@/hooks/useFetch'
 import { customerApi, type CustomerDashboard } from '@/services/customer-portal'
+import { StatusPill } from '@/components/portal/CustomerPortalUi'
+import styles from './CustomerDashboardPage.module.css'
+
+function friendlyPortalError(message: string): string {
+  if (/unauthorized|401/i.test(message)) return 'Please sign in again to continue.'
+  return 'We could not load your dashboard. Please try again.'
+}
 
 export function CustomerDashboardPage() {
   const { data, error, loading, reload } = useFetch(() => customerApi.dashboard(), [])
+  const requests = useFetch(() => customerApi.projectRequests.list(), [])
 
   if (loading) return <ListSkeleton rows={6} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyPortalError(error)} onRetry={reload} />
   if (!data) return null
+
+  const pendingCount =
+    data.pendingApprovals.length + data.outstandingInvoices.length + data.openSupportTickets.length
+  const recentRequests = (requests.data?.items ?? []).slice(0, 3)
+  const hasActivity =
+    data.recentNotifications.length > 0 ||
+    data.recentMessages.length > 0 ||
+    data.recentPayments.length > 0 ||
+    recentRequests.length > 0
 
   return (
     <>
-      <PageIntro
-        label="Dashboard"
-        title={`Welcome, ${data.welcomeName}`}
-        description={
-          data.companyName
-            ? `${data.companyName} — your projects, billing, and messages in one place.`
-            : 'Your projects, billing, and messages in one place.'
-        }
-      />
+      <header className={styles.hero}>
+        <div>
+          <p className="text-label">Dashboard</p>
+          <h1 className="text-h1">Welcome back, {data.welcomeName}</h1>
+          <p className={styles.heroDesc}>
+            {data.companyName
+              ? `${data.companyName} — track requests, projects, and next steps.`
+              : 'Track your project requests, active work, and next steps.'}
+          </p>
+        </div>
+        <Button to={customerPortalPaths.startProject} size="lg">
+          Start Your Project
+        </Button>
+      </header>
 
-      <section className={ui.cardGrid} aria-labelledby="dash-projects">
+      <section className={ui.cardGrid} aria-labelledby="dash-requests">
         <article className={`surface ${ui.dataCard}`}>
-          <h2 id="dash-projects" className="text-h3">
-            Active projects
-          </h2>
+          <div className={styles.sectionHead}>
+            <h2 id="dash-requests" className="text-h3">
+              Project requests
+            </h2>
+            <Link className="link-underline" to={customerPortalPaths.requests}>
+              View all
+            </Link>
+          </div>
+          {requests.loading ? (
+            <ListSkeleton rows={2} />
+          ) : requests.error ? (
+            <p className={ui.meta}>Project requests are temporarily unavailable.</p>
+          ) : recentRequests.length === 0 ? (
+            <EmptyState
+              title="You haven't submitted a project request yet"
+              description="Tell us what you are building—we will review and follow up."
+              action={
+                <Button to={customerPortalPaths.startProject}>Start Your Project</Button>
+              }
+            />
+          ) : (
+            <ul className={ui.stack}>
+              {recentRequests.map((row) => (
+                <li key={row.id}>
+                  <ProjectRequestListItem row={row} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </article>
+
+        <article className={`surface ${ui.dataCard}`}>
+          <div className={styles.sectionHead}>
+            <h2 className="text-h3">Active projects</h2>
+            <Link className="link-underline" to={customerPortalPaths.projects}>
+              View all
+            </Link>
+          </div>
           {data.activeProjects.length === 0 ? (
             <EmptyState
-              title="No active projects yet"
-              description="No projects have been assigned to your account yet."
+              title="You don't have any active projects yet"
+              description="When a project is assigned to your account, it will appear here."
               action={
-                <Link className="link-underline" to={customerPortalPaths.projects}>
-                  View projects
-                </Link>
+                <Button to={customerPortalPaths.startProject} variant="secondary">
+                  Start Your Project
+                </Button>
               }
             />
           ) : (
@@ -54,66 +113,30 @@ export function CustomerDashboardPage() {
         </article>
 
         <article className={`surface ${ui.dataCard}`}>
-          <h2 className="text-h3">Pending approvals</h2>
-          {data.pendingApprovals.length === 0 ? (
-            <EmptyState
-              title="You have no pending approvals"
-              description="Proposals awaiting your review will appear here."
-            />
+          <h2 className="text-h3">Pending actions</h2>
+          {pendingCount === 0 ? (
+            <EmptyState title="You're all caught up" description="No approvals, invoices, or support items need your attention right now." />
           ) : (
             <ul className={ui.stack}>
               {data.pendingApprovals.map((p) => (
                 <li key={p.id}>
                   <Link className="link-underline" to={customerPortalPaths.proposalDetail(p.id)}>
-                    {p.title ?? 'Proposal'}
+                    Review proposal: {p.title ?? 'Proposal'}
                   </Link>
-                  <StatusPill status={p.status} />
                 </li>
               ))}
-            </ul>
-          )}
-        </article>
-
-        <article className={`surface ${ui.dataCard}`}>
-          <h2 className="text-h3">Outstanding invoices</h2>
-          {data.outstandingInvoices.length === 0 ? (
-            <EmptyState title="No outstanding invoices" description="Your invoices will appear here." />
-          ) : (
-            <ul className={ui.stack}>
               {data.outstandingInvoices.map((inv) => (
                 <li key={inv.id}>
                   <Link className="link-underline" to={customerPortalPaths.invoiceDetail(inv.id)}>
-                    {inv.invoiceNumber}
+                    Invoice {inv.invoiceNumber}
                   </Link>
-                  <span className={ui.meta}>
-                    ₹{inv.amount} · <StatusPill status={inv.status} />
-                  </span>
                 </li>
               ))}
-            </ul>
-          )}
-        </article>
-
-        <article className={`surface ${ui.dataCard}`}>
-          <h2 className="text-h3">Open support</h2>
-          {data.openSupportTickets.length === 0 ? (
-            <EmptyState
-              title="No open tickets"
-              description="You don't have any open support requests."
-              action={
-                <Link className="link-underline" to={customerPortalPaths.support}>
-                  Contact support
-                </Link>
-              }
-            />
-          ) : (
-            <ul className={ui.stack}>
               {data.openSupportTickets.map((t) => (
                 <li key={t.id}>
                   <Link className="link-underline" to={customerPortalPaths.supportDetail(t.id)}>
-                    {t.subject}
+                    Support: {t.subject}
                   </Link>
-                  <StatusPill status={t.status} />
                 </li>
               ))}
             </ul>
@@ -121,43 +144,44 @@ export function CustomerDashboardPage() {
         </article>
       </section>
 
-      <section className={ui.stack} style={{ marginTop: 'var(--space-8)' }}>
-        <h2 className="text-h3">Recent activity</h2>
-        {data.recentNotifications.length === 0 &&
-        data.recentMessages.length === 0 &&
-        data.recentPayments.length === 0 ? (
+      <section className={ui.stack} style={{ marginTop: 'var(--space-8)' }} aria-labelledby="dash-activity">
+        <h2 id="dash-activity" className="text-h3">
+          Recent activity
+        </h2>
+        {!hasActivity ? (
           <EmptyState
             title="No recent activity"
-            description="Updates about projects, payments, and messages will show here."
+            description="Submissions, messages, and payments will show here when available."
           />
         ) : (
-          <div className={ui.cardGrid}>
-            {data.recentPayments.length > 0 ? (
-              <article className={`surface ${ui.dataCard}`}>
-                <h3>Payments</h3>
-                <ul className={ui.stack}>
-                  {data.recentPayments.map((pay) => (
-                    <li key={pay.id} className={ui.meta}>
-                      ₹{pay.amount} · <StatusPill status={pay.status} />
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ) : null}
-            {data.recentMessages.length > 0 ? (
-              <article className={`surface ${ui.dataCard}`}>
-                <h3>Messages</h3>
-                <ul className={ui.stack}>
-                  {data.recentMessages.map((m) => (
-                    <li key={m.id} className={ui.meta}>
-                      {m.body.slice(0, 120)}
-                      {m.body.length > 120 ? '…' : ''}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ) : null}
-          </div>
+          <ul className={ui.timeline}>
+            {recentRequests.map((row) => (
+              <li key={`req-${row.id}`}>
+                <strong>Project request submitted</strong>
+                <br />
+                <span className={ui.meta}>
+                  {row.serviceInterest ?? 'Request'} ·{' '}
+                  {new Date(row.createdAt).toLocaleString()}
+                </span>
+              </li>
+            ))}
+            {data.recentPayments.map((pay) => (
+              <li key={pay.id}>
+                <strong>Payment recorded</strong>
+                <br />
+                <span className={ui.meta}>
+                  ₹{pay.amount} · {new Date(pay.createdAt).toLocaleString()}
+                </span>
+              </li>
+            ))}
+            {data.recentMessages.map((m) => (
+              <li key={m.id}>
+                <strong>Message</strong>
+                <br />
+                <span className={ui.meta}>{m.body.slice(0, 100)}{m.body.length > 100 ? '…' : ''}</span>
+              </li>
+            ))}
+          </ul>
         )}
         {data.unreadNotificationCount > 0 ? (
           <p className={ui.meta}>
@@ -172,5 +196,4 @@ export function CustomerDashboardPage() {
   )
 }
 
-// silence unused type export for future strict typing
 export type { CustomerDashboard }

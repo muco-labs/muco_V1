@@ -1,0 +1,72 @@
+.wrap {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.label {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-accent);
+}
+
+.headline {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-h3);
+}
+
+.description {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.active {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
+}
+
+.complete {
+  border-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+}
+
+.pending {
+  opacity: 0.95;
+}
+
+.cancelled {
+  border-color: var(--color-border);
+  opacity: 0.9;
+}
+
+.chip {
+  display: inline-block;
+  font-size: var(--text-small);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+.chip_active {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  color: var(--color-accent);
+}
+
+.chip_complete {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-text);
+}
+
+.chip_pending {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-muted);
+}
+
+.chip_cancelled {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-muted);
+}

@@ -238,6 +238,7 @@ export async function listCustomerProjectRequests(ctx: CustomerContext) {
       budget: leads.budget,
       timeline: leads.timeline,
       createdAt: leads.createdAt,
+      updatedAt: leads.updatedAt,
       projectDescription: leads.projectDescription,
     })
     .from(leads)
@@ -254,6 +255,7 @@ export async function listCustomerProjectRequests(ctx: CustomerContext) {
     budget: row.budget,
     timeline: row.timeline,
     createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
     summary: row.projectDescription.slice(0, 160),
   }))
 }

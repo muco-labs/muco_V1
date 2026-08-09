@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
-import { customerNav, customerPortalPaths } from '@/config/customer-portal'
+import { customerNavMore, customerNavPrimary, customerPortalPaths } from '@/config/customer-portal'
 import { authRoutes } from '@/config/auth'
 import { useAuth } from '@/contexts/AuthProvider'
 import { Button } from '@/components/ui/Button'
@@ -50,11 +50,27 @@ export function CustomerAppLayout() {
             aria-label="Customer application"
           >
             <ul>
-              {customerNav.map((item) => (
+              {customerNavPrimary.map((item) => (
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
                     end={'end' in item ? item.end : false}
+                    className={({ isActive }) =>
+                      isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+                    }
+                    onClick={() => setNavOpen(false)}
+                  >
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+            <p className={styles.navGroupLabel}>More</p>
+            <ul>
+              {customerNavMore.map((item) => (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
                     className={({ isActive }) =>
                       isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
                     }

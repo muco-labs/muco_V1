@@ -21,11 +21,16 @@ export const customerPortalPaths = {
   settings: '/app/settings',
 } as const
 
-export const customerNav = [
+export const customerNavPrimary = [
   { label: 'Dashboard', path: customerPortalPaths.root, end: true },
   { label: 'Project requests', path: customerPortalPaths.requests },
-  { label: 'Start a project', path: customerPortalPaths.startProject },
   { label: 'Projects', path: customerPortalPaths.projects },
+  { label: 'Start a project', path: customerPortalPaths.startProject },
+  { label: 'Profile', path: customerPortalPaths.profile },
+] as const
+
+/** Existing portal areas with working routes — grouped under “More”. */
+export const customerNavMore = [
   { label: 'Proposals', path: customerPortalPaths.proposals },
   { label: 'Invoices', path: customerPortalPaths.invoices },
   { label: 'Payments', path: customerPortalPaths.payments },
@@ -33,6 +38,11 @@ export const customerNav = [
   { label: 'Messages', path: customerPortalPaths.messages },
   { label: 'Support', path: customerPortalPaths.support },
   { label: 'Notifications', path: customerPortalPaths.notifications },
-  { label: 'Profile', path: customerPortalPaths.profile },
   { label: 'Settings', path: customerPortalPaths.settings },
+] as const
+
+/** @deprecated Use customerNavPrimary + customerNavMore */
+export const customerNav = [
+  ...customerNavPrimary,
+  ...customerNavMore,
 ] as const

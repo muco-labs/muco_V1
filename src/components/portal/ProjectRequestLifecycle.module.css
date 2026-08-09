@@ -1,0 +1,65 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+}
+
+.marker {
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.pending .marker {
+  background: color-mix(in srgb, var(--color-fg) 25%, transparent);
+}
+
+.current {
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+
+.current .marker {
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.complete .marker {
+  background: var(--color-accent);
+}
+
+.stepLabel {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.stepSummary {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.cancelled.current .stepLabel {
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .current .marker {
+    box-shadow: none;
+  }
+}

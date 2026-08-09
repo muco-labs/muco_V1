@@ -104,6 +104,7 @@ export const customerApi = {
           budget: string | null
           timeline: string | null
           createdAt: string
+          updatedAt?: string
           summary: string
         }>
       }>(`${base}/project-requests`),

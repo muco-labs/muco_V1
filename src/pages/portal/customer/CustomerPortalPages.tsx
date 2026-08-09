@@ -15,11 +15,11 @@ import { useFetch } from '@/hooks/useFetch'
 import { customerApi } from '@/services/customer-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
-import {
-  formatProjectRequestReference,
-  projectRequestNextAction,
-  projectRequestStatusLabel,
-} from '@/lib/conversion/project-request-reference'
+import { ProjectRequestListItem } from '@/components/portal/ProjectRequestListItem'
+import { CustomerRequestStatus } from '@/components/portal/CustomerRequestStatus'
+import { ProjectRequestLifecycle } from '@/components/portal/ProjectRequestLifecycle'
+import detailStyles from '@/components/portal/ProjectRequestDetail.module.css'
+import { formatProjectRequestReference, projectRequestNextAction } from '@/lib/conversion/project-request-reference'
 
 type ProjectRow = {
   id: string
@@ -678,7 +678,14 @@ type ProjectRequestRow = {
   budget: string | null
   timeline: string | null
   createdAt: string
+  updatedAt?: string
   summary: string
+}
+
+function friendlyRequestError(message: string): string {
+  if (/unauthorized|401/i.test(message)) return 'Please sign in again to continue.'
+  if (/not found|404/i.test(message)) return 'This project request could not be found.'
+  return 'Something went wrong loading your request. Please try again.'
 }
 
 export function CustomerProjectRequestsPage() {
@@ -688,7 +695,7 @@ export function CustomerProjectRequestsPage() {
   )
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyRequestError(error)} onRetry={reload} />
 
   const items = data?.items ?? []
 
@@ -696,12 +703,12 @@ export function CustomerProjectRequestsPage() {
     <>
       <PageIntro
         title="Project requests"
-        description="Track submissions from Start Your Project. Quotes and active projects appear separately when available."
+        description="Track what you submitted through Start Your Project. Quotes and delivery live under Projects when available."
       />
       {items.length === 0 ? (
         <EmptyState
           title="No project requests yet"
-          description="Tell us what you are building—we will review and follow up."
+          description="You haven't submitted a project request yet."
           action={
             <Button to={customerPortalPaths.startProject}>Start Your Project</Button>
           }
@@ -715,20 +722,8 @@ export function CustomerProjectRequestsPage() {
           </p>
           <ul className={ui.stack}>
             {items.map((row: ProjectRequestRow) => (
-              <li key={row.id} className={`surface ${ui.dataCard}`}>
-                <Link
-                  className="link-underline"
-                  to={customerPortalPaths.projectRequestDetail(row.id)}
-                >
-                  <h2 className="text-h3">{row.serviceInterest ?? 'Project request'}</h2>
-                </Link>
-                <StatusPill status={row.status} />
-                <p className={ui.meta}>
-                  Ref. {formatProjectRequestReference(row.id)} ·{' '}
-                  {new Date(row.createdAt).toLocaleDateString()}
-                </p>
-                <p className={ui.meta}>{projectRequestStatusLabel(row.status)}</p>
-                <p className={ui.meta}>{projectRequestNextAction(row.status)}</p>
+              <li key={row.id}>
+                <ProjectRequestListItem row={row} />
               </li>
             ))}
           </ul>
@@ -746,41 +741,82 @@ export function CustomerProjectRequestDetailPage() {
   )
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyRequestError(error)} onRetry={reload} />
   if (!data) return null
 
   const status = String(data.status)
   const reference = formatProjectRequestReference(id)
+  const updatedAt = data.updatedAt ? String(data.updatedAt) : String(data.createdAt)
 
   return (
     <>
-      <PageIntro
-        label="Project request"
-        title={String(data.serviceInterest ?? 'Request')}
-        description={`Reference ${reference} · Submitted ${new Date(String(data.createdAt)).toLocaleString()}`}
-      />
-      <StatusPill status={status} />
-      <p className={ui.meta}>{projectRequestStatusLabel(status)}</p>
-      <p className={ui.meta}>{projectRequestNextAction(status)}</p>
-      <div className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>
-        {data.budget ? <p className={ui.meta}>Budget preference: {String(data.budget)}</p> : null}
-        {data.timeline ? <p className={ui.meta}>Timeline: {String(data.timeline)}</p> : null}
-        {data.website ? (
-          <p className={ui.meta}>
-            Website:{' '}
-            <a className="link-underline" href={String(data.website)} rel="noopener noreferrer">
-              {String(data.website)}
-            </a>
-          </p>
-        ) : null}
-        <h2 className="text-h3" style={{ marginTop: 'var(--space-4)' }}>
-          Requirement
+      <header className={detailStyles.header}>
+        <p className="text-label">Project request</p>
+        <h1 className="text-h1">{String(data.serviceInterest ?? 'Project request')}</h1>
+        <p className={ui.meta}>
+          Reference {reference} · Submitted {new Date(String(data.createdAt)).toLocaleString()}
+          {updatedAt !== String(data.createdAt)
+            ? ` · Updated ${new Date(updatedAt).toLocaleString()}`
+            : ''}
+        </p>
+      </header>
+
+      <CustomerRequestStatus status={status} />
+
+      <section className={detailStyles.section} aria-labelledby="req-requested">
+        <h2 id="req-requested" className="text-h3">
+          What you requested
         </h2>
-        <p style={{ whiteSpace: 'pre-wrap' }}>{String(data.projectDescription ?? '')}</p>
-      </div>
-      <p className={ui.meta} style={{ marginTop: 'var(--space-4)' }}>
-        Messaging, quotes, and payments will appear here when available.
-      </p>
+        <dl className={detailStyles.dl}>
+          <div>
+            <dt>Service</dt>
+            <dd>{String(data.serviceInterest ?? '—')}</dd>
+          </div>
+          {data.budget ? (
+            <div>
+              <dt>Budget preference</dt>
+              <dd>{String(data.budget)}</dd>
+            </div>
+          ) : null}
+          {data.timeline ? (
+            <div>
+              <dt>Timeline</dt>
+              <dd>{String(data.timeline)}</dd>
+            </div>
+          ) : null}
+          {data.website ? (
+            <div>
+              <dt>Website</dt>
+              <dd>
+                <a className="link-underline" href={String(data.website)} rel="noopener noreferrer">
+                  {String(data.website)}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+        <h3 className={detailStyles.subhead}>Requirements</h3>
+        <p className={detailStyles.requirement}>{String(data.projectDescription ?? '')}</p>
+      </section>
+
+      <section className={detailStyles.section} aria-labelledby="req-status">
+        <h2 id="req-status" className="text-h3">
+          Current status
+        </h2>
+        <ProjectRequestLifecycle status={status} />
+      </section>
+
+      <section className={`surface ${detailStyles.section}`} aria-labelledby="req-next">
+        <h2 id="req-next" className="text-h3">
+          Next step
+        </h2>
+        <p>{projectRequestNextAction(status)}</p>
+        <p className={ui.meta}>
+          Quotes, messaging, and payments will appear in the portal when those features are available
+          for your account.
+        </p>
+      </section>
+
       <p style={{ marginTop: 'var(--space-4)' }}>
         <Link className="link-underline" to={customerPortalPaths.requests}>
           Back to project requests

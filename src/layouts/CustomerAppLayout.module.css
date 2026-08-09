@@ -135,6 +135,15 @@
   background: var(--color-accent-soft);
 }
 
+.navGroupLabel {
+  margin: var(--space-4) 0 var(--space-1);
+  padding: 0 0.65rem;
+  font-size: var(--text-small);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
 .marketingLink {
   font-size: var(--text-small);
   color: var(--color-text-subtle);
