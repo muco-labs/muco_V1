@@ -5,15 +5,26 @@ export type CustomerDashboard = {
   companyName: string | null
   activeProjects: Array<{
     id: string
+    reference: string
     name: string
     status: string
+    statusLabel?: string
+    updatedAt: string
+  }>
+  planningProjects?: Array<{
+    id: string
+    reference: string
+    name: string
+    status: string
+    statusLabel?: string
     updatedAt: string
   }>
   recentProjects: Array<{
     id: string
+    reference?: string
     name: string
     status: string
-    progressPercent: number | null
+    progressPercent?: number | null
   }>
   pendingApprovals: Array<{ id: string; title: string | null; status: string }>
   outstandingInvoices: Array<{

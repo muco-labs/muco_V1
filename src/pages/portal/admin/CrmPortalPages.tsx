@@ -11,6 +11,7 @@ import ui from '@/components/portal/CustomerPortalUi.module.css'
 import layout from '@/layouts/EmployeeAppLayout.module.css'
 import { CrmEntryChannelBadge, CrmStartProjectLeadPanel, type StartProjectIntakeView } from '@/components/portal/crm/CrmStartProjectLeadPanel'
 import { CrmSalesActionPanel } from '@/components/portal/crm/CrmSalesActionPanel'
+import { CrmProjectFulfillmentPanel } from '@/components/portal/crm/CrmProjectFulfillmentPanel'
 import { CrmActivityTimeline } from '@/components/portal/crm/CrmActivityTimeline'
 import { adminPortalPaths, CRM_PIPELINE_STATUSES } from '@/config/admin-portal'
 import { useAuth } from '@/contexts/AuthProvider'
@@ -186,6 +187,7 @@ export function CrmLeadDetailPage() {
   const { id = '' } = useParams()
   const { profile } = useAuth()
   const canAssign = Boolean(profile?.permissions.includes('leads.assign'))
+  const canCreateProject = Boolean(profile?.permissions.includes('projects.create'))
   const { data, error, loading, reload } = useFetch(() => adminApi.leads.get(id), [id])
   const employeesQuery = useFetch(
     () => (canAssign ? adminApi.employees.list() : Promise.resolve({ items: [] })),
@@ -217,6 +219,7 @@ export function CrmLeadDetailPage() {
   const interactions = (data.interactions as Array<Record<string, unknown>>) ?? []
   const proposals = (data.proposals as Array<Record<string, unknown>>) ?? []
   const duplicateHints = data.duplicateHints as Record<string, unknown> | undefined
+  const linkedProject = data.linkedProject as Record<string, unknown> | null | undefined
   const isStartProject = lead.entryChannel === 'start_project'
   const intake = (lead.startProjectIntake as StartProjectIntakeView | null) ?? null
   const channelLabel = lead.entryChannelLabel ? String(lead.entryChannelLabel) : ''
@@ -241,6 +244,14 @@ export function CrmLeadDetailPage() {
         lead={lead}
         canAssign={canAssign}
         employees={employees}
+        onUpdated={reload}
+      />
+
+      <CrmProjectFulfillmentPanel
+        leadId={id}
+        lead={lead}
+        linkedProject={linkedProject}
+        canCreate={canCreateProject}
         onUpdated={reload}
       />
 

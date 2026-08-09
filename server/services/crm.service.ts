@@ -23,6 +23,7 @@ import {
   leads,
   notifications,
   proposals,
+  projects,
   roles,
   userRoles,
   users,
@@ -63,6 +64,7 @@ import {
 import { parseStartProjectLeadNotes } from '../lib/intake/lead-intake-notes.js'
 import { PROJECT_INTAKE_PAGE_SOURCE } from '../lib/intake/project-intake-constants.js'
 import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
+import { formatProjectReference } from '../lib/projects/project-reference.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
 
@@ -499,6 +501,20 @@ export async function getLeadDetailCrm(auth: AuthContext, leadId: string) {
     company: lead.company,
   })
 
+  const linkedProjectRow = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.leadId, leadId))
+    .limit(1)
+  const linkedProject = linkedProjectRow[0]
+    ? {
+        id: linkedProjectRow[0].id,
+        reference: formatProjectReference(linkedProjectRow[0].id),
+        name: linkedProjectRow[0].name,
+        status: linkedProjectRow[0].status,
+      }
+    : null
+
   let relatedCustomer = null
   if (lead.customerId) {
     const [c] = await db
@@ -542,6 +558,7 @@ export async function getLeadDetailCrm(auth: AuthContext, leadId: string) {
     interactions,
     proposals: leadProposals,
     duplicateHints: duplicates,
+    linkedProject,
     relatedCustomer,
   }
 }

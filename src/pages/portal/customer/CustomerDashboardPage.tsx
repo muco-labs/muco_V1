@@ -24,6 +24,7 @@ export function CustomerDashboardPage() {
 
   const pendingCount =
     data.pendingApprovals.length + data.outstandingInvoices.length + data.openSupportTickets.length
+  const planningProjects = data.planningProjects ?? []
   const recentRequests = (requests.data?.items ?? []).slice(0, 3)
   const hasActivity =
     data.recentNotifications.length > 0 ||
@@ -88,10 +89,10 @@ export function CustomerDashboardPage() {
               View all
             </Link>
           </div>
-          {data.activeProjects.length === 0 ? (
+          {data.activeProjects.length === 0 && planningProjects.length === 0 ? (
             <EmptyState
-              title="You don't have any active projects yet"
-              description="When a project is assigned to your account, it will appear here."
+              title="No projects yet"
+              description="Your projects will appear here once a project has been created."
               action={
                 <Button to={customerPortalPaths.startProject} variant="secondary">
                   Start Your Project
@@ -100,12 +101,23 @@ export function CustomerDashboardPage() {
             />
           ) : (
             <ul className={ui.stack}>
+              {planningProjects.map((p) => (
+                <li key={`plan-${p.id}`}>
+                  <Link className="link-underline" to={customerPortalPaths.projectDetail(p.id)}>
+                    {p.reference ? `${p.reference} · ` : ''}
+                    {p.name}
+                  </Link>
+                  <StatusPill status={p.statusLabel ?? p.status} />
+                  <span className={ui.meta}>Planning</span>
+                </li>
+              ))}
               {data.activeProjects.map((p) => (
                 <li key={p.id}>
                   <Link className="link-underline" to={customerPortalPaths.projectDetail(p.id)}>
+                    {p.reference ? `${p.reference} · ` : ''}
                     {p.name}
                   </Link>
-                  <StatusPill status={p.status} />
+                  <StatusPill status={p.statusLabel ?? p.status} />
                 </li>
               ))}
             </ul>

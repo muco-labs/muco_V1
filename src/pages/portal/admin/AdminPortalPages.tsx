@@ -10,7 +10,7 @@ import {
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import layout from '@/layouts/EmployeeAppLayout.module.css'
-import { adminPortalPaths, leadStatusOptions } from '@/config/admin-portal'
+import { adminPortalPaths, leadStatusOptions, projectFulfillmentStatusOptions } from '@/config/admin-portal'
 import { mucoDepartments } from '@/config/org'
 import { useAuth } from '@/contexts/AuthProvider'
 import { useFetch } from '@/hooks/useFetch'
@@ -438,61 +438,188 @@ export function AdminEmployeesPage() {
 }
 
 export function AdminProjectsPage() {
-  const { data, error, loading, reload } = useFetch(() => adminApi.projects.list(), [])
-  const [applying, setApplying] = useState<string | null>(null)
-  const items = asRecords(data)
-
-  async function applyTemplate(projectId: string, templateId: string) {
-    setApplying(projectId)
-    try {
-      await adminApi.projects.applyTemplate(projectId, templateId)
-      reload()
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Could not apply template')
-    } finally {
-      setApplying(null)
-    }
-  }
+  const [statusFilter, setStatusFilter] = useState('')
+  const [q, setQ] = useState('')
+  const { data, error, loading, reload } = useFetch(
+    () =>
+      adminApi.projects.list({
+        status: statusFilter || undefined,
+        q: q || undefined,
+      }),
+    [statusFilter, q],
+  )
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
 
+  const items = (data?.items as Array<Record<string, unknown>>) ?? []
+
   return (
     <>
-      <PageIntro title="Projects" description="Customer engagements and delivery status." />
+      <PageIntro
+        title="Projects"
+        description="Delivery projects created from qualified customer requests."
+      />
+      <div className={layout.filterRow} style={{ flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+        <label>
+          <span className={ui.meta}>Status</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className={ui.meta}
+          >
+            <option value="">All</option>
+            {projectFulfillmentStatusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className={ui.meta}>Search</span>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Name or service"
+          />
+        </label>
+      </div>
       {items.length === 0 ? (
-        <EmptyState title="No active projects." description="Create a project from the admin API or this UI when enabled." />
+        <EmptyState
+          title="No projects yet"
+          description="Create a project from an eligible CRM lead when a request is ready for delivery."
+        />
       ) : (
         <ul className={ui.stack}>
-          {items.map((row) => {
-            const project = row.project as Record<string, unknown>
-            return (
-              <li key={String(project.id)} className={`surface ${ui.dataCard}`}>
-                <strong>{String(project.name)}</strong>
-                <span className={ui.meta}>{String(row.companyName ?? '')}</span>
-                <StatusPill status={String(project.status)} />
-                <div className={layout.filterRow} style={{ marginTop: 'var(--space-3)' }}>
-                  <Button
-                    type="button"
-                    disabled={applying === String(project.id)}
-                    onClick={() => void applyTemplate(String(project.id), 'website')}
-                  >
-                    {applying === String(project.id) ? 'Applying…' : 'Website template'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={applying === String(project.id)}
-                    onClick={() => void applyTemplate(String(project.id), 'software')}
-                  >
-                    Software template
-                  </Button>
-                </div>
-              </li>
-            )
-          })}
+          {items.map((row) => (
+            <li key={String(row.id)} className={`surface ${ui.dataCard}`}>
+              <Link className="link-underline" to={adminPortalPaths.projectDetail(String(row.id))}>
+                <strong>{String(row.name)}</strong>
+              </Link>
+              <span className={ui.meta}>
+                {String(row.reference)} · {String(row.companyName ?? '')}
+              </span>
+              <StatusPill status={String(row.status)} />
+              {row.sourceRequestReference ? (
+                <span className={ui.meta}>From {String(row.sourceRequestReference)}</span>
+              ) : null}
+            </li>
+          ))}
         </ul>
       )}
+    </>
+  )
+}
+
+export function AdminProjectDetailPage() {
+  const { id = '' } = useParams()
+  const { profile } = useAuth()
+  const canUpdate = Boolean(profile?.permissions.includes('projects.update'))
+  const { data, error, loading, reload } = useFetch(() => adminApi.projects.get(id), [id])
+  const [statusDraft, setStatusDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data?.project) return null
+
+  const project = data.project as Record<string, unknown>
+  const customer = data.customer as Record<string, unknown>
+  const sourceLead = data.sourceLead as Record<string, unknown> | null | undefined
+  const currentStatus = String(project.status ?? 'draft')
+  const displayStatus = statusDraft || currentStatus
+
+  async function saveStatus() {
+    if (!canUpdate || !statusDraft || statusDraft === currentStatus) return
+    setSaving(true)
+    try {
+      await adminApi.projects.update(id, { status: statusDraft })
+      setStatusDraft('')
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not update status')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <PageIntro
+        title={String(project.name)}
+        description={`${String(project.reference)} · ${String(customer.companyName ?? customer.contactName ?? '')}`}
+      />
+      <StatusPill status={currentStatus} />
+      <dl className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+        <div>
+          <dt className={ui.meta}>Service</dt>
+          <dd>{String(project.service ?? '—')}</dd>
+        </div>
+        <div>
+          <dt className={ui.meta}>Description</dt>
+          <dd>{String(project.description ?? '—')}</dd>
+        </div>
+        <div>
+          <dt className={ui.meta}>Start date</dt>
+          <dd>
+            {project.startDate ? new Date(String(project.startDate)).toLocaleDateString() : '—'}
+          </dd>
+        </div>
+        <div>
+          <dt className={ui.meta}>Target date</dt>
+          <dd>
+            {project.expectedCompletion
+              ? new Date(String(project.expectedCompletion)).toLocaleDateString()
+              : '—'}
+          </dd>
+        </div>
+      </dl>
+
+      {sourceLead ? (
+        <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Source request</h2>
+          <p className={ui.meta}>
+            {String(sourceLead.reference)} · CRM status {String(sourceLead.status)}
+          </p>
+          <p>{String(sourceLead.projectDescription ?? '')}</p>
+          {sourceLead.budget || sourceLead.timeline ? (
+            <p className={ui.meta}>
+              {[sourceLead.budget, sourceLead.timeline].filter(Boolean).join(' · ')}
+            </p>
+          ) : null}
+          <Link className="link-underline" to={adminPortalPaths.crmLeadDetail(String(sourceLead.id))}>
+            Open lead
+          </Link>
+        </section>
+      ) : null}
+
+      {canUpdate ? (
+        <section className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Update status</h2>
+          <select
+            value={displayStatus}
+            onChange={(e) => setStatusDraft(e.target.value)}
+            aria-label="Project status"
+          >
+            {projectFulfillmentStatusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <Button type="button" disabled={saving} onClick={() => void saveStatus()}>
+            Save status
+          </Button>
+        </section>
+      ) : null}
+
+      <p style={{ marginTop: 'var(--space-4)' }}>
+        <Link className="link-underline" to={adminPortalPaths.projects}>
+          Back to projects
+        </Link>
+      </p>
     </>
   )
 }

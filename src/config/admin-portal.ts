@@ -26,6 +26,7 @@ export const adminPortalPaths = {
   customerDetail: (id: string) => `/admin/customers/${id}`,
   employees: '/admin/employees',
   projects: '/admin/projects',
+  projectDetail: (id: string) => `/admin/projects/${id}`,
   tasks: '/admin/tasks',
   proposals: '/admin/proposals',
   invoices: '/admin/invoices',
@@ -120,6 +121,14 @@ export const careerEmploymentTypeOptions = [
   { value: 'part_time', label: 'Part-time' },
   { value: 'internship', label: 'Internship' },
   { value: 'contract', label: 'Contract' },
+] as const
+
+export const projectFulfillmentStatusOptions = [
+  'draft',
+  'active',
+  'on_hold',
+  'completed',
+  'cancelled',
 ] as const
 
 export const CRM_PIPELINE_STATUSES = [

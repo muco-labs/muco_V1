@@ -159,6 +159,7 @@ const AdminCustomersPage = lazyAdminPage('AdminCustomersPage')
 const AdminCustomerDetailPage = lazyAdminPage('AdminCustomerDetailPage')
 const AdminEmployeesPage = lazyAdminPage('AdminEmployeesPage')
 const AdminProjectsPage = lazyAdminPage('AdminProjectsPage')
+const AdminProjectDetailPage = lazyAdminPage('AdminProjectDetailPage')
 const AdminTasksPage = lazyAdminPage('AdminTasksPage')
 const AdminProposalsPage = lazyAdminPage('AdminProposalsPage')
 const AdminInvoicesPage = lazyAdminPage('AdminInvoicesPage')
@@ -360,6 +361,7 @@ export const router = createBrowserRouter([
           { path: 'customers/:id', element: <AdminCustomerDetailPage /> },
           { path: 'employees', element: <AdminEmployeesPage /> },
           { path: 'projects', element: <AdminProjectsPage /> },
+          { path: 'projects/:id', element: <AdminProjectDetailPage /> },
           { path: 'tasks', element: <AdminTasksPage /> },
           { path: 'proposals', element: <AdminProposalsPage /> },
           { path: 'invoices', element: <AdminInvoicesPage /> },

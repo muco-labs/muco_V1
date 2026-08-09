@@ -21,13 +21,20 @@ import { ProjectRequestLifecycle } from '@/components/portal/ProjectRequestLifec
 import detailStyles from '@/components/portal/ProjectRequestDetail.module.css'
 import { formatProjectRequestReference, projectRequestNextAction } from '@/lib/conversion/project-request-reference'
 
+import { ProjectDeliveryLifecycle } from '@/components/portal/ProjectDeliveryLifecycle'
+
 type ProjectRow = {
   id: string
+  reference: string
   name: string
+  service?: string | null
   status: string
+  statusLabel?: string
   startDate?: string | null
   expectedCompletion?: string | null
+  updatedAt?: string
   progressPercent: number | null
+  sourceRequestReference?: string | null
 }
 
 export function CustomerProjectsPage() {
@@ -43,11 +50,11 @@ export function CustomerProjectsPage() {
 
   return (
     <>
-      <PageIntro title="Projects" description="Track status, milestones, and deliverables." />
+      <PageIntro title="Projects" description="Track delivery status and next steps for your MUCO projects." />
       {items.length === 0 ? (
         <EmptyState
           title="No projects yet"
-          description="No projects have been assigned to your account yet."
+          description="Your projects will appear here once a project has been created."
         />
       ) : (
         <ul className={ui.stack}>
@@ -56,14 +63,27 @@ export function CustomerProjectsPage() {
               <Link className="link-underline" to={customerPortalPaths.projectDetail(project.id)}>
                 <h2 className="text-h3">{project.name}</h2>
               </Link>
-              <StatusPill status={project.status} />
+              <p className={ui.meta}>
+                {project.reference}
+                {project.service ? ` · ${project.service}` : ''}
+              </p>
+              <StatusPill status={project.statusLabel ?? project.status} />
+              {project.startDate ? (
+                <p className={ui.meta}>
+                  Started {new Date(project.startDate).toLocaleDateString()}
+                  {project.expectedCompletion
+                    ? ` · Target ${new Date(project.expectedCompletion).toLocaleDateString()}`
+                    : ''}
+                </p>
+              ) : null}
+              {project.updatedAt ? (
+                <p className={ui.meta}>Updated {new Date(project.updatedAt).toLocaleDateString()}</p>
+              ) : null}
               {project.progressPercent != null ? (
                 <div className={ui.progressBar} aria-label={`Progress ${project.progressPercent}%`}>
                   <span style={{ width: `${project.progressPercent}%` }} />
                 </div>
-              ) : (
-                <p className={ui.meta}>Progress will appear when milestones are added.</p>
-              )}
+              ) : null}
             </li>
           ))}
         </ul>
@@ -85,19 +105,62 @@ export function CustomerProjectDetailPage() {
 
   const project = data.project as Record<string, unknown>
   const milestones = (data.milestones as Array<Record<string, unknown>>) ?? []
-  const tasks = (data.tasks as Array<Record<string, unknown>>) ?? []
   const progressPercent = data.progressPercent as number | null
+  const statusLabel = String(project.statusLabel ?? project.status ?? '')
+  const nextStep = project.nextStep ? String(project.nextStep) : null
 
   return (
     <>
       <PageIntro
         label="Project"
         title={String(project.name ?? 'Project')}
-        description={project.description ? String(project.description) : undefined}
+        description={
+          project.reference
+            ? `${String(project.reference)}${project.service ? ` · ${String(project.service)}` : ''}`
+            : undefined
+        }
       />
-      <StatusPill status={String(project.status)} />
+      {project.sourceRequestReference ? (
+        <p className={ui.meta}>
+          From request {String(project.sourceRequestReference)}
+        </p>
+      ) : null}
+      <p className={ui.meta}>
+        <strong>Current status:</strong> {statusLabel}
+      </p>
+      {nextStep ? (
+        <p className={ui.meta}>
+          <strong>Next step:</strong> {nextStep}
+        </p>
+      ) : null}
+      {project.description ? <p style={{ marginTop: 'var(--space-4)' }}>{String(project.description)}</p> : null}
+
+      <section style={{ marginTop: 'var(--space-6)' }} aria-labelledby="project-lifecycle">
+        <h2 id="project-lifecycle" className="text-h3">
+          Delivery progress
+        </h2>
+        <ProjectDeliveryLifecycle status={String(project.status ?? 'draft')} />
+      </section>
+
+      {(project.startDate || project.expectedCompletion) && (
+        <dl className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+          {project.startDate ? (
+            <div>
+              <dt className={ui.meta}>Start date</dt>
+              <dd>{new Date(String(project.startDate)).toLocaleDateString()}</dd>
+            </div>
+          ) : null}
+          {project.expectedCompletion ? (
+            <div>
+              <dt className={ui.meta}>Target date</dt>
+              <dd>{new Date(String(project.expectedCompletion)).toLocaleDateString()}</dd>
+            </div>
+          ) : null}
+        </dl>
+      )}
+
       {progressPercent != null ? (
-        <div className={ui.progressBar} style={{ marginTop: 'var(--space-3)' }}>
+        <div className={ui.progressBar} style={{ marginTop: 'var(--space-3)' }} aria-label={`Progress ${progressPercent}%`}>
           <span style={{ width: `${progressPercent}%` }} />
         </div>
       ) : null}
@@ -105,7 +168,7 @@ export function CustomerProjectDetailPage() {
       <section style={{ marginTop: 'var(--space-8)' }}>
         <h2 className="text-h3">Milestones</h2>
         {milestones.length === 0 ? (
-          <EmptyState title="No milestones yet" description="Your project timeline will appear here." />
+          <EmptyState title="No milestones yet" description="Milestone updates will appear here when they are added." />
         ) : (
           <ol className={ui.timeline}>
             {milestones.map((m) => (
@@ -118,20 +181,11 @@ export function CustomerProjectDetailPage() {
         )}
       </section>
 
-      <section style={{ marginTop: 'var(--space-6)' }}>
-        <h2 className="text-h3">Task status</h2>
-        {tasks.length === 0 ? (
-          <p className={ui.meta}>No customer-visible tasks yet.</p>
-        ) : (
-          <ul className={ui.stack}>
-            {tasks.map((t) => (
-              <li key={String(t.id)} className={ui.meta}>
-                {String(t.title)} — <StatusPill status={String(t.status)} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <p style={{ marginTop: 'var(--space-6)' }}>
+        <Link className="link-underline" to={customerPortalPaths.projects}>
+          Back to projects
+        </Link>
+      </p>
     </>
   )
 }

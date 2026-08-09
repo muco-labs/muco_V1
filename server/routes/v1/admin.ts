@@ -40,7 +40,6 @@ import {
   listEmployeesAdmin,
   listInvoicesAdmin,
   listPaymentsAdmin,
-  listProjectsAdmin,
   listProposalsAdmin,
   listSupportAdmin,
   listTasksAdmin,
@@ -100,6 +99,13 @@ import {
   updateCareerJobOpeningSchema,
   updateCareerJobStatusSchema,
 } from '../../lib/validation/careers.js'
+import {
+  createProjectFromLeadCrm,
+  getProjectFulfillmentAdmin,
+  listProjectsFulfillmentAdmin,
+  updateProjectFulfillmentAdmin,
+} from '../../services/project-fulfillment.service.js'
+import { PROJECT_FULFILLMENT_STATUSES } from '../../lib/projects/project-fulfillment.js'
 import {
   getEmployeeAccessReview,
   getExecutiveOverview,
@@ -788,7 +794,51 @@ adminRoutes.patch('/users/:userId/status', requirePermission('users.disable'), a
 
 adminRoutes.get('/projects', requirePermission('projects.view'), async (c) => {
   try {
-    return jsonSuccess(c, { items: await listProjectsAdmin() })
+    const auth = c.get('auth')
+    const items = await listProjectsFulfillmentAdmin(auth, {
+      status: c.req.query('status'),
+      q: c.req.query('q'),
+    })
+    return jsonSuccess(c, { items, count: items.length })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/projects/:id', requirePermission('projects.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getProjectFulfillmentAdmin(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const projectPatchSchema = z.object({
+  status: z.enum(PROJECT_FULFILLMENT_STATUSES).optional(),
+  name: z.string().trim().min(2).max(200).optional(),
+  description: z.string().trim().max(8000).optional(),
+})
+
+adminRoutes.patch('/projects/:id', requirePermission('projects.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = projectPatchSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid project update.', 400, formatZodErrors(parsed.error))
+    }
+    const project = await updateProjectFulfillmentAdmin(auth, paramId(c), parsed.data)
+    return jsonSuccess(c, { project })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/create-project', requirePermission('projects.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await createProjectFromLeadCrm(auth, paramId(c)), 201)
   } catch (error) {
     return handleRouteError(c, error)
   }

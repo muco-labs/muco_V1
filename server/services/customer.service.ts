@@ -32,6 +32,7 @@ import {
   verifyRazorpayCheckoutSignature,
 } from './payment.service.js'
 import { computeProjectProgressFromTasks } from './workflow.service.js'
+import { serializeCustomerProjectSummary } from './project-fulfillment.service.js'
 
 export type CustomerContext = {
   userId: string
@@ -194,8 +195,13 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
   return {
     welcomeName: ctx.fullName ?? ctx.email,
     companyName: profile?.companyName ?? null,
-    activeProjects: projectRows.filter((p) => p.status === 'active'),
-    recentProjects: projectRows,
+    activeProjects: projectRows
+      .filter((p) => p.status === 'active')
+      .map(serializeCustomerProjectSummary),
+    planningProjects: projectRows
+      .filter((p) => p.status === 'draft')
+      .map(serializeCustomerProjectSummary),
+    recentProjects: projectRows.map(serializeCustomerProjectSummary),
     pendingApprovals: pendingProposals,
     outstandingInvoices,
     recentPayments,
@@ -290,7 +296,7 @@ export async function listCustomerProjects(ctx: CustomerContext) {
         .from(tasks)
         .where(eq(tasks.projectId, project.id))
       return {
-        ...project,
+        ...serializeCustomerProjectSummary(project),
         progressPercent: computeProjectProgressFromTasks(ts, ms),
       }
     }),
@@ -323,25 +329,16 @@ export async function getCustomerProjectDetail(ctx: CustomerContext, projectId: 
     .where(eq(tasks.projectId, projectId))
     .orderBy(desc(tasks.updatedAt))
 
-  const fileRows = await db
-    .select()
-    .from(files)
-    .where(eq(files.projectId, projectId))
-    .orderBy(desc(files.createdAt))
-
-  const messageRows = await db
-    .select()
-    .from(messages)
-    .where(eq(messages.projectId, projectId))
-    .orderBy(desc(messages.createdAt))
-    .limit(50)
-
   return {
-    project,
-    milestones: milestoneRows,
-    tasks: taskRows,
-    files: fileRows.map(sanitizeFile),
-    messages: messageRows,
+    project: serializeCustomerProjectSummary(project),
+    milestones: milestoneRows.map((m) => ({
+      id: m.id,
+      name: m.name,
+      description: m.description,
+      status: m.status,
+      dueDate: m.dueDate?.toISOString() ?? null,
+    })),
+    tasks: [],
     progressPercent: computeProjectProgressFromTasks(taskRows, milestoneRows),
   }
 }

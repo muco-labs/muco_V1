@@ -144,6 +144,8 @@ export const adminApi = {
     get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/leads/${id}`),
     create: (body: Record<string, unknown>) =>
       apiRequest(`${base}/leads`, { method: 'POST', json: body }),
+    createProject: (leadId: string) =>
+      apiRequest(`${base}/leads/${leadId}/create-project`, { method: 'POST' }),
     update: (id: string, body: Record<string, unknown>) =>
       apiRequest(`${base}/leads/${id}`, { method: 'PATCH', json: body }),
     addNote: (id: string, content: string) =>
@@ -177,7 +179,18 @@ export const adminApi = {
       apiRequest(`${base}/users/${userId}/status`, { method: 'PATCH', json: { status } }),
   },
   projects: {
-    list: () => apiRequest<{ items: unknown[] }>(`${base}/projects`),
+    list: (params?: { status?: string; q?: string }) => {
+      const search = new URLSearchParams()
+      if (params?.status) search.set('status', params.status)
+      if (params?.q) search.set('q', params.q)
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[]; count: number }>(
+        `${base}/projects${qs ? `?${qs}` : ''}`,
+      )
+    },
+    get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/projects/${id}`),
+    update: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/projects/${id}`, { method: 'PATCH', json: body }),
     create: (body: Record<string, unknown>) =>
       apiRequest(`${base}/projects`, { method: 'POST', json: body }),
     assignMember: (projectId: string, body: { employeeId: string; role: string }) =>
