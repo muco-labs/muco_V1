@@ -35,6 +35,8 @@ export const permissionNames = [
   'tasks.assign',
   'proposals.view',
   'proposals.create',
+  'proposals.update',
+  'proposals.send',
   'proposals.approve',
   'invoices.view',
   'invoices.create',

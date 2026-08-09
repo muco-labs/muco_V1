@@ -10,7 +10,7 @@ import {
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import layout from '@/layouts/EmployeeAppLayout.module.css'
-import { adminPortalPaths, leadStatusOptions, projectFulfillmentStatusOptions } from '@/config/admin-portal'
+import { adminPortalPaths, leadStatusOptions, projectFulfillmentStatusOptions, proposalFulfillmentStatusOptions } from '@/config/admin-portal'
 import { mucoDepartments } from '@/config/org'
 import { useAuth } from '@/contexts/AuthProvider'
 import { useFetch } from '@/hooks/useFetch'
@@ -656,28 +656,254 @@ export function AdminTasksPage() {
 }
 
 export function AdminProposalsPage() {
-  const { data, error, loading, reload } = useFetch(() => adminApi.proposals.list(), [])
-  const items = asRecords(data)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [q, setQ] = useState('')
+  const { data, error, loading, reload } = useFetch(
+    () =>
+      adminApi.proposals.list({
+        status: statusFilter || undefined,
+        q: q || undefined,
+      }),
+    [statusFilter, q],
+  )
+  const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
 
   return (
     <>
-      <PageIntro title="Proposals" description="Draft and sent proposals awaiting customer action." />
+      <PageIntro
+        title="Proposals"
+        description="Draft, send, and track customer quotes linked to leads and projects."
+      />
+      <div className={layout.filterRow} style={{ flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+        <Link className="button" to={adminPortalPaths.proposalNew}>
+          New proposal
+        </Link>
+        <label>
+          <span className={ui.meta}>Status</span>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">All</option>
+            {proposalFulfillmentStatusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className={ui.meta}>Search</span>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Title or scope" />
+        </label>
+      </div>
       {items.length === 0 ? (
-        <EmptyState title="No proposals" description="Create a proposal when you are ready to send scope to a customer." />
+        <EmptyState title="No proposals yet" description="Create a draft proposal when scope and pricing are ready." />
       ) : (
         <ul className={ui.stack}>
           {items.map((p) => (
             <li key={String(p.id)} className={`surface ${ui.dataCard}`}>
-              {String(p.title ?? 'Proposal')}
-              {p.amount ? <span className={ui.meta}>{formatInr(String(p.amount))}</span> : null}
+              <Link className="link-underline" to={adminPortalPaths.proposalDetail(String(p.id))}>
+                <strong>{String(p.title ?? 'Proposal')}</strong>
+              </Link>
+              <span className={ui.meta}>
+                {String(p.reference)} · {String(p.companyName ?? '')}
+              </span>
+              {p.total || p.amount ? (
+                <span className={ui.meta}>{formatInr(String(p.total ?? p.amount))}</span>
+              ) : null}
               <StatusPill status={String(p.status)} />
             </li>
           ))}
         </ul>
       )}
+    </>
+  )
+}
+
+export function AdminProposalNewPage() {
+  const [searchParams] = useSearchParams()
+  const leadId = searchParams.get('leadId') ?? ''
+  const customerId = searchParams.get('customerId') ?? ''
+  const [title, setTitle] = useState('')
+  const [scope, setScope] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    try {
+      let result: Record<string, unknown>
+      if (leadId) {
+        result = (await adminApi.proposals.createFromLead(leadId, {
+          title: title || undefined,
+          scope: scope || undefined,
+        })) as Record<string, unknown>
+      } else {
+        if (!customerId) {
+          setError('Select a customer or open this form from a CRM lead.')
+          setSaving(false)
+          return
+        }
+        result = (await adminApi.proposals.create({
+          customerId,
+          title: title || undefined,
+          scope: scope || undefined,
+          leadId: leadId || undefined,
+        })) as Record<string, unknown>
+      }
+      const proposal = (result.proposal ?? result) as Record<string, unknown>
+      window.location.assign(adminPortalPaths.proposalDetail(String(proposal.id)))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not create proposal')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <PageIntro title="New proposal" description="Start a draft quote. Add line items on the detail page." />
+      <form className={ui.form} onSubmit={(e) => void submit(e)}>
+        <div className={ui.field}>
+          <label htmlFor="prop-title">Title</label>
+          <input id="prop-title" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={2} />
+        </div>
+        <div className={ui.field}>
+          <label htmlFor="prop-scope">Scope summary</label>
+          <textarea id="prop-scope" value={scope} onChange={(e) => setScope(e.target.value)} rows={4} />
+        </div>
+        {error ? <PortalError message={error} /> : null}
+        <Button type="submit" disabled={saving}>
+          {saving ? 'Creating…' : 'Create draft'}
+        </Button>
+      </form>
+    </>
+  )
+}
+
+export function AdminProposalDetailPage() {
+  const { id = '' } = useParams()
+  const { profile } = useAuth()
+  const canUpdate = Boolean(profile?.permissions.includes('proposals.update'))
+  const canSend = Boolean(
+    profile?.permissions.includes('proposals.send') || profile?.permissions.includes('proposals.create'),
+  )
+  const { data, error, loading, reload } = useFetch(() => adminApi.proposals.get(id), [id])
+  const [scopeDraft, setScopeDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const proposal = data?.proposal as Record<string, unknown> | undefined
+    if (proposal?.scope) setScopeDraft(String(proposal.scope))
+  }, [data])
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data?.proposal) return null
+
+  const proposal = data.proposal as Record<string, unknown>
+  const lineItems = (data.lineItems as Array<Record<string, unknown>>) ?? []
+  const pricing = data.pricing as Record<string, unknown> | undefined
+  const status = String(proposal.status ?? 'draft')
+
+  async function saveDraft() {
+    if (!canUpdate || status !== 'draft') return
+    setSaving(true)
+    try {
+      await adminApi.proposals.update(id, { scope: scopeDraft })
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function send() {
+    if (!canSend || !window.confirm('Send this proposal to the customer portal?')) return
+    try {
+      await adminApi.proposals.send(id)
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not send')
+    }
+  }
+
+  async function cancel() {
+    if (!canUpdate || !window.confirm('Withdraw this proposal?')) return
+    try {
+      await adminApi.proposals.cancel(id)
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not cancel')
+    }
+  }
+
+  return (
+    <>
+      <PageIntro
+        title={String(proposal.title ?? 'Proposal')}
+        description={`${String(proposal.reference)} · ${String((data.customer as Record<string, unknown>)?.companyName ?? '')}`}
+      />
+      <StatusPill status={status} />
+      {proposal.sourceRequestReference ? (
+        <p className={ui.meta}>Request {String(proposal.sourceRequestReference)}</p>
+      ) : null}
+      {proposal.projectReference ? (
+        <p className={ui.meta}>Project {String(proposal.projectReference)}</p>
+      ) : null}
+
+      {canUpdate && status === 'draft' ? (
+        <section className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-4)' }}>
+          <h2 className="text-h3">Edit draft</h2>
+          <textarea value={scopeDraft} onChange={(e) => setScopeDraft(e.target.value)} rows={5} aria-label="Scope" />
+          <Button type="button" disabled={saving} onClick={() => void saveDraft()}>
+            Save draft
+          </Button>
+        </section>
+      ) : proposal.scope ? (
+        <p style={{ marginTop: 'var(--space-4)' }}>{String(proposal.scope)}</p>
+      ) : null}
+
+      {lineItems.length > 0 ? (
+        <section style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Line items</h2>
+          <ul className={ui.stack}>
+            {lineItems.map((item) => (
+              <li key={String(item.id)} className={ui.meta}>
+                {String(item.description)} — {String(item.quantity)} × {formatInr(String(item.unitAmount))}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {pricing ? (
+        <p className={ui.meta} style={{ marginTop: 'var(--space-4)' }}>
+          Subtotal {formatInr(String(pricing.subtotal))} · Total {formatInr(String(pricing.total))}
+        </p>
+      ) : null}
+
+      <div className={layout.filterRow} style={{ marginTop: 'var(--space-6)' }}>
+        {canSend && status === 'draft' ? (
+          <Button type="button" onClick={() => void send()}>
+            Send to customer
+          </Button>
+        ) : null}
+        {canUpdate && ['draft', 'sent', 'viewed', 'changes_requested'].includes(status) ? (
+          <Button type="button" variant="secondary" onClick={() => void cancel()}>
+            Cancel proposal
+          </Button>
+        ) : null}
+      </div>
+
+      <p style={{ marginTop: 'var(--space-4)' }}>
+        <Link className="link-underline" to={adminPortalPaths.proposals}>
+          Back to proposals
+        </Link>
+      </p>
     </>
   )
 }

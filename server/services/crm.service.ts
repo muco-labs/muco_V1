@@ -65,6 +65,7 @@ import { parseStartProjectLeadNotes } from '../lib/intake/lead-intake-notes.js'
 import { PROJECT_INTAKE_PAGE_SOURCE } from '../lib/intake/project-intake-constants.js'
 import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
 import { formatProjectReference } from '../lib/projects/project-reference.js'
+import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
 
@@ -556,7 +557,14 @@ export async function getLeadDetailCrm(auth: AuthContext, leadId: string) {
     })),
     activities,
     interactions,
-    proposals: leadProposals,
+    proposals: leadProposals.map((p) => ({
+      id: p.id,
+      title: p.title,
+      status: p.status,
+      amount: p.amount,
+      reference: formatProposalReference(p.id),
+      updatedAt: p.updatedAt,
+    })),
     duplicateHints: duplicates,
     linkedProject,
     relatedCustomer,

@@ -72,6 +72,7 @@ export const proposalStatusEnum = pgEnum('proposal_status', [
   'declined',
   'changes_requested',
   'expired',
+  'cancelled',
 ])
 export const invoiceStatusEnum = pgEnum('invoice_status', [
   'draft',

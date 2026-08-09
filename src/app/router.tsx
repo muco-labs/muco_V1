@@ -162,6 +162,8 @@ const AdminProjectsPage = lazyAdminPage('AdminProjectsPage')
 const AdminProjectDetailPage = lazyAdminPage('AdminProjectDetailPage')
 const AdminTasksPage = lazyAdminPage('AdminTasksPage')
 const AdminProposalsPage = lazyAdminPage('AdminProposalsPage')
+const AdminProposalDetailPage = lazyAdminPage('AdminProposalDetailPage')
+const AdminProposalNewPage = lazyAdminPage('AdminProposalNewPage')
 const AdminInvoicesPage = lazyAdminPage('AdminInvoicesPage')
 const AdminPaymentsPage = lazyAdminPage('AdminPaymentsPage')
 const AdminFilesPage = lazyAdminPage('AdminFilesPage')
@@ -364,6 +366,8 @@ export const router = createBrowserRouter([
           { path: 'projects/:id', element: <AdminProjectDetailPage /> },
           { path: 'tasks', element: <AdminTasksPage /> },
           { path: 'proposals', element: <AdminProposalsPage /> },
+          { path: 'proposals/new', element: <AdminProposalNewPage /> },
+          { path: 'proposals/:id', element: <AdminProposalDetailPage /> },
           { path: 'invoices', element: <AdminInvoicesPage /> },
           { path: 'payments', element: <AdminPaymentsPage /> },
           { path: 'files', element: <AdminFilesPage /> },

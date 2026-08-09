@@ -33,6 +33,18 @@ import {
 } from './payment.service.js'
 import { computeProjectProgressFromTasks } from './workflow.service.js'
 import { serializeCustomerProjectSummary } from './project-fulfillment.service.js'
+import {
+  recordCustomerProposalView,
+  serializeCustomerProposal,
+} from './proposal-fulfillment.service.js'
+import {
+  isProposalCustomerActionable,
+  isProposalPastValidity,
+  presentCustomerProposalStatus,
+} from '../lib/proposals/proposal-fulfillment.js'
+import { formatProjectReference } from '../lib/projects/project-reference.js'
+import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
+import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
 
 export type CustomerContext = {
   userId: string
@@ -102,6 +114,7 @@ const customerVisibleProposalStatuses = [
   'declined',
   'changes_requested',
   'expired',
+  'cancelled',
 ] as const
 
 const customerVisibleInvoiceStatuses = ['sent', 'paid', 'partial', 'overdue'] as const
@@ -124,7 +137,12 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
     .limit(5)
 
   const pendingProposals = await db
-    .select({ id: proposals.id, title: proposals.title, status: proposals.status })
+    .select({
+      id: proposals.id,
+      title: proposals.title,
+      status: proposals.status,
+      reference: proposals.id,
+    })
     .from(proposals)
     .where(
       and(
@@ -133,6 +151,13 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
       ),
     )
     .limit(5)
+
+  const pendingProposalsMapped = pendingProposals.map((p) => ({
+    id: p.id,
+    title: p.title,
+    status: p.status,
+    reference: formatProposalReference(p.id),
+  }))
 
   const outstandingInvoices = await db
     .select({
@@ -202,7 +227,7 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
       .filter((p) => p.status === 'draft')
       .map(serializeCustomerProjectSummary),
     recentProjects: projectRows.map(serializeCustomerProjectSummary),
-    pendingApprovals: pendingProposals,
+    pendingApprovals: pendingProposalsMapped,
     outstandingInvoices,
     recentPayments,
     recentMessages,
@@ -359,16 +384,8 @@ export async function listCustomerProposals(ctx: CustomerContext) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
 
-  return db
-    .select({
-      id: proposals.id,
-      title: proposals.title,
-      status: proposals.status,
-      amount: proposals.amount,
-      validUntil: proposals.validUntil,
-      projectId: proposals.projectId,
-      updatedAt: proposals.updatedAt,
-    })
+  const rows = await db
+    .select()
     .from(proposals)
     .where(
       and(
@@ -377,29 +394,44 @@ export async function listCustomerProposals(ctx: CustomerContext) {
       ),
     )
     .orderBy(desc(proposals.updatedAt))
+
+  return rows.map((row) => {
+    const presentation = presentCustomerProposalStatus(row.status, row.validUntil)
+    return {
+      id: row.id,
+      reference: formatProposalReference(row.id),
+      title: row.title,
+      status: presentation.expired ? 'expired' : row.status,
+      statusLabel: presentation.label,
+      amount: row.amount,
+      currency: row.currency,
+      validUntil: row.validUntil?.toISOString() ?? null,
+      projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
+      updatedAt: row.updatedAt.toISOString(),
+    }
+  })
+}
+
+export async function viewCustomerProposal(ctx: CustomerContext, proposalId: string) {
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
+  const row = await recordCustomerProposalView(ctx, proposalId)
+  const lineItems = await db
+    .select()
+    .from(proposalLineItems)
+    .where(eq(proposalLineItems.proposalId, proposalId))
+    .orderBy(asc(proposalLineItems.sortOrder))
+  return serializeCustomerProposal(row, lineItems, {
+    sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
+    projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
+  })
 }
 
 export async function getCustomerProposal(ctx: CustomerContext, proposalId: string) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
 
-  const [row] = await db
-    .select()
-    .from(proposals)
-    .where(and(eq(proposals.id, proposalId), eq(proposals.customerId, ctx.customerId)))
-    .limit(1)
-
-  if (!row || row.status === 'draft') {
-    throw new AppError('NOT_FOUND', 'Proposal not found.', 404)
-  }
-
-  if (row.status === 'sent') {
-    await db
-      .update(proposals)
-      .set({ status: 'viewed', updatedAt: new Date() })
-      .where(eq(proposals.id, proposalId))
-    row.status = 'viewed'
-  }
+  const row = await recordCustomerProposalView(ctx, proposalId)
 
   const lineItems = await db
     .select()
@@ -407,30 +439,10 @@ export async function getCustomerProposal(ctx: CustomerContext, proposalId: stri
     .where(eq(proposalLineItems.proposalId, proposalId))
     .orderBy(asc(proposalLineItems.sortOrder))
 
-  return {
-    id: row.id,
-    title: row.title ?? 'Proposal',
-    status: row.status,
-    scope: row.scope,
-    deliverables: row.deliverables,
-    timeline: row.timeline,
-    terms: row.terms,
-    amount: row.amount,
-    discountAmount: row.discountAmount,
-    paymentSchedule: row.paymentSchedule,
-    version: row.version,
-    validUntil: row.validUntil,
-    projectId: row.projectId,
-    customerDecidedAt: row.customerDecidedAt,
-    customerDecisionNote: row.customerDecisionNote,
-    lineItems: lineItems.map((item) => ({
-      id: item.id,
-      description: item.description,
-      quantity: item.quantity,
-      unitAmount: item.unitAmount,
-      itemType: item.itemType,
-    })),
-  }
+  return serializeCustomerProposal(row, lineItems, {
+    sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
+    projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
+  })
 }
 
 export async function decideProposal(
@@ -448,7 +460,10 @@ export async function decideProposal(
     .where(and(eq(proposals.id, proposalId), eq(proposals.customerId, ctx.customerId)))
     .limit(1)
 
-  if (!row || !['sent', 'viewed', 'changes_requested'].includes(row.status)) {
+  if (!row || !isProposalCustomerActionable(row.status, row.validUntil)) {
+    if (row && isProposalPastValidity(row.validUntil)) {
+      throw new AppError('CONFLICT', 'This proposal has expired and can no longer be updated.', 409)
+    }
     throw new AppError('CONFLICT', 'This proposal cannot be updated.', 409)
   }
 
@@ -498,7 +513,7 @@ export async function decideProposal(
     message: `Your ${decision.replace('_', ' ')} response was saved.`,
   })
 
-  if (decision === 'approve') {
+  if (decision === 'approve' || decision === 'reject') {
     const adminUsers = await db
       .select({ userId: userRoles.userId })
       .from(userRoles)
@@ -509,9 +524,9 @@ export async function decideProposal(
       await db.insert(notifications).values(
         unique.map((userId) => ({
           userId,
-          type: 'proposal.approved',
-          title: 'Proposal approved',
-          message: `Customer approved proposal ${updated.title ?? proposalId}.`,
+          type: decision === 'approve' ? 'proposal.approved' : 'proposal.declined',
+          title: decision === 'approve' ? 'Proposal accepted' : 'Proposal declined',
+          message: `Customer ${decision === 'approve' ? 'accepted' : 'declined'} proposal ${updated.title ?? proposalId}.`,
         })),
       )
     }

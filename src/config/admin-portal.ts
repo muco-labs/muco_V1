@@ -27,8 +27,10 @@ export const adminPortalPaths = {
   employees: '/admin/employees',
   projects: '/admin/projects',
   projectDetail: (id: string) => `/admin/projects/${id}`,
-  tasks: '/admin/tasks',
   proposals: '/admin/proposals',
+  proposalNew: '/admin/proposals/new',
+  proposalDetail: (id: string) => `/admin/proposals/${id}`,
+  tasks: '/admin/tasks',
   invoices: '/admin/invoices',
   payments: '/admin/payments',
   files: '/admin/files',
@@ -128,6 +130,17 @@ export const projectFulfillmentStatusOptions = [
   'active',
   'on_hold',
   'completed',
+  'cancelled',
+] as const
+
+export const proposalFulfillmentStatusOptions = [
+  'draft',
+  'sent',
+  'viewed',
+  'accepted',
+  'declined',
+  'changes_requested',
+  'expired',
   'cancelled',
 ] as const
 

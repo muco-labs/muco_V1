@@ -63,6 +63,9 @@ export const customerApi = {
       apiRequest(`${base}/proposals/${id}/request-changes`, { method: 'POST', json: { note } }),
     reject: (id: string, note?: string) =>
       apiRequest(`${base}/proposals/${id}/reject`, { method: 'POST', json: { note } }),
+    accept: (id: string, note?: string) =>
+      apiRequest(`${base}/proposals/${id}/accept`, { method: 'POST', json: { note } }),
+    view: (id: string) => apiRequest<Record<string, unknown>>(`${base}/proposals/${id}/view`, { method: 'POST' }),
   },
   invoices: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/invoices`),

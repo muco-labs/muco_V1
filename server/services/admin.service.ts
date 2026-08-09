@@ -505,6 +505,10 @@ export async function createProposalAdmin(
     title?: string
     amount?: string
     scope?: string
+    deliverables?: string
+    timeline?: string
+    terms?: string
+    validUntil?: string
     projectId?: string
     leadId?: string
     paymentSchedule?: string
@@ -533,6 +537,10 @@ export async function createProposalAdmin(
       amount,
       currency: normalizeProposalCurrency(input.currency),
       scope: input.scope?.trim() || null,
+      deliverables: input.deliverables?.trim() || null,
+      timeline: input.timeline?.trim() || null,
+      terms: input.terms?.trim() || null,
+      validUntil: input.validUntil ? new Date(input.validUntil) : null,
       paymentSchedule: input.paymentSchedule?.trim() || null,
       status: 'draft',
     })

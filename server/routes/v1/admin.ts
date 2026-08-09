@@ -40,12 +40,10 @@ import {
   listEmployeesAdmin,
   listInvoicesAdmin,
   listPaymentsAdmin,
-  listProposalsAdmin,
   listSupportAdmin,
   listTasksAdmin,
   requireFinancialPermission,
   setProposalDiscount,
-  sendProposalAdmin,
   updateSupportAdmin,
   updateTaskAdmin,
 } from '../../services/admin.service.js'
@@ -106,6 +104,15 @@ import {
   updateProjectFulfillmentAdmin,
 } from '../../services/project-fulfillment.service.js'
 import { PROJECT_FULFILLMENT_STATUSES } from '../../lib/projects/project-fulfillment.js'
+import {
+  cancelProposalAdmin,
+  createProposalFromLeadCrm,
+  createProposalFromProjectCrm,
+  getProposalFulfillmentAdmin,
+  listProposalsFulfillmentAdmin,
+  sendProposalFulfillmentAdmin,
+  updateProposalDraftAdmin,
+} from '../../services/proposal-fulfillment.service.js'
 import {
   getEmployeeAccessReview,
   getExecutiveOverview,
@@ -935,10 +942,31 @@ adminRoutes.patch('/tasks/:id', requirePermission('tasks.update'), async (c) => 
 
 adminRoutes.get('/proposals', requirePermission('proposals.view'), async (c) => {
   try {
-    return jsonSuccess(c, { items: await listProposalsAdmin() })
+    const auth = c.get('auth')
+    const items = await listProposalsFulfillmentAdmin(auth, {
+      status: c.req.query('status'),
+      q: c.req.query('q'),
+    })
+    return jsonSuccess(c, { items, count: items.length })
   } catch (error) {
     return handleRouteError(c, error)
   }
+})
+
+adminRoutes.get('/proposals/:id', requirePermission('proposals.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getProposalFulfillmentAdmin(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const proposalLineItemSchema = z.object({
+  description: z.string().trim().min(1).max(500),
+  quantity: z.string().optional(),
+  unitAmount: z.string(),
+  itemType: z.string().optional(),
 })
 
 const proposalCreateSchema = z.object({
@@ -947,8 +975,27 @@ const proposalCreateSchema = z.object({
   amount: z.string().optional(),
   currency: z.string().trim().max(8).optional(),
   scope: z.string().optional(),
+  deliverables: z.string().optional(),
+  timeline: z.string().optional(),
+  terms: z.string().optional(),
+  validUntil: z.string().optional(),
+  paymentSchedule: z.string().optional(),
   projectId: z.string().uuid().optional(),
   leadId: z.string().uuid().optional(),
+  lineItems: z.array(proposalLineItemSchema).optional(),
+})
+
+const proposalPatchSchema = z.object({
+  title: z.string().trim().min(2).max(200).optional(),
+  scope: z.string().trim().max(8000).optional(),
+  deliverables: z.string().trim().max(8000).optional(),
+  timeline: z.string().trim().max(4000).optional(),
+  terms: z.string().trim().max(8000).optional(),
+  validUntil: z.string().nullable().optional(),
+  paymentSchedule: z.string().trim().max(2000).optional(),
+  currency: z.string().trim().max(8).optional(),
+  discountAmount: z.string().nullable().optional(),
+  lineItems: z.array(proposalLineItemSchema).optional(),
 })
 
 adminRoutes.post('/proposals', requirePermission('proposals.create'), async (c) => {
@@ -963,10 +1010,65 @@ adminRoutes.post('/proposals', requirePermission('proposals.create'), async (c) 
   }
 })
 
-adminRoutes.post('/proposals/:id/send', requirePermission('proposals.create'), async (c) => {
+adminRoutes.patch('/proposals/:id', requirePermission('proposals.update'), async (c) => {
   try {
     const auth = c.get('auth')
-    return jsonSuccess(c, await sendProposalAdmin(auth.userId, paramId(c), auth.roles))
+    const body = await c.req.json().catch(() => null)
+    const parsed = proposalPatchSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid proposal update.', 400, formatZodErrors(parsed.error))
+    }
+    return jsonSuccess(c, await updateProposalDraftAdmin(auth, paramId(c), parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/proposals/:id/cancel', requirePermission('proposals.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { proposal: await cancelProposalAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/leads/:id/create-proposal', requirePermission('proposals.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => ({}))
+    const parsed = proposalCreateSchema
+      .pick({ title: true, scope: true, projectId: true, lineItems: true, validUntil: true })
+      .safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid proposal.', 400)
+    }
+    return jsonSuccess(c, await createProposalFromLeadCrm(auth, paramId(c), parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/projects/:id/create-proposal', requirePermission('proposals.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => ({}))
+    const parsed = proposalCreateSchema
+      .pick({ title: true, scope: true, lineItems: true })
+      .safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid proposal.', 400)
+    }
+    return jsonSuccess(c, await createProposalFromProjectCrm(auth, paramId(c), parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/proposals/:id/send', requirePermission('proposals.send'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { proposal: await sendProposalFulfillmentAdmin(auth, paramId(c)) })
   } catch (error) {
     return handleRouteError(c, error)
   }

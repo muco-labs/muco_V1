@@ -31,6 +31,8 @@ export const jobPermissionProfiles = {
     'leads.assign',
     'proposals.view',
     'proposals.create',
+    'proposals.update',
+    'proposals.send',
     'messages.view',
     'messages.send',
   ],

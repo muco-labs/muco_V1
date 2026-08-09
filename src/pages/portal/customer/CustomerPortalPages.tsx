@@ -201,7 +201,7 @@ export function CustomerProposalsPage() {
     <>
       <PageIntro title="Proposals" description="Review scope, pricing, and approve when ready." />
       {items.length === 0 ? (
-        <EmptyState title="No proposals" description="Sent proposals will appear here for your review." />
+        <EmptyState title="No proposals yet" description="No proposals yet." />
       ) : (
         <ul className={ui.stack}>
           {items.map((p) => (
@@ -209,8 +209,12 @@ export function CustomerProposalsPage() {
               <Link className="link-underline" to={customerPortalPaths.proposalDetail(String(p.id))}>
                 {String(p.title ?? 'Proposal')}
               </Link>
-              <StatusPill status={String(p.status)} />
-              {p.amount ? <span className={ui.meta}>₹{String(p.amount)}</span> : null}
+              <p className={ui.meta}>
+                {p.reference ? String(p.reference) : null}
+                {p.currency ? ` · ${String(p.currency)}` : ''}
+              </p>
+              <StatusPill status={String(p.statusLabel ?? p.status)} />
+              {p.amount ? <span className={ui.meta}>{String(p.amount)}</span> : null}
             </li>
           ))}
         </ul>
@@ -229,9 +233,16 @@ export function CustomerProposalDetailPage() {
   if (error) return <PortalError message={error} onRetry={reload} />
   if (!data) return null
 
-  const canDecide = ['sent', 'viewed', 'changes_requested'].includes(String(data.status))
+  const canDecide = Boolean(data.canAcceptOrReject)
+  const statusLabel = String(data.statusLabel ?? data.status)
+  const nextAction = data.nextAction ? String(data.nextAction) : null
+  const currency = String(data.currency ?? 'INR')
+  const expired = Boolean(data.expired)
 
   async function decide(action: 'approve' | 'requestChanges' | 'reject') {
+    const label =
+      action === 'approve' ? 'accept this proposal' : action === 'reject' ? 'decline this proposal' : 'request changes'
+    if (!window.confirm(`Are you sure you want to ${label}?`)) return
     setActionError(null)
     try {
       if (action === 'approve') await customerApi.proposals.approve(id, note)
@@ -245,8 +256,27 @@ export function CustomerProposalDetailPage() {
 
   return (
     <>
-      <PageIntro title={String(data.title ?? 'Proposal')} />
-      <StatusPill status={String(data.status)} />
+      <PageIntro
+        title={String(data.title ?? 'Proposal')}
+        description={data.reference ? String(data.reference) : undefined}
+      />
+      <p className={ui.meta}>
+        <strong>Status:</strong> {statusLabel}
+      </p>
+      {nextAction ? (
+        <p className={ui.meta} role="status">
+          <strong>Next step:</strong> {nextAction}
+        </p>
+      ) : null}
+      {data.projectReference ? (
+        <p className={ui.meta}>Project {String(data.projectReference)}</p>
+      ) : null}
+      {data.sourceRequestReference ? (
+        <p className={ui.meta}>Request {String(data.sourceRequestReference)}</p>
+      ) : null}
+      {expired ? (
+        <p className={ui.meta}>This proposal is no longer valid.</p>
+      ) : null}
       <div className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
         {data.scope ? (
           <p>
@@ -268,9 +298,17 @@ export function CustomerProposalDetailPage() {
             <strong>Terms.</strong> {String(data.terms)}
           </p>
         ) : null}
-        {data.amount ? <p className={ui.meta}>Total: ₹{String(data.amount)}</p> : null}
+        {data.amount ? (
+          <p className={ui.meta}>
+            Total: {currency} {String(data.amount)}
+            {data.subtotal ? ` (subtotal ${String(data.subtotal)})` : ''}
+          </p>
+        ) : null}
         {data.discountAmount ? (
           <p className={ui.meta}>Includes authorized discount: ₹{String(data.discountAmount)}</p>
+        ) : null}
+        {data.validUntil ? (
+          <p className={ui.meta}>Valid until {new Date(String(data.validUntil)).toLocaleDateString()}</p>
         ) : null}
         {data.paymentSchedule ? (
           <p className={ui.meta}>Payment schedule: {String(data.paymentSchedule).replaceAll('_', ' ')}</p>
@@ -306,7 +344,7 @@ export function CustomerProposalDetailPage() {
           {actionError ? <PortalError message={actionError} /> : null}
           <div className={ui.actionsRow}>
             <Button type="button" onClick={() => void decide('approve')}>
-              Approve
+              Accept
             </Button>
             <Button type="button" variant="secondary" onClick={() => void decide('requestChanges')}>
               Request changes

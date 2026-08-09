@@ -17,6 +17,7 @@ import {
   getCustomerProfile,
   getCustomerProjectDetail,
   getCustomerProposal,
+  viewCustomerProposal,
   getSupportTicket,
   listCustomerFiles,
   listCustomerInvoices,
@@ -156,6 +157,42 @@ customerRoutes.get(
 const proposalDecisionSchema = z.object({
   note: z.string().max(2000).optional(),
 })
+
+customerRoutes.post(
+  '/proposals/:id/view',
+  ...customerStack,
+  requirePermission('proposals.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(c, await viewCustomerProposal(ctx, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+customerRoutes.post(
+  '/proposals/:id/accept',
+  ...customerStack,
+  requirePermission('proposals.approve'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      const body = await c.req.json().catch(() => ({}))
+      const parsed = proposalDecisionSchema.safeParse(body)
+      if (!parsed.success) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid request.', 400)
+      }
+      const data = await decideProposal(ctx, paramId(c), 'approve', parsed.data.note)
+      return jsonSuccess(c, data)
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
 
 customerRoutes.post(
   '/proposals/:id/approve',

@@ -214,10 +214,29 @@ export const adminApi = {
       apiRequest(`${base}/tasks/${id}`, { method: 'PATCH', json: body }),
   },
   proposals: {
-    list: () => apiRequest<{ items: unknown[] }>(`${base}/proposals`),
+    list: (params?: { status?: string; q?: string }) => {
+      const search = new URLSearchParams()
+      if (params?.status) search.set('status', params.status)
+      if (params?.q) search.set('q', params.q)
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[]; count: number }>(
+        `${base}/proposals${qs ? `?${qs}` : ''}`,
+      )
+    },
+    get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/proposals/${id}`),
     create: (body: Record<string, unknown>) =>
       apiRequest(`${base}/proposals`, { method: 'POST', json: body }),
+    update: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/proposals/${id}`, { method: 'PATCH', json: body }),
     send: (id: string) => apiRequest(`${base}/proposals/${id}/send`, { method: 'POST' }),
+    cancel: (id: string) => apiRequest(`${base}/proposals/${id}/cancel`, { method: 'POST' }),
+    createFromLead: (leadId: string, body?: Record<string, unknown>) =>
+      apiRequest(`${base}/leads/${leadId}/create-proposal`, { method: 'POST', json: body ?? {} }),
+    createFromProject: (projectId: string, body?: Record<string, unknown>) =>
+      apiRequest(`${base}/projects/${projectId}/create-proposal`, {
+        method: 'POST',
+        json: body ?? {},
+      }),
   },
   invoices: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/invoices`),
