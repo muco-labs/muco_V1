@@ -6,6 +6,7 @@ import {
   ListSkeleton,
   PageIntro,
   PortalError,
+  ProjectSectionNav,
   StatusPill,
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
@@ -15,6 +16,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { customerApi } from '@/services/customer-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
+import { friendlyCustomerPortalError, paymentStatusTone } from '@/lib/customer/portal-errors'
 import { ProjectRequestListItem } from '@/components/portal/ProjectRequestListItem'
 import { CustomerRequestStatus } from '@/components/portal/CustomerRequestStatus'
 import { ProjectRequestLifecycle } from '@/components/portal/ProjectRequestLifecycle'
@@ -53,7 +55,7 @@ export function CustomerProjectsPage() {
   )
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   const items = data?.items ?? []
 
@@ -111,7 +113,7 @@ export function CustomerProjectDetailPage() {
   )
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const project = data.project as Record<string, unknown>
@@ -136,6 +138,14 @@ export function CustomerProjectDetailPage() {
             ? `${String(project.reference)}${project.service ? ` · ${String(project.service)}` : ''}`
             : undefined
         }
+      />
+      <ProjectSectionNav
+        items={[
+          { href: '#project-lifecycle', label: 'Progress' },
+          { href: '#project-milestones', label: 'Milestones' },
+          ...(activities.length > 0 ? [{ href: '#project-activity', label: 'Updates' }] : []),
+          { href: '#project-files', label: 'Files' },
+        ]}
       />
       {project.sourceRequestReference ? (
         <p className={ui.meta}>
@@ -216,8 +226,10 @@ export function CustomerProjectDetailPage() {
         </p>
       ) : null}
 
-      <section style={{ marginTop: 'var(--space-8)' }}>
-        <h2 className="text-h3">Milestones</h2>
+      <section id="project-milestones" style={{ marginTop: 'var(--space-8)' }} aria-labelledby="project-milestones-heading">
+        <h2 id="project-milestones-heading" className="text-h3">
+          Milestones
+        </h2>
         {milestones.length === 0 ? (
           <EmptyState title="No milestones yet" description="Milestone updates will appear here when they are added." />
         ) : (
@@ -276,13 +288,16 @@ export function CustomerProposalsPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
       <PageIntro title="Proposals" description="Review scope, pricing, and approve when ready." />
       {items.length === 0 ? (
-        <EmptyState title="No proposals yet" description="No proposals yet." />
+        <EmptyState
+          title="No proposals yet"
+          description="When MUCO sends a proposal, you can review scope and pricing here."
+        />
       ) : (
         <ul className={ui.stack}>
           {items.map((p) => (
@@ -313,7 +328,7 @@ export function CustomerProposalDetailPage() {
   const { data, error, loading, reload } = useFetch(() => customerApi.proposals.get(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const canDecide = Boolean(data.canAcceptOrReject)
@@ -553,7 +568,7 @@ export function CustomerInvoicesPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -585,7 +600,7 @@ export function CustomerInvoiceDetailPage() {
   const { data, error, loading, reload } = useFetch(() => customerApi.invoices.get(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const invoice = data.invoice as Record<string, unknown>
@@ -653,7 +668,7 @@ export function CustomerPaymentsPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -667,7 +682,7 @@ export function CustomerPaymentsPage() {
               <span>
                 {formatMoney(String(pay.amount), String(pay.currency ?? 'INR'))}
               </span>
-              <StatusPill status={String(pay.status)} />
+              <StatusPill status={String(pay.status)} tone={paymentStatusTone(String(pay.status))} />
               {pay.reference ? <span className={ui.meta}>{String(pay.reference)}</span> : null}
               {pay.proposalReference ? (
                 <span className={ui.meta}>Proposal {String(pay.proposalReference)}</span>
@@ -709,7 +724,7 @@ export function CustomerFilesPage() {
   }
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -749,7 +764,7 @@ export function CustomerMessagesPage() {
   }
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -763,7 +778,10 @@ export function CustomerMessagesPage() {
         </Button>
       </p>
       {items.length === 0 ? (
-        <EmptyState title="No messages yet" description="No messages yet." />
+        <EmptyState
+          title="No messages yet"
+          description="Start a conversation or wait for your team to reach out."
+        />
       ) : (
         <ul className={ui.stack}>
           {items.map((row: CustomerConversationListItem) => (
@@ -831,7 +849,7 @@ export function CustomerConversationDetailPage() {
   }
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
   if (!conversation) return null
 
   return (
@@ -913,7 +931,7 @@ export function CustomerSupportPage() {
   }
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -953,7 +971,7 @@ export function CustomerSupportDetailPage() {
   const { data, error, loading, reload } = useFetch(() => customerApi.support.get(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const ticket = data.ticket as Record<string, unknown>
@@ -995,7 +1013,7 @@ export function CustomerNotificationsPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1046,7 +1064,7 @@ export function CustomerProfilePage() {
   }, [data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   async function save(e: FormEvent) {
     e.preventDefault()
