@@ -15,13 +15,17 @@ export const primaryNav: NavItem[] = [
   {
     label: 'Services',
     children: [
-      { label: 'All services', href: routePaths.services, description: 'Overview' },
-      { label: 'Web development', href: servicePath('web-development') },
-      { label: 'Software development', href: servicePath('software-development') },
+      { label: 'All services', href: routePaths.services, description: 'Full catalog' },
+      { label: 'Website development', href: servicePath('web-development') },
+      { label: 'Custom software & SaaS', href: servicePath('software-development') },
       { label: 'Mobile apps', href: servicePath('mobile-app-development') },
-      { label: 'AI solutions', href: servicePath('ai-solutions') },
+      { label: 'E-commerce', href: servicePath('ecommerce-development') },
+      { label: 'AI & automation', href: servicePath('ai-solutions') },
+      { label: 'Business automation', href: servicePath('automation') },
       { label: 'UI/UX design', href: servicePath('ui-ux-design') },
-      { label: 'SEO & growth', href: servicePath('seo') },
+      { label: 'Digital marketing', href: servicePath('digital-marketing') },
+      { label: 'SEO', href: servicePath('seo') },
+      { label: 'Technology consulting', href: servicePath('technology-consulting') },
     ],
   },
   {
@@ -39,6 +43,7 @@ export const primaryNav: NavItem[] = [
 export const footerNav = {
   explore: [
     { label: 'Services', href: routePaths.services },
+    { label: 'Products', href: '/products' },
     { label: 'Solutions', href: routePaths.solutions },
     { label: 'Work', href: routePaths.work },
     { label: 'About', href: routePaths.about },

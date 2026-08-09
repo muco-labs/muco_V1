@@ -78,6 +78,11 @@ export function StartProjectEntryPage() {
               Labs account.
             </p>
             <p className={styles.authHint}>
+              Prefer a quick inquiry without signing in?{' '}
+              <Link className="link-underline" to={routePaths.contact}>
+                Contact us
+              </Link>
+              {' · '}
               Already have an account?{' '}
               <Link className="link-underline" to={authRoutes.signIn} state={authState}>
                 Sign in

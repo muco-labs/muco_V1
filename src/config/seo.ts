@@ -89,9 +89,9 @@ export const pageSeo = {
   },
   contact: {
     path: '/contact',
-    documentTitle: `Start a Project | ${brand}`,
+    documentTitle: `Contact & project inquiry | ${brand}`,
     description:
-      'Tell MUCO LABS what you are building. Share your goals for website development, software, mobile, AI or growth—and we will suggest a practical next step.',
+      'Contact MUCO LABS or send a project inquiry—websites, software, mobile, AI and growth. We reply with a practical next step, usually within one business day.',
   },
   careers: {
     path: '/careers',

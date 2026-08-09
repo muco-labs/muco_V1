@@ -12,6 +12,7 @@ import { readContactPrefill } from '@/lib/conversion/contact-link'
 import { getPortfolioProject } from '@/data/portfolio'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { routePaths } from '@/config/routes'
+import { startProjectPaths } from '@/config/start-project'
 import styles from './ContactPage.module.css'
 
 const contactSeo = pageSeo.contact
@@ -43,14 +44,18 @@ export function ContactPage() {
 
   return (
     <PageShell
-      title="Start a project"
+      title="Contact & project inquiry"
       documentTitle={contactSeo.documentTitle}
       path={contactSeo.path}
       description="Tell us what you are building. We respond with a practical next step—usually within one business day."
     >
       <p className={styles.intro}>
         Share your goals, timeline and budget range if you know them. We scope honestly—no pressure
-        to oversell.
+        to oversell. Prefer a guided intake with your MUCO account?{' '}
+        <Link className="link-underline" to={startProjectPaths.entry}>
+          Start a project
+        </Link>
+        .
       </p>
       <div className={styles.layout}>
         <div className={styles.aside}>
