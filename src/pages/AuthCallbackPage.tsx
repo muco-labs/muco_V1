@@ -12,7 +12,7 @@ import { consumeOAuthReturnPath } from '@/lib/auth/oauth-return-path'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { waitForAuthSession } from '@/lib/supabase/wait-for-auth-session'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
-import { logAuthDiag, listSbStorageKeyNames } from '@/lib/auth/auth-diagnostics'
+import { logAuthDiag, listSbStorageKeyNames, hasSbPkceVerifierCookieKey } from '@/lib/auth/auth-diagnostics'
 import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
 
@@ -33,13 +33,16 @@ export function AuthCallbackPage() {
         return
       }
 
-      const { session, error: sessionError } = await waitForAuthSession(client)
+      const { session, error: sessionError, failurePoint } = await waitForAuthSession(client)
       logAuthDiag('callback_session', {
         sessionExists: Boolean(session),
         sessionUserIdExists: Boolean(session?.user?.id),
+        failurePoint: failurePoint ?? null,
         getSessionErrorName: sessionError?.name ?? null,
         getSessionErrorMessage: sessionError?.message ?? null,
         sbStorageKeyCount: listSbStorageKeyNames().length,
+        pkceVerifierCookieKeyPresent: hasSbPkceVerifierCookieKey(),
+        urlHasOAuthCode: new URLSearchParams(window.location.search).has('code'),
       })
       if (sessionError || !session?.user) {
         if (!cancelled) {
@@ -51,12 +54,24 @@ export function AuthCallbackPage() {
       let me: MeResponse
       try {
         me = await ensureAppProfileAfterSignIn()
-      } catch {
+      } catch (profileError) {
+        const status =
+          profileError && typeof profileError === 'object' && 'status' in profileError
+            ? Number((profileError as { status: number }).status)
+            : null
+        logAuthDiag('callback_profile', {
+          profileLoaded: false,
+          httpStatus: status,
+        })
         if (!cancelled) {
           setError('Sign-in could not be completed. Try again.')
         }
         return
       }
+      logAuthDiag('callback_profile', {
+        profileLoaded: true,
+        registered: me.registered ?? null,
+      })
 
       await refreshProfile()
 

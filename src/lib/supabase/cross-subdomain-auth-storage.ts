@@ -17,12 +17,15 @@ function cookieDomain(): string {
 }
 
 function readCookie(name: string): string | null {
-  const prefix = `${encodeURIComponent(name)}=`
+  // Browsers expose cookie names literally in document.cookie (not URI-encoded).
+  const prefixes = [`${name}=`, `${encodeURIComponent(name)}=`]
   const parts = document.cookie.split(';')
-  for (const part of parts) {
-    const trimmed = part.trim()
-    if (trimmed.startsWith(prefix)) {
-      return decodeURIComponent(trimmed.slice(prefix.length))
+  for (const prefix of prefixes) {
+    for (const part of parts) {
+      const trimmed = part.trim()
+      if (trimmed.startsWith(prefix)) {
+        return decodeURIComponent(trimmed.slice(prefix.length))
+      }
     }
   }
   return null
@@ -30,12 +33,12 @@ function readCookie(name: string): string | null {
 
 function writeCookie(name: string, value: string, maxAgeSeconds: number) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : ''
-  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=/; Domain=${cookieDomain()}; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`
+  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Domain=${cookieDomain()}; Max-Age=${maxAgeSeconds}; SameSite=Lax${secure}`
 }
 
 function deleteCookie(name: string) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : ''
-  document.cookie = `${encodeURIComponent(name)}=; Path=/; Domain=${cookieDomain()}; Max-Age=0; SameSite=Lax${secure}`
+  document.cookie = `${name}=; Path=/; Domain=${cookieDomain()}; Max-Age=0; SameSite=Lax${secure}`
 }
 
 function chunkKey(base: string, index: number): string {

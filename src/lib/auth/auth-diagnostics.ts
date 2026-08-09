@@ -32,3 +32,17 @@ export function listSbStorageKeyNames(): string[] {
     .map((part) => part.trim().split('=')[0] ?? '')
     .filter((name) => name.startsWith('sb-'))
 }
+
+/** True when a cookie name exists for a PKCE verifier key (no value read). */
+export function hasSbPkceVerifierCookieKey(): boolean {
+  return listSbStorageKeyNames().some((name) => {
+    const decoded = (() => {
+      try {
+        return decodeURIComponent(name)
+      } catch {
+        return name
+      }
+    })()
+    return decoded.endsWith('-code-verifier') || name.includes('-code-verifier')
+  })
+}

@@ -50,4 +50,21 @@ describe('cross-subdomain-auth-storage', () => {
     storage.removeItem('sb-test-auth-token')
     expect(storage.getItem('sb-test-auth-token')).toBeNull()
   })
+
+  it('round-trips Supabase PKCE verifier JSON like auth-js setItemAsync', () => {
+    const storage = createSupabaseAuthStorage()
+    const key = 'sb-test-auth-token-code-verifier'
+    const serialized = JSON.stringify('a'.repeat(64) + '/sign-in')
+    storage.setItem(key, serialized)
+    const raw = storage.getItem(key)
+    expect(raw).toBe(serialized)
+    expect(JSON.parse(raw!)).toMatch(/\/sign-in$/)
+  })
+
+  it('reads cookies when document.cookie uses unencoded names (browser-like)', () => {
+    cookieJar.set('sb-test-auth-token-code-verifier', JSON.stringify('verifier/sign-in'))
+    const storage = createSupabaseAuthStorage()
+    const raw = storage.getItem('sb-test-auth-token-code-verifier')
+    expect(JSON.parse(raw!)).toBe('verifier/sign-in')
+  })
 })
