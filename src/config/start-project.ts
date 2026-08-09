@@ -43,3 +43,30 @@ export function budgetLabel(value: string): string {
 export function timelineLabel(value: string): string {
   return timelinePreferenceOptions.find((o) => o.value === value)?.label ?? value
 }
+
+export const intakeSteps = [
+  { key: 'about', label: 'About You', number: '01' },
+  { key: 'service', label: 'Service', number: '02' },
+  { key: 'project', label: 'Project', number: '03' },
+  { key: 'budget', label: 'Budget & Timeline', number: '04' },
+  { key: 'review', label: 'Review', number: '05' },
+] as const
+
+/** Shorter labels for service selection cards. */
+export const intakeServiceCardLabel: Record<string, string> = {
+  'web-development': 'Website',
+  'software-development': 'Web Application',
+  'mobile-app-development': 'Mobile App',
+  'ecommerce-development': 'E-commerce',
+  'ai-solutions': 'AI & Automation',
+  'ui-ux-design': 'UI/UX',
+  seo: 'SEO',
+  'digital-marketing': 'Digital Marketing',
+  automation: 'Automation',
+  'technology-consulting': 'Cloud & Consulting',
+  other: 'Other',
+}
+
+export function intakeCardLabelForService(value: string): string {
+  return intakeServiceCardLabel[value] ?? intakeLabelForService(value)
+}

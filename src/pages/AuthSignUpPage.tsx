@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes } from '@/config/auth'
 import { resolveSafeCustomerReturnPath } from '@/lib/auth/safe-return-path'
+import { startProjectPaths } from '@/config/start-project'
 import { pageSeo } from '@/config/seo'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthProvider'
@@ -26,6 +27,8 @@ export function AuthSignUpPage() {
 
   const configured = isSupabaseConfigured()
   const returnState = location.state
+  const from = (returnState as { from?: string } | null)?.from
+  const isStartProject = Boolean(from?.startsWith(startProjectPaths.flow))
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -48,7 +51,6 @@ export function AuthSignUpPage() {
         return
       }
       await refreshProfile()
-      const from = (returnState as { from?: string } | null)?.from
       navigate(resolveSafeCustomerReturnPath(from), { replace: true })
     } catch {
       setError('Sign up failed. Try again or use a different email.')
@@ -70,6 +72,12 @@ export function AuthSignUpPage() {
           <div className={`surface ${styles.card}`}>
             <p className="text-label">Customer portal</p>
             <h1 className="text-h1">{authCopy.signUpTitle}</h1>
+            {isStartProject ? (
+              <p className={formStyles.hint}>
+                Create your account to start your project request. Progress is saved to your MUCO
+                Labs account.
+              </p>
+            ) : null}
             {!configured ? (
               <p>{authCopy.supabaseMissing}</p>
             ) : (

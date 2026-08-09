@@ -4,7 +4,9 @@ import { PageMeta } from '@/components/seo/PageMeta'
 import { Button } from '@/components/ui/Button'
 import {
   budgetPreferenceOptions,
+  intakeCardLabelForService,
   intakeServiceOptions,
+  intakeSteps,
   startProjectPaths,
   timelinePreferenceOptions,
   budgetLabel,
@@ -13,15 +15,23 @@ import {
 } from '@/config/start-project'
 import { customerPortalPaths } from '@/config/customer-portal'
 import { readStartProjectPrefill } from '@/lib/conversion/start-project-link'
+import { formatProjectRequestReference } from '@/lib/conversion/project-request-reference'
 import { customerApi } from '@/services/customer-portal'
 import { ApiError } from '@/services/api'
 import styles from './StartProjectFlow.module.css'
 
-const STEPS = ['Details', 'Services', 'Requirement', 'Budget & timeline', 'Review'] as const
-
 const INTAKE_DRAFT_KEY = 'muco.start-project.draft.v1'
 
 const VALID_SERVICE_SLUGS = new Set<string>(intakeServiceOptions.map((option) => option.value))
+
+function friendlySubmitError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 401) return 'Please sign in again to continue.'
+    if (err.status === 503) return 'Something went wrong while submitting your request. Please try again.'
+    return err.message
+  }
+  return 'Something went wrong while submitting your request. Please try again.'
+}
 
 type FormState = {
   fullName: string
@@ -92,7 +102,7 @@ export function StartProjectFlowPage() {
       if (!raw) return
       const draft = JSON.parse(raw) as { form?: FormState; step?: number }
       if (draft.form) setForm((prev) => ({ ...prev, ...draft.form }))
-      if (typeof draft.step === 'number' && draft.step >= 0 && draft.step < STEPS.length) {
+      if (typeof draft.step === 'number' && draft.step >= 0 && draft.step < intakeSteps.length) {
         setStep(draft.step)
       }
     } catch {
@@ -171,6 +181,11 @@ export function StartProjectFlowPage() {
     return null
   }
 
+  function goToStep(index: number) {
+    setError(null)
+    setStep(index)
+  }
+
   function next() {
     const message = validateStep(step)
     if (message) {
@@ -178,7 +193,7 @@ export function StartProjectFlowPage() {
       return
     }
     setError(null)
-    setStep((s) => Math.min(s + 1, STEPS.length - 1))
+    setStep((s) => Math.min(s + 1, intakeSteps.length - 1))
   }
 
   function back() {
@@ -205,11 +220,7 @@ export function StartProjectFlowPage() {
       sessionStorage.removeItem(INTAKE_DRAFT_KEY)
       navigate(startProjectPaths.success(result.id), { replace: true })
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message)
-      } else {
-        setError('Submission failed. Please try again.')
-      }
+      setError(friendlySubmitError(err))
     } finally {
       setSubmitting(false)
     }
@@ -217,11 +228,15 @@ export function StartProjectFlowPage() {
 
   if (loadingPrefill) {
     return (
-      <p className={styles.meta} role="status">
-        Loading your details…
-      </p>
+      <div className={styles.loadingWrap}>
+        <p className={styles.meta} role="status">
+          Loading your details…
+        </p>
+      </div>
     )
   }
+
+  const currentStep = intakeSteps[step]
 
   return (
     <>
@@ -233,55 +248,75 @@ export function StartProjectFlowPage() {
       />
       <div className={styles.start}>
         <div className={styles.shell}>
-          <p className="eyebrow-line">Start a project</p>
-          <h1 className="text-h1">Project intake</h1>
-          <p className={styles.meta} id="intake-step-label">
-            Step {step + 1} of {STEPS.length}: {STEPS[step]}
-          </p>
-
-          <div
-            className={styles.progress}
-            aria-labelledby="intake-step-label"
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={STEPS.length}
-            aria-valuenow={step + 1}
-          >
-            {STEPS.map((_, index) => (
-              <span
-                key={STEPS[index]}
-                className={
-                  index < step
-                    ? `${styles.progressStep} ${styles.progressStepDone}`
-                    : index === step
-                      ? `${styles.progressStep} ${styles.progressStepActive}`
-                      : styles.progressStep
-                }
-              />
-            ))}
+          <div className={styles.stepHeader}>
+            <p className="eyebrow-line">Start a project</p>
+            <p className={styles.stepEyebrow}>
+              {currentStep.number} {currentStep.label}
+            </p>
+            <h1 className={`text-h1 ${styles.stepTitle}`}>{currentStep.label}</h1>
+            <p className={styles.meta} id="intake-step-label">
+              Step {step + 1} of {intakeSteps.length}
+            </p>
           </div>
+
+          <ol
+            className={styles.progressList}
+            aria-labelledby="intake-step-label"
+          >
+            {intakeSteps.map((item, index) => (
+              <li key={item.key} className={styles.progressItem}>
+                <span
+                  className={
+                    index < step
+                      ? `${styles.progressDot} ${styles.progressDotDone}`
+                      : index === step
+                        ? `${styles.progressDot} ${styles.progressDotActive}`
+                        : styles.progressDot
+                  }
+                  aria-hidden="true"
+                />
+                <span
+                  className={
+                    index === step
+                      ? `${styles.progressLabel} ${styles.progressLabelActive}`
+                      : styles.progressLabel
+                  }
+                >
+                  {item.number}
+                </span>
+              </li>
+            ))}
+          </ol>
 
           <form className={`surface ${styles.card}`} onSubmit={(e) => void onSubmit(e)}>
             {step === 0 ? (
               <div className={styles.form}>
+                <p className={styles.accountNote}>
+                  Fields marked from your account are prefilled. Update anything that should apply
+                  to this project request.
+                </p>
                 <div className={styles.field}>
-                  <label htmlFor="fullName">Full name</label>
+                  <label htmlFor="fullName">Name</label>
                   <input
                     id="fullName"
                     required
+                    autoComplete="name"
                     value={form.fullName}
                     onChange={(e) => update('fullName', e.target.value)}
+                    aria-invalid={Boolean(error && step === 0)}
                   />
                 </div>
                 <div className={styles.field}>
                   <label htmlFor="email">Email</label>
+                  <p className={styles.fieldHint}>From your MUCO Labs account</p>
                   <input
                     id="email"
                     type="email"
                     required
                     readOnly
+                    autoComplete="email"
                     value={form.email}
-                    onChange={(e) => update('email', e.target.value)}
+                    aria-readonly="true"
                   />
                 </div>
                 <div className={styles.grid2}>
@@ -289,6 +324,8 @@ export function StartProjectFlowPage() {
                     <label htmlFor="phone">Phone</label>
                     <input
                       id="phone"
+                      type="tel"
+                      autoComplete="tel"
                       value={form.phone}
                       onChange={(e) => update('phone', e.target.value)}
                     />
@@ -297,57 +334,74 @@ export function StartProjectFlowPage() {
                     <label htmlFor="companyName">Company</label>
                     <input
                       id="companyName"
+                      autoComplete="organization"
                       value={form.companyName}
                       onChange={(e) => update('companyName', e.target.value)}
                     />
                   </div>
                 </div>
-                <div className={styles.grid2}>
-                  <div className={styles.field}>
-                    <label htmlFor="city">City</label>
-                    <input id="city" value={form.city} onChange={(e) => update('city', e.target.value)} />
+                <details className={styles.optionalBlock}>
+                  <summary>Location & website (optional)</summary>
+                  <div className={styles.form} style={{ marginTop: 'var(--space-3)' }}>
+                    <div className={styles.grid2}>
+                      <div className={styles.field}>
+                        <label htmlFor="city">City</label>
+                        <input
+                          id="city"
+                          value={form.city}
+                          onChange={(e) => update('city', e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="state">State</label>
+                        <input
+                          id="state"
+                          value={form.state}
+                          onChange={(e) => update('state', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.grid2}>
+                      <div className={styles.field}>
+                        <label htmlFor="country">Country</label>
+                        <input
+                          id="country"
+                          value={form.country}
+                          onChange={(e) => update('country', e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="website">Website</label>
+                        <input
+                          id="website"
+                          type="url"
+                          placeholder="https://"
+                          value={form.website}
+                          onChange={(e) => update('website', e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className={styles.field}>
-                    <label htmlFor="state">State</label>
-                    <input id="state" value={form.state} onChange={(e) => update('state', e.target.value)} />
-                  </div>
-                </div>
-                <div className={styles.grid2}>
-                  <div className={styles.field}>
-                    <label htmlFor="country">Country</label>
-                    <input
-                      id="country"
-                      value={form.country}
-                      onChange={(e) => update('country', e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.field}>
-                    <label htmlFor="website">Website (optional)</label>
-                    <input
-                      id="website"
-                      type="url"
-                      placeholder="https://"
-                      value={form.website}
-                      onChange={(e) => update('website', e.target.value)}
-                    />
-                  </div>
-                </div>
+                </details>
               </div>
             ) : null}
 
             {step === 1 ? (
               <div className={styles.form}>
-                <p className={styles.meta}>Select a primary service. You can add more below.</p>
-                <div className={styles.serviceList}>
+                <p className={styles.meta}>Choose a primary service. You can add more below.</p>
+                <div className={styles.serviceGrid} role="radiogroup" aria-label="Primary service">
                   {intakeServiceOptions.map((opt) => (
-                    <label key={opt.value} className={styles.serviceOption}>
+                    <label key={opt.value} className={styles.serviceCard}>
                       <input
                         type="radio"
                         name="primaryService"
                         checked={form.primaryService === opt.value}
                         onChange={() => update('primaryService', opt.value)}
                       />
-                      <span>{opt.label}</span>
+                      <span className={styles.serviceCardTitle}>
+                        {intakeCardLabelForService(opt.value)}
+                      </span>
+                      <span className={styles.serviceCardSub}>{opt.label}</span>
                     </label>
                   ))}
                 </div>
@@ -363,17 +417,19 @@ export function StartProjectFlowPage() {
                   </div>
                 ) : null}
                 <p className={styles.meta}>Additional services (optional)</p>
-                <div className={styles.serviceList}>
+                <div className={styles.serviceGrid}>
                   {intakeServiceOptions
                     .filter((o) => o.value !== form.primaryService)
                     .map((opt) => (
-                      <label key={opt.value} className={styles.serviceOption}>
+                      <label key={opt.value} className={styles.serviceCard}>
                         <input
                           type="checkbox"
                           checked={form.additionalServices.includes(opt.value)}
                           onChange={() => toggleAdditional(opt.value)}
                         />
-                        <span>{opt.label}</span>
+                        <span className={styles.serviceCardTitle}>
+                          {intakeCardLabelForService(opt.value)}
+                        </span>
                       </label>
                     ))}
                 </div>
@@ -383,15 +439,28 @@ export function StartProjectFlowPage() {
             {step === 2 ? (
               <div className={styles.form}>
                 <div className={styles.field}>
-                  <label htmlFor="requirement">What do you want us to build or improve?</label>
+                  <label htmlFor="requirement">
+                    What are you trying to build, improve, or solve?
+                  </label>
+                  <p className={styles.fieldHint}>
+                    A few sentences is enough—we will follow up if we need more detail.
+                  </p>
                   <textarea
                     id="requirement"
                     required
                     minLength={20}
                     value={form.requirement}
                     onChange={(e) => update('requirement', e.target.value)}
+                    aria-describedby="requirement-hints"
                   />
                 </div>
+                <ul className={styles.helperList} id="requirement-hints">
+                  <li>What are you building?</li>
+                  <li>Who will use it?</li>
+                  <li>What problem should it solve?</li>
+                  <li>What features matter most?</li>
+                  <li>Do you have an existing website or product?</li>
+                </ul>
                 <div className={styles.field}>
                   <label htmlFor="objective">Project objective (optional)</label>
                   <textarea
@@ -434,12 +503,16 @@ export function StartProjectFlowPage() {
                     onChange={(e) => update('referenceUrls', e.target.value)}
                   />
                 </div>
-                <p className={styles.meta}>File attachments are not available in this step yet.</p>
+                <p className={styles.meta}>File attachments are not available yet.</p>
               </div>
             ) : null}
 
             {step === 3 ? (
               <div className={styles.form}>
+                <p className={styles.meta}>
+                  This is an initial estimate only. Final scope and pricing may change after we
+                  review your requirements.
+                </p>
                 <div className={styles.field}>
                   <label htmlFor="budgetPreference">Budget preference</label>
                   <select
@@ -499,39 +572,85 @@ export function StartProjectFlowPage() {
             ) : null}
 
             {step === 4 ? (
-              <dl className={styles.review}>
-                <dt>Customer</dt>
-                <dd>
-                  {form.fullName}
-                  <br />
-                  {form.email}
-                  {form.phone ? ` · ${form.phone}` : ''}
-                </dd>
-                <dt>Service</dt>
-                <dd>
-                  {form.primaryService === 'other'
-                    ? form.customPrimaryService
-                    : intakeLabelForService(form.primaryService)}
-                </dd>
-                {form.additionalServices.length ? (
-                  <>
-                    <dt>Additional services</dt>
-                    <dd>{form.additionalServices.map(intakeLabelForService).join(', ')}</dd>
-                  </>
-                ) : null}
-                <dt>Requirement</dt>
-                <dd>{form.requirement}</dd>
-                <dt>Budget</dt>
-                <dd>{budgetLabel(form.budgetPreference)}</dd>
-                <dt>Timeline</dt>
-                <dd>{timelineLabel(form.timelinePreference)}</dd>
+              <div className={styles.review}>
+                <div className={styles.reviewRow}>
+                  <dt>Customer</dt>
+                  <button
+                    type="button"
+                    className={`link-underline ${styles.reviewEdit}`}
+                    onClick={() => goToStep(0)}
+                  >
+                    Edit
+                  </button>
+                  <dd>
+                    {form.fullName}
+                    <br />
+                    {form.email}
+                    {form.phone ? ` · ${form.phone}` : ''}
+                    {form.companyName ? ` · ${form.companyName}` : ''}
+                  </dd>
+                </div>
+                <div className={styles.reviewRow}>
+                  <dt>Service</dt>
+                  <button
+                    type="button"
+                    className={`link-underline ${styles.reviewEdit}`}
+                    onClick={() => goToStep(1)}
+                  >
+                    Edit
+                  </button>
+                  <dd>
+                    {form.primaryService === 'other'
+                      ? form.customPrimaryService
+                      : intakeLabelForService(form.primaryService)}
+                    {form.additionalServices.length
+                      ? ` · Also: ${form.additionalServices.map(intakeLabelForService).join(', ')}`
+                      : ''}
+                  </dd>
+                </div>
+                <div className={styles.reviewRow}>
+                  <dt>Project requirement</dt>
+                  <button
+                    type="button"
+                    className={`link-underline ${styles.reviewEdit}`}
+                    onClick={() => goToStep(2)}
+                  >
+                    Edit
+                  </button>
+                  <dd>{form.requirement}</dd>
+                </div>
+                <div className={styles.reviewRow}>
+                  <dt>Budget</dt>
+                  <button
+                    type="button"
+                    className={`link-underline ${styles.reviewEdit}`}
+                    onClick={() => goToStep(3)}
+                  >
+                    Edit
+                  </button>
+                  <dd>{budgetLabel(form.budgetPreference)}</dd>
+                </div>
+                <div className={styles.reviewRow}>
+                  <dt>Timeline</dt>
+                  <button
+                    type="button"
+                    className={`link-underline ${styles.reviewEdit}`}
+                    onClick={() => goToStep(3)}
+                  >
+                    Edit
+                  </button>
+                  <dd>{timelineLabel(form.timelinePreference)}</dd>
+                </div>
                 {(form.website || form.existingUrl) && (
-                  <>
+                  <div className={styles.reviewRow}>
                     <dt>Website</dt>
                     <dd>{form.existingUrl || form.website}</dd>
-                  </>
+                  </div>
                 )}
-              </dl>
+                <p className={styles.submitNote}>
+                  By submitting, you are sending your project requirements to MUCO Labs for review.
+                </p>
+              </div>
             ) : null}
 
             {error ? (
@@ -546,13 +665,13 @@ export function StartProjectFlowPage() {
                   Back
                 </Button>
               ) : null}
-              {step < STEPS.length - 1 ? (
+              {step < intakeSteps.length - 1 ? (
                 <Button type="button" onClick={next} disabled={submitting}>
                   Continue
                 </Button>
               ) : (
                 <Button type="submit" disabled={submitting} aria-busy={submitting}>
-                  {submitting ? 'Submitting…' : 'Submit project request'}
+                  {submitting ? 'Submitting…' : 'Submit Project Request'}
                 </Button>
               )}
             </div>
@@ -569,6 +688,7 @@ export function StartProjectFlowPage() {
 
 export function StartProjectSuccessPage() {
   const { id } = useParams<{ id: string }>()
+  const reference = id ? formatProjectRequestReference(id) : '—'
 
   return (
     <>
@@ -580,20 +700,29 @@ export function StartProjectSuccessPage() {
       />
       <div className={styles.start}>
         <div className={`surface ${styles.card} ${styles.shell}`}>
+          <div className={styles.successIcon} aria-hidden="true">
+            ✓
+          </div>
           <h1 className="text-h1">Project request received</h1>
           <p className={styles.meta}>
-            Reference: <strong>{id}</strong>
+            Reference: <strong>{reference}</strong>
           </p>
           <p>
             Our team will review your requirements and contact you with the next steps.
           </p>
           <div className={styles.actions}>
-            <Button to={customerPortalPaths.requests}>View project requests</Button>
+            {id ? (
+              <Button to={customerPortalPaths.projectRequestDetail(id)}>
+                View Project Request
+              </Button>
+            ) : (
+              <Button to={customerPortalPaths.requests}>View Project Requests</Button>
+            )}
             <Button to={customerPortalPaths.root} variant="secondary">
-              Customer dashboard
+              Go to Dashboard
             </Button>
-            <Button to={customerPortalPaths.support} variant="ghost">
-              Support
+            <Button to={customerPortalPaths.startProject} variant="ghost">
+              Start Another Project
             </Button>
           </div>
         </div>

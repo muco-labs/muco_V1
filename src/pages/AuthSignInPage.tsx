@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes } from '@/config/auth'
 import { resolveSafeCustomerReturnPath } from '@/lib/auth/safe-return-path'
+import { startProjectPaths } from '@/config/start-project'
 import { pageSeo } from '@/config/seo'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthProvider'
@@ -23,6 +24,8 @@ export function AuthSignInPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const configured = isSupabaseConfigured()
+  const from = (location.state as { from?: string } | null)?.from
+  const isStartProject = Boolean(from?.startsWith(startProjectPaths.flow))
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -31,7 +34,6 @@ export function AuthSignInPage() {
     try {
       await signInWithPassword(email, password)
       await refreshProfile()
-      const from = (location.state as { from?: string } | null)?.from
       navigate(resolveSafeCustomerReturnPath(from), { replace: true })
     } catch {
       setError('Sign in failed. Check your email and password.')
@@ -53,6 +55,12 @@ export function AuthSignInPage() {
           <div className={`surface ${styles.card}`}>
             <p className="text-label">Customer portal</p>
             <h1 className="text-h1">{authCopy.signInTitle}</h1>
+            {isStartProject ? (
+              <p className={formStyles.hint}>
+                Sign in to continue your project request. Your details will be saved to your MUCO
+                Labs account.
+              </p>
+            ) : null}
             {!configured ? (
               <p>{authCopy.supabaseMissing}</p>
             ) : (

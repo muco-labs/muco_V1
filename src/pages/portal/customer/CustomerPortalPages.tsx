@@ -15,6 +15,11 @@ import { useFetch } from '@/hooks/useFetch'
 import { customerApi } from '@/services/customer-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
+import {
+  formatProjectRequestReference,
+  projectRequestNextAction,
+  projectRequestStatusLabel,
+} from '@/lib/conversion/project-request-reference'
 
 type ProjectRow = {
   id: string
@@ -691,41 +696,43 @@ export function CustomerProjectRequestsPage() {
     <>
       <PageIntro
         title="Project requests"
-        description="Submissions from the Start Project flow. Quotes and active projects appear separately when available."
+        description="Track submissions from Start Your Project. Quotes and active projects appear separately when available."
       />
-      <p className={ui.meta}>
-        <Link className="link-underline" to={customerPortalPaths.startProject}>
-          Start a new project request
-        </Link>
-      </p>
       {items.length === 0 ? (
         <EmptyState
           title="No project requests yet"
-          description="Use Start a project to tell us what you need."
+          description="Tell us what you are building—we will review and follow up."
           action={
-            <Button to={customerPortalPaths.startProject}>Start a project</Button>
+            <Button to={customerPortalPaths.startProject}>Start Your Project</Button>
           }
         />
       ) : (
-        <ul className={ui.stack}>
-          {items.map((row: ProjectRequestRow) => (
-            <li key={row.id} className={`surface ${ui.dataCard}`}>
-              <Link
-                className="link-underline"
-                to={customerPortalPaths.projectRequestDetail(row.id)}
-              >
-                <h2 className="text-h3">{row.serviceInterest ?? 'Project request'}</h2>
-              </Link>
-              <StatusPill status={row.status} />
-              <p className={ui.meta}>
-                {new Date(row.createdAt).toLocaleString()}
-                {row.budget ? ` · ${row.budget}` : ''}
-                {row.timeline ? ` · ${row.timeline}` : ''}
-              </p>
-              <p>{row.summary}{row.summary.length >= 160 ? '…' : ''}</p>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className={ui.meta}>
+            <Link className="link-underline" to={customerPortalPaths.startProject}>
+              Start another project
+            </Link>
+          </p>
+          <ul className={ui.stack}>
+            {items.map((row: ProjectRequestRow) => (
+              <li key={row.id} className={`surface ${ui.dataCard}`}>
+                <Link
+                  className="link-underline"
+                  to={customerPortalPaths.projectRequestDetail(row.id)}
+                >
+                  <h2 className="text-h3">{row.serviceInterest ?? 'Project request'}</h2>
+                </Link>
+                <StatusPill status={row.status} />
+                <p className={ui.meta}>
+                  Ref. {formatProjectRequestReference(row.id)} ·{' '}
+                  {new Date(row.createdAt).toLocaleDateString()}
+                </p>
+                <p className={ui.meta}>{projectRequestStatusLabel(row.status)}</p>
+                <p className={ui.meta}>{projectRequestNextAction(row.status)}</p>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </>
   )
@@ -742,22 +749,21 @@ export function CustomerProjectRequestDetailPage() {
   if (error) return <PortalError message={error} onRetry={reload} />
   if (!data) return null
 
+  const status = String(data.status)
+  const reference = formatProjectRequestReference(id)
+
   return (
     <>
       <PageIntro
         label="Project request"
         title={String(data.serviceInterest ?? 'Request')}
-        description={`Submitted ${new Date(String(data.createdAt)).toLocaleString()}`}
+        description={`Reference ${reference} · Submitted ${new Date(String(data.createdAt)).toLocaleString()}`}
       />
-      <StatusPill status={String(data.status)} />
+      <StatusPill status={status} />
+      <p className={ui.meta}>{projectRequestStatusLabel(status)}</p>
+      <p className={ui.meta}>{projectRequestNextAction(status)}</p>
       <div className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>
-        <p className={ui.meta}>
-          {String(data.name)}
-          {' · '}
-          {String(data.email)}
-          {data.phone ? ` · ${String(data.phone)}` : ''}
-        </p>
-        {data.budget ? <p className={ui.meta}>Budget: {String(data.budget)}</p> : null}
+        {data.budget ? <p className={ui.meta}>Budget preference: {String(data.budget)}</p> : null}
         {data.timeline ? <p className={ui.meta}>Timeline: {String(data.timeline)}</p> : null}
         {data.website ? (
           <p className={ui.meta}>
@@ -768,10 +774,13 @@ export function CustomerProjectRequestDetailPage() {
           </p>
         ) : null}
         <h2 className="text-h3" style={{ marginTop: 'var(--space-4)' }}>
-          Requirements
+          Requirement
         </h2>
         <p style={{ whiteSpace: 'pre-wrap' }}>{String(data.projectDescription ?? '')}</p>
       </div>
+      <p className={ui.meta} style={{ marginTop: 'var(--space-4)' }}>
+        Messaging, quotes, and payments will appear here when available.
+      </p>
       <p style={{ marginTop: 'var(--space-4)' }}>
         <Link className="link-underline" to={customerPortalPaths.requests}>
           Back to project requests
