@@ -1,7 +1,13 @@
-import { handle } from 'hono/vercel'
 import { app } from '../server/app.js'
 
-export default handle(app)
+/**
+ * Vercel Node serverless expects a Web `fetch` handler (or named HTTP exports).
+ * `export default handle(app)` returns a Response that legacy default exports ignore,
+ * which caused /api/health to hang until FUNCTION_INVOCATION_TIMEOUT.
+ */
+export default {
+  fetch: app.fetch.bind(app),
+}
 
 export const config = {
   runtime: 'nodejs',

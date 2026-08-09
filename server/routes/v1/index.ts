@@ -71,7 +71,7 @@ v1.route('/customer', customerRoutes)
 v1.route('/employee', employeeRoutes)
 
 export function createV1App() {
-  const app = new Hono()
+  const app = new Hono().basePath('/api')
 
   if (serverEnv.corsOrigins.length > 0) {
     app.use(

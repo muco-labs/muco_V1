@@ -41,7 +41,7 @@ Configure backups in your **Postgres provider** console (Neon branches, Supabase
 
 ## Health check
 
-`GET /api/health` returns `{ success: true, data: { status: "ok", database: "connected" | "unconfigured" | "error" } }` without exposing secrets.
+`GET /api/health` returns `{ success: true, data: { status: "ok" | "degraded", database: "connected" | "unconfigured" | "unavailable" } }` without exposing secrets. `unavailable` uses HTTP 503.
 
 ## Rate limiting
 
