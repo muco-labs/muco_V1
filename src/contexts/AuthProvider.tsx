@@ -67,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const canAccessPortal = useCallback(
     (portal: Parameters<typeof roleCanAccessPortal>[1]) => {
+      if (profile?.portals && portal in profile.portals) {
+        return Boolean(profile.portals[portal])
+      }
       if (!profile?.roles?.length) return false
       return roleCanAccessPortal(profile.roles, portal)
     },

@@ -11,6 +11,7 @@ export type MeResponse = {
   roles: string[]
   permissions: string[]
   portals: Record<PortalKind, boolean>
+  freelancer?: { approvalStatus: string } | null
 }
 
 export type AuthContextValue = {

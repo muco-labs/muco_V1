@@ -2,6 +2,7 @@
  * Role-based access for MUCO LABS portals.
  * Authorization MUST be enforced server-side (Supabase session + API + RLS).
  * Client-side route guards are UX only — not a security boundary.
+ * Prefer `profile.portals` from GET /api/v1/auth/me when available (server-resolved, includes freelancer approval).
  */
 export const appRoles = [
   'CUSTOMER',

@@ -56,6 +56,13 @@ export function ProtectedPortal({ portal, children }: ProtectedPortalProps) {
   }
 
   if (!canAccessPortal(portal)) {
+    if (
+      portal === 'freelancer' &&
+      profile.freelancer &&
+      profile.freelancer.approvalStatus !== 'approved'
+    ) {
+      return <Navigate to="/freelancers/apply" replace />
+    }
     return <Navigate to={portalRoutes.unauthorized} replace />
   }
 

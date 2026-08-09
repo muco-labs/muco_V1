@@ -17,9 +17,9 @@ import {
 } from '../../lib/validation/auth.js'
 import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
 import { getDb } from '../../db/client.js'
-import { customerProfiles, users } from '../../db/schema.js'
+import { customerProfiles, freelancerProfiles, users } from '../../db/schema.js'
 import { linkFreelancerProfileToUser } from '../../services/freelancer-network.service.js'
-import { roleCanAccessPortal } from '../../lib/auth/permissions.js'
+import { resolvePortalAccessFlags } from '../../lib/auth/portal-access.js'
 import { serverEnv } from '../../lib/env.js'
 
 export const authRoutes = new Hono()
@@ -100,6 +100,7 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
             customer: false,
             employee: false,
             admin: false,
+            freelancer: false,
           },
         })
       }
@@ -114,6 +115,17 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
       .where(eq(customerProfiles.userId, user.id))
       .limit(1)
 
+    const [freelancerProfile] = await db
+      .select({ approvalStatus: freelancerProfiles.approvalStatus })
+      .from(freelancerProfiles)
+      .where(eq(freelancerProfiles.userId, user.id))
+      .limit(1)
+
+    const portals = resolvePortalAccessFlags({
+      roles: auth.roles,
+      freelancerApprovalStatus: freelancerProfile?.approvalStatus ?? null,
+    })
+
     return jsonSuccess(c, {
       registered: true,
       email: auth.email,
@@ -123,12 +135,10 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
       companyName: profile?.companyName ?? null,
       roles: auth.roles,
       permissions: [...auth.permissions],
-      portals: {
-        customer: roleCanAccessPortal(auth.roles, 'customer'),
-        employee: roleCanAccessPortal(auth.roles, 'employee'),
-        admin: roleCanAccessPortal(auth.roles, 'admin'),
-        freelancer: roleCanAccessPortal(auth.roles, 'freelancer'),
-      },
+      portals,
+      freelancer: freelancerProfile
+        ? { approvalStatus: freelancerProfile.approvalStatus }
+        : null,
     })
   } catch (error) {
     return handleRouteError(c, error)
