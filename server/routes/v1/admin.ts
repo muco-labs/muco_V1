@@ -35,6 +35,8 @@ import {
   listAutomationAuditLogs,
   listFilesAdmin,
   listMessagesAdmin,
+  listAdminNotifications,
+  markAdminNotificationRead,
   listCustomersAdmin,
   listEmployeesAdmin,
   listInvoicesAdmin,
@@ -239,6 +241,25 @@ function paramId(c: { req: { param: (name: string) => string | undefined } }, na
 adminRoutes.get('/dashboard', async (c) => {
   try {
     return jsonSuccess(c, await getAdminDashboard())
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/notifications', async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listAdminNotifications(auth) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/notifications/:id/read', async (c) => {
+  try {
+    const auth = c.get('auth')
+    const row = await markAdminNotificationRead(auth, paramId(c))
+    return jsonSuccess(c, row)
   } catch (error) {
     return handleRouteError(c, error)
   }

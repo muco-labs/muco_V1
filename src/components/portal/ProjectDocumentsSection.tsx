@@ -1,19 +1,16 @@
 import { useRef, useState } from 'react'
 import { EmptyState, ListSkeleton, PortalError } from '@/components/portal/CustomerPortalUi'
+import { PortalFileListItem } from '@/components/portal/PortalFileListItem'
+import { formatFileSize } from '@/lib/portal/format-file-size'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { Button } from '@/components/ui/Button'
 import { useFetch } from '@/hooks/useFetch'
+import { friendlyCustomerPortalError } from '@/lib/customer/portal-errors'
 import { customerApi, type CustomerProjectFile } from '@/services/customer-portal'
 import { PROJECT_FILE_MAX_BYTES_LABEL } from '@/lib/files/project-file-constants'
 
 type Props = {
   projectId: string
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export function ProjectDocumentsSection({ projectId }: Props) {
@@ -69,7 +66,7 @@ export function ProjectDocumentsSection({ projectId }: Props) {
   }
 
   if (loading) return <ListSkeleton rows={3} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   const documents = data?.documents ?? []
   const deliverables = data?.deliverables ?? []
@@ -107,15 +104,12 @@ export function ProjectDocumentsSection({ projectId }: Props) {
         ) : (
           <ul className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
             {documents.map((file: CustomerProjectFile) => (
-              <li key={file.id} className={`surface ${ui.dataCard}`}>
-                <button type="button" className="link-underline" onClick={() => void download(file.id)}>
-                  {file.fileName}
-                </button>
-                <span className={ui.meta}>
-                  {file.category} · {formatSize(file.sizeBytes)} ·{' '}
-                  {new Date(file.uploadedAt).toLocaleDateString()}
-                </span>
-              </li>
+              <PortalFileListItem
+                key={file.id}
+                fileName={file.fileName}
+                metaLine={`${file.category} · ${formatFileSize(file.sizeBytes)} · ${new Date(file.uploadedAt).toLocaleDateString()}`}
+                onDownload={() => void download(file.id)}
+              />
             ))}
           </ul>
         )}
@@ -133,15 +127,12 @@ export function ProjectDocumentsSection({ projectId }: Props) {
         ) : (
           <ul className={ui.stack}>
             {deliverables.map((file: CustomerProjectFile) => (
-              <li key={file.id} className={`surface ${ui.dataCard}`}>
-                <button type="button" className="link-underline" onClick={() => void download(file.id)}>
-                  {file.fileName}
-                </button>
-                <span className={ui.meta}>
-                  {file.mimeType} · {formatSize(file.sizeBytes)} ·{' '}
-                  {new Date(file.uploadedAt).toLocaleDateString()}
-                </span>
-              </li>
+              <PortalFileListItem
+                key={file.id}
+                fileName={file.fileName}
+                metaLine={`${file.mimeType} · ${formatFileSize(file.sizeBytes)} · ${new Date(file.uploadedAt).toLocaleDateString()}`}
+                onDownload={() => void download(file.id)}
+              />
             ))}
           </ul>
         )}

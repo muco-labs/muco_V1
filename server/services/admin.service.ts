@@ -962,3 +962,31 @@ export function requireFinancialPermission(auth: AuthContext) {
     throw new AppError('FORBIDDEN', 'Financial access is not permitted.', 403)
   }
 }
+
+export async function listAdminNotifications(auth: AuthContext) {
+  requireAdminPortal(auth)
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  return db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, auth.userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(100)
+}
+
+export async function markAdminNotificationRead(auth: AuthContext, notificationId: string) {
+  requireAdminPortal(auth)
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [row] = await db
+    .update(notifications)
+    .set({ read: true })
+    .where(and(eq(notifications.id, notificationId), eq(notifications.userId, auth.userId)))
+    .returning()
+
+  if (!row) throw new AppError('NOT_FOUND', 'Notification not found.', 404)
+  return row
+}

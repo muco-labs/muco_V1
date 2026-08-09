@@ -36,6 +36,15 @@ describe('validateProjectFileUpload', () => {
       }).ok,
     ).toBe(false)
   })
+
+  it('rejects oversize uploads', () => {
+    const result = validateProjectFileUpload({
+      fileName: 'big.pdf',
+      mimeType: 'application/pdf',
+      fileSizeBytes: 26 * 1024 * 1024,
+    })
+    expect(result.ok).toBe(false)
+  })
 })
 
 describe('sanitizeProjectFileName', () => {

@@ -14,7 +14,7 @@ export type ConversationContextInput = {
 }
 
 export function normalizeMessageBody(raw: string): string {
-  return raw.trim()
+  return raw.replace(/\0/g, '').trim()
 }
 
 export function validateMessageBody(raw: string): { ok: true; body: string } | { ok: false; reason: string } {

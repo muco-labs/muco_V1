@@ -27,6 +27,12 @@ describe('validateMessageBody', () => {
     if (result.ok) expect(result.body).toBe('Hello MUCO')
   })
 
+  it('strips null bytes', () => {
+    const result = validateMessageBody('hello\u0000world')
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.body).toBe('helloworld')
+  })
+
   it('rejects overly long messages', () => {
     expect(validateMessageBody('x'.repeat(8001)).ok).toBe(false)
   })

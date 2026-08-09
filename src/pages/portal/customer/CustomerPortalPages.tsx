@@ -27,6 +27,11 @@ import { ProjectDeliveryLifecycle } from '@/components/portal/ProjectDeliveryLif
 import { startRazorpayCheckout, type RazorpayCheckoutConfig } from '@/lib/payments/razorpay-checkout'
 import { CustomerMessageMucoButton } from '@/components/portal/CustomerMessageMucoButton'
 import { ProjectDocumentsSection } from '@/components/portal/ProjectDocumentsSection'
+import { PortalMessageArticle } from '@/components/portal/PortalMessageArticle'
+import {
+  PortalNotificationList,
+  type PortalNotificationItem,
+} from '@/components/portal/PortalNotificationList'
 import type { CustomerConversationListItem, CustomerConversationMessage } from '@/services/customer-portal'
 
 function formatMoney(amount: string, currency: string) {
@@ -873,16 +878,14 @@ export function CustomerConversationDetailPage() {
           <EmptyState title="No messages yet" description="Send the first message below." />
         ) : (
           messages.map((m: CustomerConversationMessage) => (
-            <article key={m.id} className={ui.messageItem}>
-              <p className={ui.meta}>
-                <strong>{m.senderLabel}</strong>
-                {!m.read && m.senderType === 'team' ? (
-                  <span aria-label="Unread"> · Unread</span>
-                ) : null}
-              </p>
-              <p>{m.body}</p>
-              <time dateTime={m.createdAt}>{new Date(m.createdAt).toLocaleString()}</time>
-            </article>
+            <PortalMessageArticle
+              key={m.id}
+              id={m.id}
+              senderLabel={m.senderLabel}
+              body={m.body}
+              createdAt={m.createdAt}
+              unread={!m.read && m.senderType === 'team'}
+            />
           ))
         )}
       </div>
@@ -1011,36 +1014,32 @@ export function CustomerSupportDetailPage() {
 export function CustomerNotificationsPage() {
   const { data, error, loading, reload } = useFetch(() => customerApi.notifications.list(), [])
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
+  const notifications: PortalNotificationItem[] = items.map((n) => ({
+    id: String(n.id),
+    type: String(n.type ?? ''),
+    title: String(n.title ?? ''),
+    message: String(n.message ?? ''),
+    read: Boolean(n.read),
+    createdAt: String(n.createdAt ?? ''),
+  }))
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={friendlyCustomerPortalError(error)} onRetry={reload} />
 
   return (
     <>
-      <PageIntro title="Notifications" />
-      {items.length === 0 ? (
+      <PageIntro title="Notifications" description="Updates about your projects, proposals, and messages." />
+      {notifications.length === 0 ? (
         <EmptyState title="No notifications" description="Updates will appear here when available." />
       ) : (
-        <ul className={ui.stack}>
-          {items.map((n) => (
-            <li key={String(n.id)} className={`surface ${ui.dataCard}`}>
-              <strong>{String(n.title)}</strong>
-              <p className={ui.meta}>{String(n.message)}</p>
-              {!n.read ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => void customerApi.notifications.markRead(String(n.id)).then(reload)}
-                >
-                  Mark read
-                </Button>
-              ) : (
-                <span className={ui.meta}>Read</span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <PortalNotificationList
+          portal="customer"
+          items={notifications}
+          onMarkRead={async (id) => {
+            await customerApi.notifications.markRead(id)
+            reload()
+          }}
+        />
       )}
     </>
   )

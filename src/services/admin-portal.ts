@@ -444,4 +444,8 @@ export const adminApi = {
     setStatus: (id: string, status: 'open' | 'closed') =>
       apiRequest(`${base}/conversations/${id}/close`, { method: 'POST', json: { status } }),
   },
+  notifications: {
+    list: () => apiRequest<{ items: unknown[] }>(`${base}/notifications`),
+    markRead: (id: string) => apiRequest(`${base}/notifications/${id}/read`, { method: 'PATCH' }),
+  },
 }

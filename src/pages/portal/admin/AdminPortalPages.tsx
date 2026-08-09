@@ -24,6 +24,11 @@ import { AdminProjectTasksSection } from '@/components/portal/AdminProjectTasksS
 import { AdminProjectTeamSection } from '@/components/portal/AdminProjectTeamSection'
 import { AdminProjectFreelancersSection } from '@/components/portal/AdminProjectFreelancersSection'
 import { AdminFreelancerDiscoveryPanel } from '@/components/portal/AdminFreelancerDiscoveryPanel'
+import {
+  PortalNotificationList,
+  type PortalNotificationItem,
+} from '@/components/portal/PortalNotificationList'
+import { PortalMessageArticle } from '@/components/portal/PortalMessageArticle'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -1458,13 +1463,15 @@ export function AdminConversationDetailPage() {
       </p>
       <div className={ui.messageList} style={{ marginTop: 'var(--space-6)' }} aria-live="polite">
         {messages.map((m) => (
-          <article key={m.id} className={ui.messageItem}>
-            <p className={ui.meta}>
-              <strong>{m.senderType === 'customer' ? 'Customer' : 'MUCO team'}</strong>
-            </p>
-            <p>{m.body}</p>
-            <time dateTime={m.createdAt}>{new Date(m.createdAt).toLocaleString()}</time>
-          </article>
+          <PortalMessageArticle
+            key={m.id}
+            id={m.id}
+            senderLabel={m.senderType === 'customer' ? 'Customer' : 'MUCO team'}
+            body={m.body}
+            createdAt={m.createdAt}
+            unread={!m.read && m.senderType === 'customer'}
+            unreadAriaLabel="Unread customer message"
+          />
         ))}
       </div>
       {closed ? (
@@ -1710,13 +1717,41 @@ export function AdminOperationsPage() {
 }
 
 export function AdminNotificationsPage() {
+  const { data, error, loading, reload } = useFetch(() => adminApi.notifications.list(), [])
+  const items = (data?.items as Array<Record<string, unknown>>) ?? []
+  const notifications: PortalNotificationItem[] = items.map((n) => ({
+    id: String(n.id),
+    type: String(n.type ?? ''),
+    title: String(n.title ?? ''),
+    message: String(n.message ?? ''),
+    read: Boolean(n.read),
+    createdAt: String(n.createdAt ?? ''),
+  }))
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
+
   return (
     <>
       <PageIntro
         title="Notifications"
-        description="Operational alerts will surface here when notification delivery is configured."
+        description="Operational alerts for your signed-in admin account (from real system events)."
       />
-      <EmptyState title="No notifications" description="Check the dashboard and audit log for recent activity." />
+      {notifications.length === 0 ? (
+        <EmptyState
+          title="No notifications"
+          description="When the system records an event for you, it will appear here. Use the dashboard and audit log for broader activity."
+        />
+      ) : (
+        <PortalNotificationList
+          portal="admin"
+          items={notifications}
+          onMarkRead={async (id) => {
+            await adminApi.notifications.markRead(id)
+            reload()
+          }}
+        />
+      )}
     </>
   )
 }

@@ -18,6 +18,11 @@ import { employeeApi } from '@/services/employee-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
 import { friendlyEmployeePortalError, taskStatusTone } from '@/lib/employee/portal-errors'
+import { PortalMessageArticle } from '@/components/portal/PortalMessageArticle'
+import {
+  PortalNotificationList,
+  type PortalNotificationItem,
+} from '@/components/portal/PortalNotificationList'
 
 export function EmployeeTasksPage() {
   const [status, setStatus] = useState('')
@@ -337,9 +342,13 @@ export function EmployeeMessagesPage() {
       ) : (
         <div className={ui.messageList}>
           {items.map((m) => (
-            <article key={String(m.id)} className={ui.messageItem}>
-              <p>{String(m.body)}</p>
-            </article>
+            <PortalMessageArticle
+              key={String(m.id)}
+              id={String(m.id)}
+              senderLabel="Message"
+              body={String(m.body)}
+              createdAt={String(m.createdAt ?? '')}
+            />
           ))}
         </div>
       )}
@@ -350,34 +359,32 @@ export function EmployeeMessagesPage() {
 export function EmployeeNotificationsPage() {
   const { data, error, loading, reload } = useFetch(() => employeeApi.notifications.list(), [])
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
+  const notifications: PortalNotificationItem[] = items.map((n) => ({
+    id: String(n.id),
+    type: String(n.type ?? ''),
+    title: String(n.title ?? ''),
+    message: String(n.message ?? ''),
+    read: Boolean(n.read),
+    createdAt: String(n.createdAt ?? ''),
+  }))
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
-      <PageIntro title="Notifications" />
-      {items.length === 0 ? (
+      <PageIntro title="Notifications" description="Task, project, and team updates for your account." />
+      {notifications.length === 0 ? (
         <EmptyState title="You're all caught up" description="No notifications yet." />
       ) : (
-        <ul className={ui.stack}>
-          {items.map((n) => (
-            <li key={String(n.id)} className={`surface ${ui.dataCard}`}>
-              <strong>{String(n.title)}</strong>
-              <p className={ui.meta}>{String(n.message)}</p>
-              {!n.read ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => void employeeApi.notifications.markRead(String(n.id)).then(reload)}
-                >
-                  Mark read
-                </Button>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        <PortalNotificationList
+          portal="employee"
+          items={notifications}
+          onMarkRead={async (id) => {
+            await employeeApi.notifications.markRead(id)
+            reload()
+          }}
+        />
       )}
     </>
   )
