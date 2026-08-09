@@ -51,4 +51,16 @@ export const freelancerApi = {
     apiRequest(`${base}/profile`, { method: 'PATCH', json: body }),
   updateAvailability: (body: Record<string, unknown>) =>
     apiRequest(`${base}/availability`, { method: 'PATCH', json: body }),
+  serviceCatalog: () =>
+    apiRequest<{ items: Array<Record<string, unknown>> }>(`${base}/services/catalog`),
+  listServices: () => apiRequest<{ items: unknown[] }>(`${base}/services`),
+  createService: (body: Record<string, unknown>) =>
+    apiRequest(`${base}/services`, { method: 'POST', json: body }),
+  updateService: (id: string, body: Record<string, unknown>) =>
+    apiRequest(`${base}/services/${id}`, { method: 'PATCH', json: body }),
+  deleteService: (id: string) => apiRequest(`${base}/services/${id}`, { method: 'DELETE' }),
+  listSkills: () => apiRequest<{ items: unknown[] }>(`${base}/skills`),
+  createSkill: (body: Record<string, unknown>) =>
+    apiRequest(`${base}/skills`, { method: 'POST', json: body }),
+  deleteSkill: (id: string) => apiRequest(`${base}/skills/${id}`, { method: 'DELETE' }),
 }

@@ -551,6 +551,16 @@ export async function patchFreelancerAdmin(
     })
 
     const ref = formatFreelancerReference(freelancerId)
+    if (
+      existing.approvalStatus === 'approved' &&
+      input.approvalStatus !== 'approved'
+    ) {
+      const { deactivateFreelancerServiceOfferings } = await import(
+        './freelancer-offerings.service.js'
+      )
+      await deactivateFreelancerServiceOfferings(freelancerId, auth.userId)
+    }
+
     if (input.approvalStatus === 'approved') {
       const [user] = await db
         .select({ id: users.id })

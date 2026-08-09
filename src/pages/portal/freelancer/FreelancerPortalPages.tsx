@@ -314,3 +314,324 @@ export function FreelancerAvailabilityPage() {
     </>
   )
 }
+
+const PRICING_TYPES = ['fixed', 'starting_from', 'hourly', 'per_project', 'custom_quote'] as const
+
+type CatalogService = {
+  slug: string
+  title: string
+  subServices: Array<{ id: string; label: string }>
+}
+
+type ServiceRow = {
+  id: string
+  serviceSlug: string
+  serviceTitle: string
+  subServiceSlug: string | null
+  subServiceLabel: string | null
+  description: string | null
+  pricingType: string
+  basePrice: string | null
+  currency: string
+  isActive: boolean
+  isEffectivelyActive: boolean
+}
+
+export function FreelancerServicesPage() {
+  const catalogFetch = useFetch(() => freelancerApi.serviceCatalog(), [])
+  const { data, error, loading, reload } = useFetch(() => freelancerApi.listServices(), [])
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [serviceSlug, setServiceSlug] = useState('')
+  const [subServiceSlug, setSubServiceSlug] = useState('')
+  const [pricingType, setPricingType] = useState<string>('custom_quote')
+  const [basePrice, setBasePrice] = useState('')
+  const [currency, setCurrency] = useState('INR')
+  const [isActive, setIsActive] = useState(false)
+
+  const catalog = (catalogFetch.data?.items as CatalogService[]) ?? []
+  const items = (data?.items as ServiceRow[]) ?? []
+  const selected = catalog.find((c) => c.slug === serviceSlug)
+
+  if (loading || catalogFetch.loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+
+  async function addService(e: FormEvent) {
+    e.preventDefault()
+    if (!serviceSlug) return
+    setBusy(true)
+    setMessage(null)
+    try {
+      await freelancerApi.createService({
+        serviceSlug,
+        subServiceSlug: subServiceSlug || null,
+        pricingType,
+        basePrice: basePrice || null,
+        currency,
+        isActive,
+      })
+      setMessage('Service saved.')
+      setServiceSlug('')
+      setSubServiceSlug('')
+      setBasePrice('')
+      reload()
+    } catch {
+      setMessage('Could not save service. Check pricing and duplicates.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function toggleActive(row: ServiceRow) {
+    setBusy(true)
+    setMessage(null)
+    try {
+      await freelancerApi.updateService(row.id, { isActive: !row.isActive })
+      reload()
+    } catch {
+      setMessage('Could not update service.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function removeService(id: string) {
+    if (!window.confirm('Remove this service offering?')) return
+    setBusy(true)
+    try {
+      await freelancerApi.deleteService(id)
+      reload()
+    } catch {
+      setMessage('Could not remove service.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <h1 className="text-h2">My services</h1>
+      <p className={ui.meta} role="status" aria-live="polite">
+        {message}
+      </p>
+      {items.length === 0 ? (
+        <EmptyState
+          title="No services yet"
+          description="Add MUCO catalog services you deliver. Base price is internal to MUCO—not shown to customers."
+        />
+      ) : (
+        <ul className={ui.stack}>
+          {items.map((row) => (
+            <li key={row.id} className={`surface ${ui.dataCard}`}>
+              <strong>{row.serviceTitle}</strong>
+              {row.subServiceLabel ? <span className={ui.meta}> · {row.subServiceLabel}</span> : null}
+              <p className={ui.meta}>
+                {row.pricingType.replace(/_/g, ' ')}
+                {row.basePrice ? ` · ${row.currency} ${row.basePrice}` : ''} ·{' '}
+                {row.isEffectivelyActive ? 'Active' : 'Inactive'}
+              </p>
+              <div className={ui.actionsRow}>
+                <Button type="button" disabled={busy} onClick={() => void toggleActive(row)}>
+                  {row.isActive ? 'Deactivate' : 'Activate'}
+                </Button>
+                <Button type="button" variant="ghost" disabled={busy} onClick={() => void removeService(row.id)}>
+                  Remove
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form className={ui.form} onSubmit={(e) => void addService(e)} style={{ marginTop: 'var(--space-6)' }}>
+        <h2 className="text-h3">Add service</h2>
+        <label className={ui.field}>
+          Service
+          <select
+            required
+            value={serviceSlug}
+            aria-label="MUCO service"
+            onChange={(e) => {
+              setServiceSlug(e.target.value)
+              setSubServiceSlug('')
+            }}
+          >
+            <option value="">Select service</option>
+            {catalog.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        {selected && selected.subServices.length > 0 ? (
+          <label className={ui.field}>
+            Sub-service (optional)
+            <select
+              value={subServiceSlug}
+              aria-label="Sub-service"
+              onChange={(e) => setSubServiceSlug(e.target.value)}
+            >
+              <option value="">General offering</option>
+              {selected.subServices.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <label className={ui.field}>
+          Pricing type
+          <select value={pricingType} onChange={(e) => setPricingType(e.target.value)} aria-label="Pricing type">
+            {PRICING_TYPES.map((p) => (
+              <option key={p} value={p}>
+                {p.replace(/_/g, ' ')}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={ui.field}>
+          Base price (freelancer)
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={basePrice}
+            onChange={(e) => setBasePrice(e.target.value)}
+            aria-label="Base price"
+          />
+        </label>
+        <label className={ui.field}>
+          Currency
+          <input value={currency} maxLength={8} onChange={(e) => setCurrency(e.target.value)} aria-label="Currency" />
+        </label>
+        <label>
+          <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Active offering
+        </label>
+        <Button type="submit" disabled={busy}>
+          Save service
+        </Button>
+      </form>
+    </>
+  )
+}
+
+type SkillRow = {
+  id: string
+  serviceTitle: string
+  skillLabel: string
+  serviceSlug: string
+  skillSlug: string
+}
+
+export function FreelancerSkillsPage() {
+  const catalogFetch = useFetch(() => freelancerApi.serviceCatalog(), [])
+  const { data, error, loading, reload } = useFetch(() => freelancerApi.listSkills(), [])
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [serviceSlug, setServiceSlug] = useState('')
+  const [skillSlug, setSkillSlug] = useState('')
+
+  const catalog = (catalogFetch.data?.items as CatalogService[]) ?? []
+  const items = (data?.items as SkillRow[]) ?? []
+  const selected = catalog.find((c) => c.slug === serviceSlug)
+
+  if (loading || catalogFetch.loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+
+  async function addSkill(e: FormEvent) {
+    e.preventDefault()
+    if (!serviceSlug || !skillSlug) return
+    setBusy(true)
+    setMessage(null)
+    try {
+      await freelancerApi.createSkill({ serviceSlug, skillSlug })
+      setMessage('Skill added.')
+      setSkillSlug('')
+      reload()
+    } catch {
+      setMessage('Could not add skill.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function removeSkill(id: string) {
+    setBusy(true)
+    try {
+      await freelancerApi.deleteSkill(id)
+      reload()
+    } catch {
+      setMessage('Could not remove skill.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <h1 className="text-h2">My skills</h1>
+      <p className={ui.meta} role="status" aria-live="polite">
+        {message}
+      </p>
+      {items.length === 0 ? (
+        <EmptyState title="No skills yet" description="Select skills from the MUCO service catalog." />
+      ) : (
+        <ul className={ui.stack}>
+          {items.map((row) => (
+            <li key={row.id} className={`surface ${ui.dataCard}`}>
+              <strong>{row.skillLabel}</strong>
+              <p className={ui.meta}>{row.serviceTitle}</p>
+              <Button type="button" variant="ghost" disabled={busy} onClick={() => void removeSkill(row.id)}>
+                Remove
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form className={ui.form} onSubmit={(e) => void addSkill(e)} style={{ marginTop: 'var(--space-6)' }}>
+        <h2 className="text-h3">Add skill</h2>
+        <label className={ui.field}>
+          Service
+          <select
+            required
+            value={serviceSlug}
+            aria-label="Service for skill"
+            onChange={(e) => {
+              setServiceSlug(e.target.value)
+              setSkillSlug('')
+            }}
+          >
+            <option value="">Select service</option>
+            {catalog.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        {selected && selected.subServices.length > 0 ? (
+          <label className={ui.field}>
+            Skill
+            <select
+              required
+              value={skillSlug}
+              aria-label="Skill"
+              onChange={(e) => setSkillSlug(e.target.value)}
+            >
+              <option value="">Select skill</option>
+              {selected.subServices.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <Button type="submit" disabled={busy || !skillSlug}>
+          Add skill
+        </Button>
+      </form>
+    </>
+  )
+}

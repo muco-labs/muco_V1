@@ -140,8 +140,14 @@ import {
   patchFreelancerAdmin,
 } from '../../services/freelancer-network.service.js'
 import {
+  listFreelancerServicesAdmin,
+  listFreelancerSkillsAdmin,
+  patchFreelancerServiceAdmin,
+} from '../../services/freelancer-offerings.service.js'
+import {
   freelancerAdminPatchSchema,
   freelancerNoteSchema,
+  freelancerServiceAdminPatchSchema,
 } from '../../lib/validation/freelancers.js'
 import {
   createProjectFromLeadCrm,
@@ -602,6 +608,48 @@ adminRoutes.patch('/freelancers/:id', requirePermission('freelancers.manage'), a
     return handleRouteError(c, error)
   }
 })
+
+adminRoutes.get('/freelancers/:id/services', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listFreelancerServicesAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/freelancers/:id/skills', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listFreelancerSkillsAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch(
+  '/freelancers/:id/services/:serviceId',
+  requirePermission('freelancers.manage'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const body = await c.req.json().catch(() => null)
+      const parsed = freelancerServiceAdminPatchSchema.safeParse(body)
+      if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid service update.', 400)
+      return jsonSuccess(
+        c,
+        await patchFreelancerServiceAdmin(
+          auth,
+          paramId(c),
+          paramId(c, 'serviceId'),
+          parsed.data,
+        ),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
 
 adminRoutes.get('/freelancers/:id/notes', requirePermission('freelancers.notes'), async (c) => {
   try {

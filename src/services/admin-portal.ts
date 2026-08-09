@@ -136,6 +136,14 @@ export const adminApi = {
       apiRequest(`${base}/freelancers/${id}`, { method: 'PATCH', json: body }),
     addNote: (id: string, content: string) =>
       apiRequest(`${base}/freelancers/${id}/notes`, { method: 'POST', json: { content } }),
+    listServices: (id: string) =>
+      apiRequest<{ items: unknown[] }>(`${base}/freelancers/${id}/services`),
+    listSkills: (id: string) => apiRequest<{ items: unknown[] }>(`${base}/freelancers/${id}/skills`),
+    patchService: (freelancerId: string, serviceId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/freelancers/${freelancerId}/services/${serviceId}`, {
+        method: 'PATCH',
+        json: body,
+      }),
   },
   executive: {
     overview: () => apiRequest<Record<string, unknown>>(`${base}/executive/overview`),

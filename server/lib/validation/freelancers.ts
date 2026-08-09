@@ -58,6 +58,43 @@ export const freelancerNoteSchema = z.object({
   content: z.string().min(1).max(8000),
 })
 
+const pricingTypeSchema = z.enum([
+  'fixed',
+  'starting_from',
+  'hourly',
+  'per_project',
+  'custom_quote',
+])
+
+export const freelancerServiceCreateSchema = z.object({
+  serviceSlug: z.string().min(1).max(80),
+  subServiceSlug: z.string().min(1).max(80).nullable().optional(),
+  description: z.string().max(2000).optional(),
+  experienceLevel: z.string().max(80).optional(),
+  pricingType: pricingTypeSchema,
+  basePrice: z.union([z.string(), z.number()]).nullable().optional(),
+  minimumPrice: z.union([z.string(), z.number()]).nullable().optional(),
+  currency: z.string().max(8).optional(),
+  isActive: z.boolean().optional(),
+})
+
+export const freelancerServiceUpdateSchema = z.object({
+  description: z.string().max(2000).nullable().optional(),
+  experienceLevel: z.string().max(80).nullable().optional(),
+  pricingType: pricingTypeSchema.optional(),
+  basePrice: z.union([z.string(), z.number()]).nullable().optional(),
+  minimumPrice: z.union([z.string(), z.number()]).nullable().optional(),
+  currency: z.string().max(8).optional(),
+  isActive: z.boolean().optional(),
+})
+
+export const freelancerSkillCreateSchema = z.object({
+  serviceSlug: z.string().min(1).max(80),
+  skillSlug: z.string().min(1).max(80),
+})
+
+export const freelancerServiceAdminPatchSchema = freelancerServiceUpdateSchema
+
 export function validateFreelancerServiceCategories(ids: string[]): boolean {
   const allowed = new Set<string>(FREELANCER_SERVICE_CATEGORY_IDS)
   return ids.every((id) => allowed.has(id))

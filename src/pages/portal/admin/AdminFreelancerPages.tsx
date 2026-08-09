@@ -57,6 +57,8 @@ export function AdminFreelancersPage() {
 export function AdminFreelancerDetailPage() {
   const { id = '' } = useParams()
   const { data, error, loading, reload } = useFetch(() => adminApi.freelancers.get(id), [id])
+  const servicesFetch = useFetch(() => adminApi.freelancers.listServices(id), [id])
+  const skillsFetch = useFetch(() => adminApi.freelancers.listSkills(id), [id])
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -65,6 +67,8 @@ export function AdminFreelancerDetailPage() {
   if (!data) return null
 
   const notes = (data.internalNotes as Array<Record<string, unknown>>) ?? []
+  const services = (servicesFetch.data?.items as Array<Record<string, unknown>>) ?? []
+  const skills = (skillsFetch.data?.items as Array<Record<string, unknown>>) ?? []
 
   async function patch(body: Record<string, unknown>) {
     setBusy(true)
@@ -108,6 +112,62 @@ export function AdminFreelancerDetailPage() {
           Suspend
         </Button>
       </div>
+      <section className={ui.stack} aria-labelledby="fl-services-heading">
+        <h2 id="fl-services-heading" className="text-h3">
+          Services &amp; base pricing
+        </h2>
+        {services.length === 0 ? (
+          <p className={ui.meta}>No structured service offerings yet.</p>
+        ) : (
+          <ul className={ui.stack}>
+            {services.map((s) => (
+              <li key={String(s.id)} className={`surface ${ui.dataCard}`}>
+                <strong>{String(s.serviceTitle)}</strong>
+                {s.subServiceLabel ? <span className={ui.meta}> · {String(s.subServiceLabel)}</span> : null}
+                <p className={ui.meta}>
+                  {String(s.pricingTypeLabel)} · {String(s.currency)}{' '}
+                  {s.basePrice ? String(s.basePrice) : '—'} ·{' '}
+                  {s.isEffectivelyActive ? 'Active' : 'Inactive'}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true)
+                    try {
+                      await adminApi.freelancers.patchService(id, String(s.id), {
+                        isActive: !s.isActive,
+                      })
+                      await servicesFetch.reload()
+                    } finally {
+                      setBusy(false)
+                    }
+                  }}
+                >
+                  Toggle active
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section className={ui.stack} aria-labelledby="fl-skills-heading">
+        <h2 id="fl-skills-heading" className="text-h3">
+          Skills
+        </h2>
+        {skills.length === 0 ? (
+          <p className={ui.meta}>No catalog skills selected.</p>
+        ) : (
+          <ul className={ui.stack}>
+            {skills.map((s) => (
+              <li key={String(s.id)} className={ui.meta}>
+                {String(s.skillLabel)} · {String(s.serviceTitle)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       <section className={ui.stack}>
         <h2 className="text-h3">Internal notes</h2>
         <ul className={ui.stack}>

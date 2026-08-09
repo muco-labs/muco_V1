@@ -158,6 +158,8 @@ const FreelancerDashboardPage = lazyFreelancerPage('FreelancerDashboardPage')
 const FreelancerProjectsPage = lazyFreelancerPage('FreelancerProjectsPage')
 const FreelancerProjectDetailPage = lazyFreelancerPage('FreelancerProjectDetailPage')
 const FreelancerTasksPage = lazyFreelancerPage('FreelancerTasksPage')
+const FreelancerServicesPage = lazyFreelancerPage('FreelancerServicesPage')
+const FreelancerSkillsPage = lazyFreelancerPage('FreelancerSkillsPage')
 const FreelancerProfilePage = lazyFreelancerPage('FreelancerProfilePage')
 const FreelancerAvailabilityPage = lazyFreelancerPage('FreelancerAvailabilityPage')
 
@@ -370,6 +372,8 @@ export const router = createBrowserRouter([
           { path: 'projects', element: <FreelancerProjectsPage /> },
           { path: 'projects/:id', element: <FreelancerProjectDetailPage /> },
           { path: 'tasks', element: <FreelancerTasksPage /> },
+          { path: 'services', element: <FreelancerServicesPage /> },
+          { path: 'skills', element: <FreelancerSkillsPage /> },
           { path: 'profile', element: <FreelancerProfilePage /> },
           { path: 'availability', element: <FreelancerAvailabilityPage /> },
         ],

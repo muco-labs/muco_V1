@@ -1091,6 +1091,14 @@ export const freelancerAvailabilityStatusEnum = pgEnum('freelancer_availability_
   'unavailable',
 ])
 
+export const freelancerPricingTypeEnum = pgEnum('freelancer_pricing_type', [
+  'fixed',
+  'starting_from',
+  'hourly',
+  'per_project',
+  'custom_quote',
+])
+
 export const freelancerProfiles = pgTable(
   'freelancer_profiles',
   {
@@ -1143,6 +1151,47 @@ export const freelancerInternalNotes = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('freelancer_internal_notes_freelancer_id_idx').on(table.freelancerId)],
+)
+
+export const freelancerServices = pgTable(
+  'freelancer_services',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    freelancerId: uuid('freelancer_id')
+      .notNull()
+      .references(() => freelancerProfiles.id, { onDelete: 'cascade' }),
+    serviceSlug: text('service_slug').notNull(),
+    subServiceSlug: text('sub_service_slug'),
+    description: text('description'),
+    experienceLevel: text('experience_level'),
+    pricingType: freelancerPricingTypeEnum('pricing_type').notNull().default('custom_quote'),
+    basePrice: numeric('base_price', { precision: 12, scale: 2 }),
+    minimumPrice: numeric('minimum_price', { precision: 12, scale: 2 }),
+    currency: text('currency').notNull().default('INR'),
+    isActive: boolean('is_active').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('freelancer_services_freelancer_id_idx').on(table.freelancerId),
+    index('freelancer_services_service_slug_idx').on(table.serviceSlug),
+  ],
+)
+
+export const freelancerSkills = pgTable(
+  'freelancer_skills',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    freelancerId: uuid('freelancer_id')
+      .notNull()
+      .references(() => freelancerProfiles.id, { onDelete: 'cascade' }),
+    serviceSlug: text('service_slug').notNull(),
+    skillSlug: text('skill_slug').notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('freelancer_skills_freelancer_id_idx').on(table.freelancerId)],
 )
 
 export const projectFreelancers = pgTable(

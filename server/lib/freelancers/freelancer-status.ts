@@ -12,7 +12,11 @@ export function canFreelancerSetAvailability(input: {
 
 const ELIGIBLE_FREELANCER_USER_STATUSES = new Set(['active', 'invited'])
 
-/** Phase 4.16/4.17: admin may assign only verified, approved, linked freelancers open to work. */
+/** Phase 4.18: only approved freelancers may activate service offerings. */
+export function canFreelancerPublishActiveOfferings(approvalStatus: string): boolean {
+  return approvalStatus === 'approved'
+}
+
 export function isFreelancerEligibleForProjectAssignment(input: {
   approvalStatus: string
   verificationStatus: string
