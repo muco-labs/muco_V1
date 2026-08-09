@@ -150,6 +150,8 @@ export const users = pgTable(
     authUserId: uuid('auth_user_id'),
     email: text('email').notNull(),
     fullName: text('full_name'),
+    /** Public MUCO login identifier (CUS-*, EMP-*, FLT-*, ADM-*). Auth passwords remain in Supabase only. */
+    mucoLoginId: text('muco_login_id'),
     /** Deprecated: credentials live in Supabase Auth only. */
     passwordHash: text('password_hash'),
     authProvider: text('auth_provider'),
@@ -160,6 +162,7 @@ export const users = pgTable(
   (table) => [
     uniqueIndex('users_email_idx').on(table.email),
     uniqueIndex('users_auth_user_id_idx').on(table.authUserId),
+    uniqueIndex('users_muco_login_id_idx').on(table.mucoLoginId),
   ],
 )
 

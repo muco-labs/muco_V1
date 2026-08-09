@@ -7,6 +7,7 @@ export type MeResponse = {
   emailVerified: boolean
   status?: string
   fullName?: string | null
+  mucoLoginId?: string | null
   companyName?: string | null
   roles: string[]
   permissions: string[]

@@ -9,8 +9,7 @@ import { AuthOAuthButtons } from '@/components/auth/AuthOAuthButtons'
 import { PasswordField } from '@/components/auth/PasswordField'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
 import { resolvePostAuthDestination } from '@/lib/auth/post-auth-destination'
-import { apiRequest } from '@/services/api'
-import type { MeResponse } from '@/contexts/auth-context'
+import { ensureAppProfileAfterSignIn } from '@/lib/auth/ensure-app-profile-after-sign-in'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { signInWithPassword } from '@/services/auth'
 import styles from './AuthPage.module.css'
@@ -21,7 +20,7 @@ const signIn = pageSeo.authSignIn
 export function AuthSignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('')
+  const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -36,8 +35,8 @@ export function AuthSignInPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await signInWithPassword(email, password)
-      const me = await apiRequest<MeResponse>('/api/v1/auth/me')
+      await signInWithPassword(loginId, password)
+      const me = await ensureAppProfileAfterSignIn()
       navigate(resolvePostAuthDestination(me, from), { replace: true })
     } catch (err) {
       setError(friendlyAuthError(err, 'Sign in failed. Check your email and password.'))
@@ -72,14 +71,14 @@ export function AuthSignInPage() {
               <>
                 <form className={formStyles.form} onSubmit={onSubmit}>
                   <div className={formStyles.field}>
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="loginId">MUCO ID or email</label>
                     <input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
+                      id="loginId"
+                      type="text"
+                      autoComplete="username"
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={loginId}
+                      onChange={(e) => setLoginId(e.target.value)}
                     />
                   </div>
                   <PasswordField

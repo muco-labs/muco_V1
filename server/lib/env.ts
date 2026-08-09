@@ -17,6 +17,11 @@ export const serverEnv = {
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 20),
   supabaseUrl: trim(process.env.SUPABASE_URL),
   supabaseServiceRoleKey: trim(process.env.SUPABASE_SERVICE_ROLE_KEY),
+  supabaseAnonKey:
+    trim(process.env.SUPABASE_ANON_KEY) ??
+    trim(process.env.SUPABASE_PUBLISHABLE_KEY) ??
+    trim(process.env.VITE_SUPABASE_PUBLISHABLE_KEY) ??
+    trim(process.env.VITE_SUPABASE_ANON_KEY),
   supabaseJwtSecret: trim(process.env.SUPABASE_JWT_SECRET),
   authRedirectUrl: trim(process.env.AUTH_REDIRECT_URL),
   bootstrapSecret: trim(process.env.FOUNDER_BOOTSTRAP_SECRET),
@@ -40,6 +45,10 @@ export function isRazorpayWebhookConfigured(): boolean {
 
 export function isSupabaseConfigured(): boolean {
   return Boolean(serverEnv.supabaseUrl && serverEnv.supabaseServiceRoleKey)
+}
+
+export function isSupabasePasswordLoginConfigured(): boolean {
+  return Boolean(serverEnv.supabaseUrl && serverEnv.supabaseAnonKey)
 }
 
 export function isSupabaseStorageConfigured(): boolean {

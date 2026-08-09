@@ -61,14 +61,35 @@ export async function completeRegistration(input: {
   })
 }
 
-export async function signInWithPassword(email: string, password: string) {
+export async function signInWithPassword(identifier: string, password: string) {
   const client = getSupabaseClient()
   if (!client) {
     throw new Error('Authentication is not configured.')
   }
 
+  const trimmed = identifier.trim()
+  const usesMucoId = !trimmed.includes('@')
+
+  if (usesMucoId) {
+    const session = await apiRequest<{
+      accessToken: string
+      refreshToken: string
+      expiresIn?: number
+    }>('/api/v1/auth/password-login', {
+      method: 'POST',
+      json: { identifier: trimmed, password },
+    })
+
+    const { error } = await client.auth.setSession({
+      access_token: session.accessToken,
+      refresh_token: session.refreshToken,
+    })
+    if (error) throw error
+    return
+  }
+
   const { error } = await client.auth.signInWithPassword({
-    email: email.trim(),
+    email: trimmed,
     password,
   })
   if (error) throw error
@@ -89,8 +110,8 @@ export async function signInWithOAuth(provider: OAuthProvider) {
   if (error) throw error
 }
 
-/** Provisions CUSTOMER profile for first-time OAuth users (server assigns role). */
-export async function ensureCustomerRegistrationFromOAuthUser(user: User) {
+/** Provisions CUSTOMER profile when Supabase session exists but app user row is missing. */
+export async function ensureCustomerRegistrationFromAuthUser(user: User) {
   const meta = user.user_metadata ?? {}
   const fullName =
     (typeof meta.full_name === 'string' && meta.full_name.trim()) ||
@@ -103,6 +124,9 @@ export async function ensureCustomerRegistrationFromOAuthUser(user: User) {
     json: { fullName },
   })
 }
+
+/** @deprecated Use ensureCustomerRegistrationFromAuthUser */
+export const ensureCustomerRegistrationFromOAuthUser = ensureCustomerRegistrationFromAuthUser
 
 export async function requestPasswordReset(email: string) {
   const client = getSupabaseClient()

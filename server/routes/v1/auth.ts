@@ -9,10 +9,12 @@ import {
 } from '../../middleware/authenticate.js'
 import {
   activateAccountIfEligible,
+  ensureMucoLoginIdForUser,
   registerCustomerFromAuth,
 } from '../../services/auth.service.js'
 import {
   formatZodErrors,
+  passwordLoginSchema,
   registerCustomerSchema,
 } from '../../lib/validation/auth.js'
 import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
@@ -20,7 +22,9 @@ import { getDb } from '../../db/client.js'
 import { customerProfiles, freelancerProfiles, users } from '../../db/schema.js'
 import { linkFreelancerProfileToUser } from '../../services/freelancer-network.service.js'
 import { resolvePortalAccessFlags } from '../../lib/auth/portal-access.js'
-import { serverEnv } from '../../lib/env.js'
+import { isSupabasePasswordLoginConfigured, serverEnv } from '../../lib/env.js'
+import { resolveAuthEmailFromIdentifier } from '../../lib/auth/resolve-login-email.js'
+import { getSupabasePasswordAuthClient } from '../../lib/supabase-auth-client.js'
 
 export const authRoutes = new Hono()
 
@@ -40,6 +44,49 @@ function authRateLimit(c: { req: { header: (name: string) => string | undefined 
     )
   }
 }
+
+authRoutes.post('/password-login', async (c) => {
+  try {
+    authRateLimit(c)
+    if (!isSupabasePasswordLoginConfigured()) {
+      throw new AppError('SERVICE_UNAVAILABLE', 'Sign-in is temporarily unavailable.', 503)
+    }
+
+    const body = await c.req.json().catch(() => ({}))
+    const parsed = passwordLoginSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'Please check the form and try again.',
+        400,
+        formatZodErrors(parsed.error),
+      )
+    }
+
+    const email = await resolveAuthEmailFromIdentifier(parsed.data.identifier)
+    const authClient = getSupabasePasswordAuthClient()
+    if (!authClient) {
+      throw new AppError('SERVICE_UNAVAILABLE', 'Sign-in is temporarily unavailable.', 503)
+    }
+
+    const { data, error } = await authClient.auth.signInWithPassword({
+      email,
+      password: parsed.data.password,
+    })
+
+    if (error || !data.session) {
+      throw new AppError('UNAUTHORIZED', 'Sign in failed. Check your MUCO ID or password.', 401)
+    }
+
+    return jsonSuccess(c, {
+      accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token,
+      expiresIn: data.session.expires_in,
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
 
 authRoutes.post('/register', verifySupabaseToken, async (c) => {
   try {
@@ -83,6 +130,13 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
         emailVerified: identity.emailVerified,
       })
     }
+
+    await ensureMucoLoginIdForUser(user.id)
+    const [idRow] = await db
+      .select({ mucoLoginId: users.mucoLoginId })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1)
 
     let auth
     try {
@@ -132,6 +186,7 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
       emailVerified: identity.emailVerified,
       status: auth.status,
       fullName: user.fullName,
+      mucoLoginId: idRow?.mucoLoginId ?? user.mucoLoginId ?? null,
       companyName: profile?.companyName ?? null,
       roles: auth.roles,
       permissions: [...auth.permissions],

@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import { isMucoDepartmentSlug } from '../org/departments.js'
 
+export const passwordLoginSchema = z.object({
+  identifier: z.string().trim().min(1, 'Enter your MUCO ID or email.').max(254),
+  password: z.string().min(1, 'Password is required.').max(256),
+})
+
 export const registerCustomerSchema = z.object({
   fullName: z.string().trim().min(1, 'Name is required.').max(120),
   companyName: z.string().trim().max(160).optional(),

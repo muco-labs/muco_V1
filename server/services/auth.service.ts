@@ -14,11 +14,52 @@ import { AppError } from '../lib/errors.js'
 import { getSupabaseAdmin } from '../lib/supabase.js'
 import { defaultRolePermissions } from '../lib/auth/role-permissions.js'
 import type { RoleName } from '../lib/auth/permissions.js'
+import {
+  formatMucoLoginId,
+  mucoLoginIdSuffixFromUuid,
+} from '../lib/auth/muco-login-id.js'
 
 export type RegisterCustomerInput = {
   fullName: string
   companyName?: string
   phone?: string
+}
+
+async function assignMucoLoginIdIfMissing(userId: string, role: RoleName) {
+  const db = getDb()
+  if (!db) return
+
+  const [row] = await db.select({ mucoLoginId: users.mucoLoginId }).from(users).where(eq(users.id, userId)).limit(1)
+  if (!row || row.mucoLoginId) return
+
+  const mucoLoginId = formatMucoLoginId(role, mucoLoginIdSuffixFromUuid(userId))
+  await db
+    .update(users)
+    .set({ mucoLoginId, updatedAt: new Date() })
+    .where(eq(users.id, userId))
+}
+
+/** Backfill public login id for legacy rows (idempotent). */
+export async function ensureMucoLoginIdForUser(userId: string) {
+  const db = getDb()
+  if (!db) return
+
+  const [row] = await db
+    .select({ mucoLoginId: users.mucoLoginId })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+  if (!row || row.mucoLoginId) return
+
+  const roleRows = await db
+    .select({ name: roles.name })
+    .from(userRoles)
+    .innerJoin(roles, eq(userRoles.roleId, roles.id))
+    .where(eq(userRoles.userId, userId))
+    .limit(1)
+
+  const role = (roleRows[0]?.name ?? 'CUSTOMER') as RoleName
+  await assignMucoLoginIdIfMissing(userId, role)
 }
 
 export async function registerCustomerFromAuth(
@@ -40,6 +81,7 @@ export async function registerCustomerFromAuth(
     .limit(1)
 
   if (existing.length > 0) {
+    await assignMucoLoginIdIfMissing(existing[0].id, 'CUSTOMER')
     return { userId: existing[0].id, created: false as const }
   }
 
@@ -79,6 +121,8 @@ export async function registerCustomerFromAuth(
     entityId: user.id,
     metadata: JSON.stringify({ email: normalizedEmail }),
   })
+
+  await assignMucoLoginIdIfMissing(user.id, 'CUSTOMER')
 
   return { userId: user.id, created: true as const }
 }
@@ -197,6 +241,8 @@ export async function inviteEmployee(input: {
     metadata: JSON.stringify({ email }),
   })
 
+  await assignMucoLoginIdIfMissing(user.id, 'EMPLOYEE')
+
   return { userId: user.id, email }
 }
 
@@ -288,6 +334,8 @@ export async function inviteCustomerFromLead(input: {
     entityId: profile.id,
     metadata: JSON.stringify({ email }),
   })
+
+  await assignMucoLoginIdIfMissing(user.id, 'CUSTOMER')
 
   return { userId: user.id, customerProfileId: profile.id, invited: true as const }
 }
@@ -396,6 +444,8 @@ export async function bootstrapFounderAccount(email: string, fullName: string) {
     entityId: user.id,
     metadata: JSON.stringify({ email: normalized }),
   })
+
+  await assignMucoLoginIdIfMissing(user.id, 'FOUNDER')
 
   return { userId: user.id, email: normalized }
 }

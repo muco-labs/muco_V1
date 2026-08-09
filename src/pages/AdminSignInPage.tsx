@@ -5,6 +5,7 @@ import { authCopy, authRoutes, portalRoutes } from '@/config/auth'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/auth-context'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { friendlyAuthError } from '@/lib/auth/auth-errors'
 import { signInWithPassword } from '@/services/auth'
 import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
@@ -12,7 +13,7 @@ import formStyles from './AuthForm.module.css'
 export function AdminSignInPage() {
   const navigate = useNavigate()
   const { refreshProfile, canAccessPortal } = useAuth()
-  const [email, setEmail] = useState('')
+  const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -22,15 +23,15 @@ export function AdminSignInPage() {
     setError(null)
     setSubmitting(true)
     try {
-      await signInWithPassword(email, password)
+      await signInWithPassword(loginId, password)
       await refreshProfile()
       if (!canAccessPortal('admin')) {
         navigate(portalRoutes.unauthorized, { replace: true })
         return
       }
       navigate(portalRoutes.admin, { replace: true })
-    } catch {
-      setError('Sign in failed. Check your credentials.')
+    } catch (err) {
+      setError(friendlyAuthError(err, 'Sign in failed. Check your credentials.'))
     } finally {
       setSubmitting(false)
     }
@@ -54,13 +55,14 @@ export function AdminSignInPage() {
             ) : (
               <form className={formStyles.form} onSubmit={onSubmit}>
                 <div className={formStyles.field}>
-                  <label htmlFor="email">Email</label>
+                  <label htmlFor="loginId">Admin ID or email</label>
                   <input
-                    id="email"
-                    type="email"
+                    id="loginId"
+                    type="text"
+                    autoComplete="username"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
                   />
                 </div>
                 <div className={formStyles.field}>

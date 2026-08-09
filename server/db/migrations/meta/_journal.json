@@ -204,6 +204,13 @@
       "when": 1786220250000,
       "tag": "0028_freelancer_availability_capacity",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786220300000,
+      "tag": "0029_muco_login_id",
+      "breakpoints": true
     }
   ]
 }
