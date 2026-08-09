@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { INTAKE_SERVICE_SLUGS } from '../intake/service-slugs.js'
+import { isControlCharFree } from './control-char.js'
 
-const controlCharFree = (value: string) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value)
+const controlCharFree = (value: string) => isControlCharFree(value)
 
 const serviceSlugEnum = z.enum(INTAKE_SERVICE_SLUGS)
 

@@ -67,7 +67,7 @@ Set **Production**, **Preview**, and **Development** separately in Vercel. Use n
 npm run db:migrate
 ```
 
-Do **not** reset production. Migrations are additive through `0007_business_workflow.sql` and RLS in `0002_row_level_security.sql`.
+Do **not** reset production. Migrations are additive through `0028_freelancer_availability_capacity.sql` (journal `server/db/migrations/meta/_journal.json`). RLS in `0002_row_level_security.sql`.
 
 Supabase dashboard “migrations” may be empty if you apply Drizzle SQL outside Supabase CLI — that is expected when using `npm run db:migrate`.
 

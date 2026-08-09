@@ -9,7 +9,7 @@ import {
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { adminPortalPaths, careerApplicationStatusOptions, careerApplicationTypeFilterOptions } from '@/config/admin-portal'
 import { CareersSubNav } from '@/pages/portal/admin/AdminCareersSubNav'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import styles from './AdminCareers.module.css'

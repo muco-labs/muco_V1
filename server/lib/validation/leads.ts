@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { isControlCharFree } from './control-char.js'
 
-const controlCharFree = (value: string) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value)
+const controlCharFree = (value: string) => isControlCharFree(value)
 
 export const createLeadSchema = z.object({
   name: z

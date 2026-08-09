@@ -1,4 +1,5 @@
 import { portalRoutes } from '@/config/auth'
+import { hasDisallowedControlChars } from '@/lib/validation/control-char'
 
 const MAX_RETURN_LENGTH = 512
 
@@ -17,8 +18,7 @@ export function resolveSafeCustomerReturnPath(
   if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return fallback
   if (/^https?:/i.test(trimmed)) return fallback
   if (trimmed.includes('\\')) return fallback
-  // eslint-disable-next-line no-control-regex -- reject control chars in return paths
-  if (/[\u0000-\u001f\u007f]/.test(trimmed)) return fallback
+  if (hasDisallowedControlChars(trimmed)) return fallback
 
   const queryIndex = trimmed.indexOf('?')
   const pathOnly = queryIndex === -1 ? trimmed : trimmed.slice(0, queryIndex)

@@ -10,7 +10,7 @@ import {
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { customerPortalPaths } from '@/config/customer-portal'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { customerApi } from '@/services/customer-portal'
 import { Button } from '@/components/ui/Button'

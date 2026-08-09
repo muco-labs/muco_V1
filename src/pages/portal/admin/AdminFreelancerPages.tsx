@@ -12,7 +12,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import { Button } from '@/components/ui/Button'
 import { AdminFreelancerDiscoveryPanel } from '@/components/portal/AdminFreelancerDiscoveryPanel'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 
 export function AdminFreelancersPage() {
   const [q, setQ] = useState('')

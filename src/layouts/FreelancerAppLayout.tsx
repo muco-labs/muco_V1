@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { freelancerNav, freelancerPortalPaths } from '@/config/freelancer-portal'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/Button'
 import styles from './EmployeeAppLayout.module.css'
 

@@ -15,7 +15,7 @@ import { CrmProjectFulfillmentPanel } from '@/components/portal/crm/CrmProjectFu
 import { CrmProposalFulfillmentPanel } from '@/components/portal/crm/CrmProposalFulfillmentPanel'
 import { CrmActivityTimeline } from '@/components/portal/crm/CrmActivityTimeline'
 import { adminPortalPaths, CRM_PIPELINE_STATUSES } from '@/config/admin-portal'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import styles from './Crm.module.css'

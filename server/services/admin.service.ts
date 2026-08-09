@@ -26,6 +26,7 @@ import { AppError } from '../lib/errors.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission, roleCanAccessPortal } from '../lib/auth/permissions.js'
 import { isDatabaseConfigured, isRazorpayConfigured, isRazorpayWebhookConfigured, isSupabaseConfigured, serverEnv } from '../lib/env.js'
+import { getNvidiaProviderHealth } from '../lib/ai/config.js'
 import { sumProposalLineItems } from '../lib/sales/metrics.js'
 import { emailConfigurationStatus, sendTransactionalEmail } from '../lib/email/send.js'
 
@@ -173,6 +174,9 @@ export function getIntegrationStatus() {
       webhookConfigured: isRazorpayWebhookConfigured(),
     },
     email: emailConfigurationStatus(),
+    ai: {
+      nvidia: getNvidiaProviderHealth(),
+    },
     cors: {
       configured: serverEnv.corsOrigins.length > 0,
       originCount: serverEnv.corsOrigins.length,

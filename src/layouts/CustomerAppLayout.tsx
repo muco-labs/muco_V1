@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { customerNavMore, customerNavPrimary, customerPortalPaths } from '@/config/customer-portal'
 import { authRoutes } from '@/config/auth'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/Button'
 import styles from './CustomerAppLayout.module.css'
 

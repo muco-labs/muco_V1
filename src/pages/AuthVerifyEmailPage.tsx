@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes } from '@/config/auth'
 import { resolveSafeCustomerReturnPath } from '@/lib/auth/safe-return-path'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/Button'
 import styles from './AuthPage.module.css'
 

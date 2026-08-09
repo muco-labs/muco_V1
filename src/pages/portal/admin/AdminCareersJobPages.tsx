@@ -13,7 +13,7 @@ import {
   careerEmploymentTypeOptions,
   careerJobStatusOptions,
 } from '@/config/admin-portal'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import { normalizeCareerJobSlug } from '@/lib/careers/slug'

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authRoutes } from '@/config/auth'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/Button'
 import styles from '../AuthPage.module.css'
 

@@ -11,7 +11,7 @@ import {
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import styles from '@/layouts/EmployeeAppLayout.module.css'
 import { employeePortalPaths, taskStatusLabels } from '@/config/employee-portal'
-import { useAuth } from '@/contexts/AuthProvider'
+import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { employeeApi } from '@/services/employee-portal'
 import { Button } from '@/components/ui/Button'
