@@ -36,6 +36,15 @@ describe('assertProposalPayable', () => {
       ).ok,
     ).toBe(false)
   })
+
+  it('rejects wrong customer', () => {
+    expect(
+      assertProposalPayable(
+        { status: 'accepted', customerId: 'c1', validUntil: null },
+        'c2',
+      ).ok,
+    ).toBe(false)
+  })
 })
 
 describe('canTransitionPaymentStatus', () => {

@@ -24,7 +24,9 @@ import detailStyles from '@/components/portal/ProjectRequestDetail.module.css'
 import { formatProjectRequestReference, projectRequestNextAction } from '@/lib/conversion/project-request-reference'
 
 import { ProjectDeliveryLifecycle } from '@/components/portal/ProjectDeliveryLifecycle'
-import { startRazorpayCheckout, type RazorpayCheckoutConfig } from '@/lib/payments/razorpay-checkout'
+import { formatCommercialMoney } from '@/lib/commercial/format-money'
+import { runCustomerPaymentCheckout } from '@/lib/commercial/customer-payment-checkout'
+import { customerPaymentStatusLabel } from '@/lib/commercial/payment-status-label'
 import { CustomerMessageMucoButton } from '@/components/portal/CustomerMessageMucoButton'
 import { ProjectDocumentsSection } from '@/components/portal/ProjectDocumentsSection'
 import { PortalMessageArticle } from '@/components/portal/PortalMessageArticle'
@@ -35,8 +37,7 @@ import {
 import type { CustomerConversationListItem, CustomerConversationMessage } from '@/services/customer-portal'
 
 function formatMoney(amount: string, currency: string) {
-  if (currency === 'INR') return `₹${amount}`
-  return `${currency} ${amount}`
+  return formatCommercialMoney(amount, currency)
 }
 
 type ProjectRow = {
@@ -347,34 +348,15 @@ export function CustomerProposalDetailPage() {
   async function handleProposalPay() {
     setPayLoading(true)
     setPayMessage(null)
-    try {
-      const intent = (await customerApi.proposals.startPayment(id)) as {
-        paymentId?: string
-        razorpay?: RazorpayCheckoutConfig
-      }
-      const paymentId = String(intent.paymentId ?? '')
-      if (!paymentId) {
-        setPayMessage('Payment could not be started.')
-        return
-      }
-      const checkout = await startRazorpayCheckout(intent.razorpay, async (payload) => {
-        await customerApi.payments.verify(paymentId, {
-          razorpayOrderId: payload.razorpay_order_id,
-          razorpayPaymentId: payload.razorpay_payment_id,
-          razorpaySignature: payload.razorpay_signature,
-        })
-        reload()
-      })
-      if (checkout.ok) {
-        setPayMessage('Payment successful. Thank you.')
-      } else {
-        setPayMessage(checkout.message)
-      }
-    } catch (err) {
-      setPayMessage(err instanceof ApiError ? err.message : 'Payment could not be started.')
-    } finally {
-      setPayLoading(false)
-    }
+    const result = await runCustomerPaymentCheckout({
+      startIntent: () => customerApi.proposals.startPayment(id),
+      verifyOnServer: async (paymentId, payload) => {
+        await customerApi.payments.verify(paymentId, payload)
+      },
+      onAfterVerify: reload,
+    })
+    setPayMessage(result.message)
+    setPayLoading(false)
   }
 
   async function decide(action: 'approve' | 'requestChanges' | 'reject') {
@@ -494,7 +476,7 @@ export function CustomerProposalDetailPage() {
           ) : payment.paymentRequired !== false ? (
             <>
               <p className={ui.meta} role="status">
-                <strong>Payment required</strong> to proceed after acceptance.
+                <strong>{customerPaymentStatusLabel(String(payment.status))}.</strong>
               </p>
               {payment.payableAmount ? (
                 <p className={ui.meta}>
@@ -614,30 +596,15 @@ export function CustomerInvoiceDetailPage() {
   async function handlePay() {
     setPayMessage(null)
     setPayLoading(true)
-    try {
-      const intent = (await customerApi.invoices.pay(id)) as {
-        paymentId?: string
-        razorpay?: RazorpayCheckoutConfig
-      }
-      const paymentId = String(intent.paymentId ?? '')
-      if (!paymentId) {
-        setPayMessage('Payment could not be started.')
-        return
-      }
-      const checkout = await startRazorpayCheckout(intent.razorpay, async (payload) => {
-        await customerApi.payments.verify(paymentId, {
-          razorpayOrderId: payload.razorpay_order_id,
-          razorpayPaymentId: payload.razorpay_payment_id,
-          razorpaySignature: payload.razorpay_signature,
-        })
-        reload()
-      })
-      setPayMessage(checkout.ok ? 'Payment successful. Thank you.' : checkout.message)
-    } catch (err) {
-      setPayMessage(err instanceof ApiError ? err.message : 'Payment could not be started.')
-    } finally {
-      setPayLoading(false)
-    }
+    const result = await runCustomerPaymentCheckout({
+      startIntent: () => customerApi.invoices.pay(id),
+      verifyOnServer: async (paymentId, payload) => {
+        await customerApi.payments.verify(paymentId, payload)
+      },
+      onAfterVerify: reload,
+    })
+    setPayMessage(result.message)
+    setPayLoading(false)
   }
 
   return (

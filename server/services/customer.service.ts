@@ -425,11 +425,21 @@ export async function getCustomerProposal(ctx: CustomerContext, proposalId: stri
 
   const payment = await getProposalPaymentSummaryForCustomer(ctx, proposalId)
 
+  const serialized = serializeCustomerProposal(row, lineItems, {
+    sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
+    projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
+  })
+
+  let nextAction = serialized.nextAction
+  if (payment?.status === 'paid') {
+    nextAction = 'Payment received. View your project for delivery updates.'
+  } else if (payment?.canPay) {
+    nextAction = 'Complete payment below to confirm your engagement.'
+  }
+
   return {
-    ...serializeCustomerProposal(row, lineItems, {
-      sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
-      projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
-    }),
+    ...serialized,
+    nextAction,
     payment,
   }
 }
