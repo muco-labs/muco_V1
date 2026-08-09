@@ -23,7 +23,9 @@ export function ProtectedPortal({ portal, children }: ProtectedPortalProps) {
         ? authRoutes.teamSignIn
         : portal === 'admin'
           ? authRoutes.adminSignIn
-          : authRoutes.signIn
+          : portal === 'freelancer'
+            ? authRoutes.signIn
+            : authRoutes.signIn
     return (
       <Navigate
         to={loginPath}

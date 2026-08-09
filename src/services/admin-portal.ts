@@ -122,6 +122,21 @@ export const adminApi = {
     resumeDownloadUrl: (id: string) =>
       apiRequest<{ url: string; fileName?: string }>(`${base}/careers/applications/${id}/resume`),
   },
+  freelancers: {
+    list: (params?: Record<string, string | undefined>) => {
+      const search = new URLSearchParams()
+      for (const [key, value] of Object.entries(params ?? {})) {
+        if (value) search.set(key, value)
+      }
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[] }>(`${base}/freelancers${qs ? `?${qs}` : ''}`)
+    },
+    get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/freelancers/${id}`),
+    patch: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/freelancers/${id}`, { method: 'PATCH', json: body }),
+    addNote: (id: string, content: string) =>
+      apiRequest(`${base}/freelancers/${id}/notes`, { method: 'POST', json: { content } }),
+  },
   executive: {
     overview: () => apiRequest<Record<string, unknown>>(`${base}/executive/overview`),
   },

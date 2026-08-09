@@ -126,6 +126,17 @@ import {
   updateCareerJobStatusSchema,
 } from '../../lib/validation/careers.js'
 import {
+  addFreelancerInternalNote,
+  getFreelancerAdmin,
+  listFreelancersAdmin,
+  listFreelancerInternalNotesAdmin,
+  patchFreelancerAdmin,
+} from '../../services/freelancer-network.service.js'
+import {
+  freelancerAdminPatchSchema,
+  freelancerNoteSchema,
+} from '../../lib/validation/freelancers.js'
+import {
   createProjectFromLeadCrm,
   getProjectFulfillmentAdmin,
   listProjectsFulfillmentAdmin,
@@ -545,6 +556,66 @@ adminRoutes.get(
     }
   },
 )
+
+adminRoutes.get('/freelancers', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, {
+      items: await listFreelancersAdmin(auth, {
+        q: c.req.query('q'),
+        approvalStatus: c.req.query('approvalStatus'),
+        verificationStatus: c.req.query('verificationStatus'),
+        availabilityStatus: c.req.query('availabilityStatus'),
+        serviceCategory: c.req.query('serviceCategory'),
+        professionalRole: c.req.query('professionalRole'),
+      }),
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/freelancers/:id', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getFreelancerAdmin(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/freelancers/:id', requirePermission('freelancers.manage'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = freelancerAdminPatchSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid update.', 400)
+    return jsonSuccess(c, await patchFreelancerAdmin(auth, paramId(c), parsed.data))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/freelancers/:id/notes', requirePermission('freelancers.notes'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listFreelancerInternalNotesAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/freelancers/:id/notes', requirePermission('freelancers.notes'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = freelancerNoteSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid note.', 400)
+    return jsonSuccess(c, await addFreelancerInternalNote(auth, paramId(c), parsed.data.content), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
 
 adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
   try {

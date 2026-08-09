@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { MainLayout } from '@/layouts/MainLayout'
 import { CustomerAppLayout } from '@/layouts/CustomerAppLayout'
 import { EmployeeAppLayout } from '@/layouts/EmployeeAppLayout'
+import { FreelancerAppLayout } from '@/layouts/FreelancerAppLayout'
 import { AdminAppLayout } from '@/layouts/AdminAppLayout'
 import { ProtectedPortal } from '@/components/auth/ProtectedPortal'
 
@@ -38,6 +39,7 @@ const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPag
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
 const CareersPage = lazyPage(() => import('@/pages/CareersPage'), 'CareersPage')
 const CareersApplyPage = lazyPage(() => import('@/pages/CareersApplyPage'), 'CareersApplyPage')
+const FreelancersApplyPage = lazyPage(() => import('@/pages/FreelancersApplyPage'), 'FreelancersApplyPage')
 const CareersOpeningPage = lazyPage(
   () => import('@/pages/CareersOpeningPage'),
   'CareersOpeningPage',
@@ -144,6 +146,18 @@ const EmployeeDeadlinesPage = lazyEmployeePage('EmployeeDeadlinesPage')
 const EmployeeProfilePage = lazyEmployeePage('EmployeeProfilePage')
 const EmployeeSettingsPage = lazyEmployeePage('EmployeeSettingsPage')
 
+function lazyFreelancerPage(exportName: string) {
+  return lazy(() =>
+    import('@/pages/portal/freelancer/FreelancerPortalPages').then((module) => ({
+      default: module[exportName as keyof typeof module] as ComponentType<unknown>,
+    })),
+  )
+}
+
+const FreelancerDashboardPage = lazyFreelancerPage('FreelancerDashboardPage')
+const FreelancerProfilePage = lazyFreelancerPage('FreelancerProfilePage')
+const FreelancerAvailabilityPage = lazyFreelancerPage('FreelancerAvailabilityPage')
+
 function lazyAdminPage(exportName: string) {
   return lazy(() =>
     import('@/pages/portal/admin/AdminPortalPages').then((module) => ({
@@ -212,6 +226,14 @@ const AdminTeamAccessPage = lazyPage(
   () => import('@/pages/portal/admin/AdminTeamAccessPage'),
   'AdminTeamAccessPage',
 )
+const AdminFreelancersPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminFreelancerPages'),
+  'AdminFreelancersPage',
+)
+const AdminFreelancerDetailPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminFreelancerPages'),
+  'AdminFreelancerDetailPage',
+)
 const WebsiteIntelligenceDashboardPage = lazyPage(
   () => import('@/pages/portal/admin/WebsiteIntelligencePages'),
   'WebsiteIntelligenceDashboardPage',
@@ -263,6 +285,7 @@ export const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'careers', element: <CareersPage /> },
       { path: 'careers/apply', element: <CareersApplyPage /> },
+      { path: 'freelancers/apply', element: <FreelancersApplyPage /> },
       { path: 'careers/openings/:slug', element: <CareersOpeningPage /> },
       { path: 'start-project', element: <StartProjectEntryPage /> },
       { path: 'pricing', element: <PricingPage /> },
@@ -333,6 +356,19 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'app/freelancer',
+        element: (
+          <ProtectedPortal portal="freelancer">
+            <FreelancerAppLayout />
+          </ProtectedPortal>
+        ),
+        children: [
+          { index: true, element: <FreelancerDashboardPage /> },
+          { path: 'profile', element: <FreelancerProfilePage /> },
+          { path: 'availability', element: <FreelancerAvailabilityPage /> },
+        ],
+      },
+      {
         path: 'admin',
         element: (
           <ProtectedPortal portal="admin">
@@ -352,6 +388,8 @@ export const router = createBrowserRouter([
           { path: 'careers/jobs/new', element: <AdminCareersJobEditPage /> },
           { path: 'careers/jobs/:id', element: <AdminCareersJobEditPage /> },
           { path: 'careers/applications/:id', element: <AdminCareerApplicationDetailPage /> },
+          { path: 'freelancers', element: <AdminFreelancersPage /> },
+          { path: 'freelancers/:id', element: <AdminFreelancerDetailPage /> },
           { path: 'executive', element: <AdminExecutivePage /> },
           { path: 'team/access', element: <AdminTeamAccessPage /> },
           { path: 'website-intelligence', element: <WebsiteIntelligenceDashboardPage /> },

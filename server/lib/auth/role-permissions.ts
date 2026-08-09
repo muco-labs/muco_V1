@@ -28,6 +28,7 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'messages.send',
     'support.view',
   ],
+  FREELANCER: [],
   ADMIN: [
     'users.view',
     'users.update',
@@ -73,6 +74,9 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'careers.view',
     'careers.manage',
     'careers.notes',
+    'freelancers.view',
+    'freelancers.manage',
+    'freelancers.notes',
   ],
   SUPER_ADMIN: [
     'users.view',
@@ -123,6 +127,9 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'careers.view',
     'careers.manage',
     'careers.notes',
+    'freelancers.view',
+    'freelancers.manage',
+    'freelancers.notes',
   ],
   FOUNDER: [
     'users.view',
@@ -173,5 +180,8 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'careers.view',
     'careers.manage',
     'careers.notes',
+    'freelancers.view',
+    'freelancers.manage',
+    'freelancers.notes',
   ],
 }

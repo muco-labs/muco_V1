@@ -10,6 +10,7 @@ export const routePaths = {
   contact: '/contact',
   careers: '/careers',
   careersApply: '/careers/apply',
+  freelancersApply: '/freelancers/apply',
   pricing: '/pricing',
   authSignIn: '/auth/sign-in',
   authSignUp: '/auth/sign-up',

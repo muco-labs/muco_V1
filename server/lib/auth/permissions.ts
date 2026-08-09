@@ -2,6 +2,7 @@
 export const roleNames = [
   'CUSTOMER',
   'EMPLOYEE',
+  'FREELANCER',
   'ADMIN',
   'SUPER_ADMIN',
   'FOUNDER',
@@ -58,6 +59,9 @@ export const permissionNames = [
   'careers.view',
   'careers.manage',
   'careers.notes',
+  'freelancers.view',
+  'freelancers.manage',
+  'freelancers.notes',
 ] as const
 
 export type PermissionName = (typeof permissionNames)[number]
@@ -73,6 +77,7 @@ export const portalRoles = {
   customer: ['CUSTOMER'] as const,
   employee: ['EMPLOYEE', 'ADMIN', 'SUPER_ADMIN', 'FOUNDER'] as const,
   admin: ['ADMIN', 'SUPER_ADMIN', 'FOUNDER'] as const,
+  freelancer: ['FREELANCER'] as const,
 } as const
 
 export type PortalKind = keyof typeof portalRoles

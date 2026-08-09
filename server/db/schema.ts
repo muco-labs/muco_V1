@@ -1069,6 +1069,78 @@ export const careerApplicationNotes = pgTable(
   (table) => [index('career_application_notes_application_id_idx').on(table.applicationId)],
 )
 
+export const freelancerVerificationStatusEnum = pgEnum('freelancer_verification_status', [
+  'pending',
+  'verified',
+  'failed',
+])
+
+export const freelancerApprovalStatusEnum = pgEnum('freelancer_approval_status', [
+  'under_review',
+  'approved',
+  'rejected',
+  'suspended',
+])
+
+export const freelancerAvailabilityStatusEnum = pgEnum('freelancer_availability_status', [
+  'available',
+  'unavailable',
+])
+
+export const freelancerProfiles = pgTable(
+  'freelancer_profiles',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+    email: text('email').notNull(),
+    fullName: text('full_name').notNull(),
+    phone: text('phone'),
+    country: text('country'),
+    city: text('city'),
+    professionalRole: text('professional_role').notNull(),
+    experienceLevel: text('experience_level'),
+    headline: text('headline'),
+    bio: text('bio'),
+    skills: text('skills').notNull(),
+    serviceCategories: text('service_categories').notNull(),
+    portfolioUrls: text('portfolio_urls'),
+    preferredProjectType: text('preferred_project_type'),
+    availabilityNote: text('availability_note'),
+    openToProjects: boolean('open_to_projects').notNull().default(true),
+    verificationStatus: freelancerVerificationStatusEnum('verification_status')
+      .notNull()
+      .default('pending'),
+    approvalStatus: freelancerApprovalStatusEnum('approval_status')
+      .notNull()
+      .default('under_review'),
+    availabilityStatus: freelancerAvailabilityStatusEnum('availability_status')
+      .notNull()
+      .default('unavailable'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('freelancer_profiles_approval_status_idx').on(table.approvalStatus),
+    index('freelancer_profiles_verification_status_idx').on(table.verificationStatus),
+  ],
+)
+
+export const freelancerInternalNotes = pgTable(
+  'freelancer_internal_notes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    freelancerId: uuid('freelancer_id')
+      .notNull()
+      .references(() => freelancerProfiles.id, { onDelete: 'cascade' }),
+    authorUserId: uuid('author_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('freelancer_internal_notes_freelancer_id_idx').on(table.freelancerId)],
+)
+
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
 }))

@@ -6,6 +6,7 @@
 export const appRoles = [
   'CUSTOMER',
   'EMPLOYEE',
+  'FREELANCER',
   'ADMIN',
   'SUPER_ADMIN',
   'FOUNDER',
@@ -15,16 +16,18 @@ export type AppRole = (typeof appRoles)[number]
 
 export const roleHierarchy: Record<AppRole, number> = {
   CUSTOMER: 1,
+  FREELANCER: 1,
   EMPLOYEE: 2,
   ADMIN: 3,
   SUPER_ADMIN: 4,
   FOUNDER: 5,
 }
 
-export type PortalKind = 'customer' | 'employee' | 'admin'
+export type PortalKind = 'customer' | 'employee' | 'admin' | 'freelancer'
 
 export function roleCanAccessPortal(roles: string[], portal: PortalKind): boolean {
   if (portal === 'customer') return roles.includes('CUSTOMER')
+  if (portal === 'freelancer') return roles.includes('FREELANCER')
   if (portal === 'employee') {
     return roles.some((r) =>
       ['EMPLOYEE', 'ADMIN', 'SUPER_ADMIN', 'FOUNDER'].includes(r),

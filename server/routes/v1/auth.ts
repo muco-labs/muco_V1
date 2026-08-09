@@ -18,6 +18,7 @@ import {
 import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
 import { getDb } from '../../db/client.js'
 import { customerProfiles, users } from '../../db/schema.js'
+import { linkFreelancerProfileToUser } from '../../services/freelancer-network.service.js'
 import { roleCanAccessPortal } from '../../lib/auth/permissions.js'
 import { serverEnv } from '../../lib/env.js'
 
@@ -105,6 +106,8 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
       throw error
     }
 
+    await linkFreelancerProfileToUser(user.id, auth.email)
+
     const [profile] = await db
       .select()
       .from(customerProfiles)
@@ -124,6 +127,7 @@ authRoutes.get('/me', verifySupabaseToken, async (c) => {
         customer: roleCanAccessPortal(auth.roles, 'customer'),
         employee: roleCanAccessPortal(auth.roles, 'employee'),
         admin: roleCanAccessPortal(auth.roles, 'admin'),
+        freelancer: roleCanAccessPortal(auth.roles, 'freelancer'),
       },
     })
   } catch (error) {
