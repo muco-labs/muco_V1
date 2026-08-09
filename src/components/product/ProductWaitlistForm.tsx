@@ -1,6 +1,11 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { routePaths } from '@/config/routes'
 import { submitProductWaitlist } from '@/services/product-waitlist'
+import { Input, Textarea } from '@/components/ui/FormControls'
+import { Button } from '@/components/ui/Button'
+import styles from './ProductWaitlistForm.module.css'
 
 export function ProductWaitlistForm({
   productSlug,
@@ -9,6 +14,7 @@ export function ProductWaitlistForm({
   productSlug: string
   sourcePath: string
 }) {
+  const idPrefix = useId()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [company, setCompany] = useState('')
@@ -47,14 +53,19 @@ export function ProductWaitlistForm({
   }
 
   if (status === 'done') {
-    return <p role="status">{message}</p>
+    return (
+      <p className={styles.success} role="status">
+        {message}
+      </p>
+    )
   }
 
   return (
-    <form onSubmit={onSubmit} className="stack" style={{ gap: 'var(--space-3)' }} noValidate>
-      <label className="stack" style={{ gap: 'var(--space-1)' }}>
-        <span>Name</span>
-        <input
+    <form onSubmit={onSubmit} className={styles.form} noValidate>
+      <div className={styles.row}>
+        <Input
+          id={`${idPrefix}-name`}
+          label="Name"
           type="text"
           name="fullName"
           autoComplete="name"
@@ -62,10 +73,9 @@ export function ProductWaitlistForm({
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
         />
-      </label>
-      <label className="stack" style={{ gap: 'var(--space-1)' }}>
-        <span>Work email</span>
-        <input
+        <Input
+          id={`${idPrefix}-email`}
+          label="Work email"
           type="email"
           name="email"
           autoComplete="email"
@@ -73,36 +83,34 @@ export function ProductWaitlistForm({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-      </label>
-      <label className="stack" style={{ gap: 'var(--space-1)' }}>
-        <span>Company (optional)</span>
-        <input
-          type="text"
-          name="company"
-          autoComplete="organization"
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-        />
-      </label>
-      <label className="stack" style={{ gap: 'var(--space-1)' }}>
-        <span>What would you use this for? (optional)</span>
-        <textarea
-          name="useCase"
-          rows={3}
-          value={useCase}
-          onChange={(e) => setUseCase(e.target.value)}
-        />
-      </label>
-      <label className="cluster" style={{ alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+      </div>
+      <Input
+        id={`${idPrefix}-company`}
+        label="Company (optional)"
+        type="text"
+        name="company"
+        autoComplete="organization"
+        value={company}
+        onChange={(e) => setCompany(e.target.value)}
+      />
+      <Textarea
+        id={`${idPrefix}-use-case`}
+        label="What would you use this for? (optional)"
+        name="useCase"
+        rows={4}
+        value={useCase}
+        onChange={(e) => setUseCase(e.target.value)}
+      />
+      <label className={styles.consent}>
         <input
           type="checkbox"
           checked={consent}
           onChange={(e) => setConsent(e.target.checked)}
           required
         />
-        <span>
+        <span className={styles.consentText}>
           I agree MUCO LABS may contact me about this product and early-access research. See our{' '}
-          <a href="/privacy-policy">privacy policy</a>.
+          <Link to={routePaths.privacy}>privacy policy</Link>.
         </span>
       </label>
       <input
@@ -116,13 +124,15 @@ export function ProductWaitlistForm({
         onChange={(e) => setWebsite(e.target.value)}
       />
       {status === 'error' && message ? (
-        <p role="alert" style={{ color: 'var(--color-danger, #b42318)' }}>
+        <p className={styles.error} role="alert">
           {message}
         </p>
       ) : null}
-      <button type="submit" className="btn btn--primary" disabled={status === 'loading'}>
-        {status === 'loading' ? 'Submitting…' : 'Join waitlist'}
-      </button>
+      <div className={styles.actions}>
+        <Button type="submit" size="lg" disabled={status === 'loading'}>
+          {status === 'loading' ? 'Submitting…' : 'Join waitlist'}
+        </Button>
+      </div>
     </form>
   )
 }

@@ -92,10 +92,14 @@ export function ClientHubProductPage() {
                 Help us validate the problem and scope. This is not a purchase and does not start a
                 subscription.
               </p>
-              <ProductWaitlistForm
-                productSlug={clientHubProductSlug}
-                sourcePath={clientHubSeo.path}
-              />
+            </Reveal>
+            <Reveal delayMs={60}>
+              <div className={`surface ${styles.waitlistCard}`}>
+                <ProductWaitlistForm
+                  productSlug={clientHubProductSlug}
+                  sourcePath={clientHubSeo.path}
+                />
+              </div>
             </Reveal>
           </div>
         </section>

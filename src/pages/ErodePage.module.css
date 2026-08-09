@@ -38,6 +38,17 @@
   max-width: 42rem;
 }
 
+.waitlistCard {
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  max-width: 40rem;
+}
+
+@media (min-width: 40rem) {
+  .waitlistCard {
+    padding: var(--space-8);
+  }
+}
+
 .address {
   font-size: var(--text-small);
   color: var(--color-text-subtle);
