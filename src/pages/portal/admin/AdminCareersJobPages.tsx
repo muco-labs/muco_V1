@@ -16,6 +16,7 @@ import {
 import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 import { normalizeCareerJobSlug } from '@/lib/careers/slug'
 import styles from './AdminCareers.module.css'
 import { CareersSubNav } from './AdminCareersSubNav'
@@ -43,7 +44,7 @@ export function AdminCareersJobsPage() {
   )
 
   if (loading) return <ListSkeleton rows={8} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const items = (data?.items as JobRow[]) ?? []
 

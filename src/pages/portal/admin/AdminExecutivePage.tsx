@@ -4,6 +4,7 @@ import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { adminPortalPaths } from '@/config/admin-portal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 
 function formatInr(amount: string | null | undefined) {
   if (!amount) return '₹0'
@@ -16,7 +17,7 @@ export function AdminExecutivePage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.executive.overview(), [])
 
   if (loading) return <ListSkeleton rows={10} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const actual = (data.actual as Record<string, unknown>) ?? {}

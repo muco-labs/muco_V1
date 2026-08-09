@@ -12,6 +12,7 @@ import { CareersSubNav } from '@/pages/portal/admin/AdminCareersSubNav'
 import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 import styles from './AdminCareers.module.css'
 
 type ApplicationRow = {
@@ -51,7 +52,7 @@ export function AdminCareersApplicationsPage() {
   )
 
   if (loading) return <ListSkeleton rows={10} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const items = (data?.items as ApplicationRow[]) ?? []
 
@@ -183,7 +184,7 @@ export function AdminCareerApplicationDetailPage() {
   const [saving, setSaving] = useState(false)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data?.application) return null
 
   const app = data.application as Record<string, unknown>

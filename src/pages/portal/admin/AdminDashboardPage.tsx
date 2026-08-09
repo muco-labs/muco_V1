@@ -3,12 +3,14 @@ import {
   EmptyState,
   ListSkeleton,
   PageIntro,
+  PortalAttention,
   PortalError,
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { adminPortalPaths } from '@/config/admin-portal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -20,13 +22,40 @@ export function AdminDashboardPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.dashboard(), [])
 
   if (loading) return <ListSkeleton rows={6} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const activity = data.recentActivity ?? []
+  const attention: Array<{ label: string; to: string; count: number }> = []
+  if (data.leadsNew > 0) attention.push({ label: 'New leads', to: adminPortalPaths.crm, count: data.leadsNew })
+  if (data.pendingProposals > 0) {
+    attention.push({ label: 'Pending proposals', to: adminPortalPaths.proposals, count: data.pendingProposals })
+  }
+  if (data.overdueInvoices > 0) {
+    attention.push({ label: 'Overdue invoices', to: adminPortalPaths.invoices, count: data.overdueInvoices })
+  }
+  if (data.openSupportTickets > 0) {
+    attention.push({ label: 'Open support', to: adminPortalPaths.support, count: data.openSupportTickets })
+  }
+  if (data.tasksDueSoon > 0) {
+    attention.push({ label: 'Tasks due (7d)', to: adminPortalPaths.tasks, count: data.tasksDueSoon })
+  }
 
   return (
     <>
+      {attention.length > 0 ? (
+        <PortalAttention
+          title={`${attention.length} area${attention.length === 1 ? '' : 's'} need attention`}
+          description="Counts below are live from your database."
+        >
+          {attention.map((item) => (
+            <Link key={item.to} className="link-underline" to={item.to}>
+              {item.label} ({item.count})
+            </Link>
+          ))}
+        </PortalAttention>
+      ) : null}
+
       <PageIntro
         label="Control center"
         title="Business overview"

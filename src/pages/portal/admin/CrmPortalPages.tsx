@@ -18,6 +18,7 @@ import { adminPortalPaths, CRM_PIPELINE_STATUSES } from '@/config/admin-portal'
 import { useAuth } from '@/contexts/auth-context'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 import styles from './Crm.module.css'
 
 export function CrmHomePage() {
@@ -29,8 +30,8 @@ export function CrmHomePage() {
   )
 
   if (metricsLoading || pipeLoading) return <ListSkeleton rows={8} />
-  if (metricsError) return <PortalError message={metricsError} onRetry={reloadMetrics} />
-  if (pipeError) return <PortalError message={pipeError} onRetry={reloadPipe} />
+  if (metricsError) return <PortalError message={friendlyAdminPortalError(metricsError)} onRetry={reloadMetrics} />
+  if (pipeError) return <PortalError message={friendlyAdminPortalError(pipeError)} onRetry={reloadPipe} />
 
   const byStatus = (metrics?.byStatus as Array<{ status: string; c: number }>) ?? []
   const byService = (metrics?.byService as Array<{ service: string; count: number }>) ?? []
@@ -213,7 +214,7 @@ export function CrmLeadDetailPage() {
   }, [employeesQuery.data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data || !lead) return null
 
   const notes = (data.notes as Array<Record<string, unknown>>) ?? []

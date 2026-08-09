@@ -2,6 +2,7 @@ import { PageIntro, ListSkeleton, PortalError } from '@/components/portal/Custom
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 
 type AccessRow = {
   employeeId: string
@@ -21,7 +22,7 @@ export function AdminTeamAccessPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.employees.accessReview(), [])
 
   if (loading) return <ListSkeleton rows={10} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const items = (data?.items as AccessRow[]) ?? []
 

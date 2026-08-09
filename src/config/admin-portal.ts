@@ -91,6 +91,86 @@ export function adminNavForPermissions(permissions: string[]) {
   return adminNav.filter((item) => !item.permission || set.has(item.permission))
 }
 
+export type AdminNavSectionDef = {
+  title: string
+  paths: readonly string[]
+}
+
+export const adminNavSectionDefs: AdminNavSectionDef[] = [
+  { title: 'Overview', paths: [adminPortalPaths.root] },
+  {
+    title: 'CRM & growth',
+    paths: [
+      adminPortalPaths.crm,
+      adminPortalPaths.sales,
+      adminPortalPaths.localErode,
+      adminPortalPaths.localIndia,
+      adminPortalPaths.localInternational,
+      adminPortalPaths.productWaitlist,
+      adminPortalPaths.websiteIntelligence,
+    ],
+  },
+  {
+    title: 'People',
+    paths: [
+      adminPortalPaths.customers,
+      adminPortalPaths.employees,
+      adminPortalPaths.freelancers,
+      adminPortalPaths.teamAccess,
+      adminPortalPaths.careers,
+    ],
+  },
+  {
+    title: 'Delivery',
+    paths: [adminPortalPaths.projects, adminPortalPaths.tasks, adminPortalPaths.operations, adminPortalPaths.executive],
+  },
+  {
+    title: 'Commercial',
+    paths: [
+      adminPortalPaths.proposals,
+      adminPortalPaths.invoices,
+      adminPortalPaths.payments,
+      adminPortalPaths.revenue,
+    ],
+  },
+  {
+    title: 'Support & comms',
+    paths: [
+      adminPortalPaths.files,
+      adminPortalPaths.messages,
+      adminPortalPaths.support,
+      adminPortalPaths.notifications,
+    ],
+  },
+  {
+    title: 'System',
+    paths: [
+      adminPortalPaths.analytics,
+      adminPortalPaths.auditLogs,
+      adminPortalPaths.settings,
+      adminPortalPaths.security,
+    ],
+  },
+]
+
+export type AdminNavSection = {
+  title: string
+  items: AdminNavItem[]
+}
+
+export function adminNavSectionsForPermissions(permissions: string[]): AdminNavSection[] {
+  const allowed = new Set(adminNavForPermissions(permissions).map((item) => item.path))
+  const byPath = new Map(adminNav.map((item) => [item.path, item]))
+  return adminNavSectionDefs
+    .map((section) => ({
+      title: section.title,
+      items: section.paths
+        .map((path) => byPath.get(path))
+        .filter((item): item is AdminNavItem => Boolean(item && allowed.has(item.path))),
+    }))
+    .filter((section) => section.items.length > 0)
+}
+
 export const leadStatusOptions = [
   'new',
   'contacted',

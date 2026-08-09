@@ -10,6 +10,7 @@ import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { adminPortalPaths } from '@/config/admin-portal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 import { Button } from '@/components/ui/Button'
 import { AdminFreelancerDiscoveryPanel } from '@/components/portal/AdminFreelancerDiscoveryPanel'
 import { useAuth } from '@/contexts/auth-context'
@@ -23,7 +24,7 @@ export function AdminFreelancersPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -71,7 +72,7 @@ export function AdminFreelancerDetailPage() {
   const [busy, setBusy] = useState(false)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const notes = (data.internalNotes as Array<Record<string, unknown>>) ?? []

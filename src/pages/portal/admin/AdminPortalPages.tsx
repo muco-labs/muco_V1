@@ -17,6 +17,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 import { CrmEntryChannelBadge } from '@/components/portal/crm/CrmStartProjectLeadPanel'
 import { AdminProjectFilesSection } from '@/components/portal/AdminProjectFilesSection'
 import { AdminProjectTasksSection } from '@/components/portal/AdminProjectTasksSection'
@@ -66,7 +67,7 @@ export function AdminLeadsPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -187,7 +188,7 @@ export function AdminLeadDetailPage() {
   }, [data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   async function save() {
@@ -234,7 +235,7 @@ export function AdminCustomersPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -276,7 +277,7 @@ export function AdminCustomerDetailPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.customers.get(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const user = data.user as Record<string, unknown>
@@ -337,7 +338,7 @@ export function AdminEmployeesPage() {
   const [inviteMsg, setInviteMsg] = useState<string | null>(null)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   async function onInvite(e: FormEvent) {
     e.preventDefault()
@@ -455,7 +456,7 @@ export function AdminProjectsPage() {
   )
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
@@ -538,7 +539,7 @@ export function AdminProjectDetailPage() {
   const [milestoneBusy, setMilestoneBusy] = useState(false)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data?.project) return null
 
   const project = data.project as Record<string, unknown>
@@ -902,7 +903,7 @@ export function AdminTasksPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -942,7 +943,7 @@ export function AdminProposalsPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1047,7 +1048,7 @@ export function AdminProposalNewPage() {
           <label htmlFor="prop-scope">Scope summary</label>
           <textarea id="prop-scope" value={scope} onChange={(e) => setScope(e.target.value)} rows={4} />
         </div>
-        {error ? <PortalError message={error} /> : null}
+        {error ? <PortalError message={friendlyAdminPortalError(error)} /> : null}
         <Button type="submit" disabled={saving}>
           {saving ? 'Creating…' : 'Create draft'}
         </Button>
@@ -1073,7 +1074,7 @@ export function AdminProposalDetailPage() {
   }, [data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data?.proposal) return null
 
   const proposal = data.proposal as Record<string, unknown>
@@ -1185,7 +1186,7 @@ export function AdminInvoicesPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.invoices.list(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   const items = asRecords(data)
 
   return (
@@ -1212,7 +1213,7 @@ export function AdminPaymentsPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1246,7 +1247,7 @@ export function AdminPaymentDetailPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.payments.get(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const payment = (data.payment ?? data) as Record<string, unknown>
@@ -1322,7 +1323,7 @@ export function AdminFilesPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1352,7 +1353,7 @@ export function AdminMessagesPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1434,7 +1435,7 @@ export function AdminConversationDetailPage() {
   }
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!conversation) return null
 
   return (
@@ -1490,7 +1491,7 @@ export function AdminSupportPage() {
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1516,7 +1517,7 @@ export function AdminAnalyticsPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.analytics(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const sections = ['leadByStatus', 'projectByStatus', 'invoiceByStatus'] as const
@@ -1557,7 +1558,7 @@ export function AdminSalesPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.sales.dashboard(), [])
 
   if (loading) return <ListSkeleton rows={8} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   return (
@@ -1626,7 +1627,7 @@ export function AdminRevenuePage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.sales.revenue(), [])
 
   if (loading) return <ListSkeleton rows={8} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   return (
@@ -1670,7 +1671,7 @@ export function AdminOperationsPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.operations.report(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const metrics = [
@@ -1732,7 +1733,7 @@ export function AdminAuditLogsPage() {
   const automationItems = asRecords(autoData)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1783,7 +1784,7 @@ export function AdminSettingsPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.integrations(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const supabase = (data?.supabase as { configured?: boolean }) ?? {}
   const database = (data?.database as { configured?: boolean }) ?? {}
@@ -1817,7 +1818,7 @@ export function AdminSecurityPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.integrations(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -1847,7 +1848,7 @@ export function AdminLocalMarketPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.local.erodeDashboard(), [])
 
   if (loading) return <ListSkeleton rows={6} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const byService = (data?.byService as Array<{ service: string; count: number }>) ?? []
   const bySource = (data?.bySource as Array<{ source: string; count: number }>) ?? []
@@ -1965,7 +1966,7 @@ export function AdminNationalMarketPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.local.indiaDashboard(), [])
 
   if (loading) return <ListSkeleton rows={8} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const segments = (data?.segments as Record<string, SegmentMetrics>) ?? {}
   const topStates = (data?.topStates as Array<{ state: string; count: number }>) ?? []
@@ -2062,7 +2063,7 @@ export function AdminInternationalMarketPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.local.internationalDashboard(), [])
 
   if (loading) return <ListSkeleton rows={8} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const overall = (data?.overall as SegmentMetrics) ?? {}
   const tier1Markets =

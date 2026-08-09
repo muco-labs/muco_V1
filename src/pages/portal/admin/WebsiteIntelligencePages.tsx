@@ -10,6 +10,7 @@ import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { adminPortalPaths } from '@/config/admin-portal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { friendlyAdminPortalError } from '@/lib/admin/portal-errors'
 import { Button } from '@/components/ui/Button'
 
 type Dashboard = {
@@ -44,7 +45,7 @@ export function WebsiteIntelligenceDashboardPage() {
   } = useFetch(() => adminApi.websiteIntelligence.listAudits(q ? { q } : undefined), [q])
 
   if (loading) return <ListSkeleton rows={8} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
 
   const dash = data as Dashboard
   const audits = (listData as { items?: Dashboard['recentAudits'] })?.items ?? dash?.recentAudits ?? []
@@ -283,7 +284,7 @@ export function WebsiteIntelligenceReportPage() {
 
   if (!id) return null
   if (loading && !data) return <ListSkeleton rows={10} />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyAdminPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const report = data as AuditReport
