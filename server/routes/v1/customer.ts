@@ -45,6 +45,10 @@ import {
   formatZodIntakeErrors,
   projectIntakeSchema,
 } from '../../lib/validation/project-intake.js'
+import {
+  createProposalPaymentIntent,
+  getCustomerPaymentDetail,
+} from '../../services/proposal-payment.service.js'
 
 export const customerRoutes = new Hono()
 
@@ -303,6 +307,21 @@ customerRoutes.post(
   },
 )
 
+customerRoutes.post(
+  '/proposals/:id/payment',
+  ...customerStack,
+  requirePermission('payments.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(c, await createProposalPaymentIntent(ctx, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
 const verifyPaymentSchema = z.object({
   paymentId: z.string().uuid(),
   razorpayOrderId: z.string().min(4),
@@ -326,6 +345,30 @@ customerRoutes.post('/payments/verify', ...customerStack, async (c) => {
   }
 })
 
+customerRoutes.post(
+  '/payments/:id/verify',
+  ...customerStack,
+  requirePermission('payments.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      const body = await c.req.json().catch(() => null)
+      const parsed = verifyPaymentSchema.safeParse({
+        ...(body && typeof body === 'object' ? body : {}),
+        paymentId: paramId(c),
+      })
+      if (!parsed.success) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid payment verification payload.', 400)
+      }
+      const data = await verifyRazorpayPayment(ctx, parsed.data)
+      return jsonSuccess(c, data)
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
 customerRoutes.get('/payments', ...customerStack, requirePermission('payments.view'), async (c) => {
   try {
     const auth = c.get('auth')
@@ -335,6 +378,21 @@ customerRoutes.get('/payments', ...customerStack, requirePermission('payments.vi
     return handleRouteError(c, error)
   }
 })
+
+customerRoutes.get(
+  '/payments/:id',
+  ...customerStack,
+  requirePermission('payments.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(c, await getCustomerPaymentDetail(ctx, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
 
 customerRoutes.get('/files', ...customerStack, requirePermission('files.view'), async (c) => {
   try {

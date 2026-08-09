@@ -33,6 +33,7 @@ export const adminPortalPaths = {
   tasks: '/admin/tasks',
   invoices: '/admin/invoices',
   payments: '/admin/payments',
+  paymentDetail: (id: string) => `/admin/payments/${id}`,
   files: '/admin/files',
   messages: '/admin/messages',
   support: '/admin/support',

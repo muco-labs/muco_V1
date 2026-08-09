@@ -7,10 +7,13 @@ import {
   invoices,
   notifications,
   payments,
+  proposals,
   roles,
   userRoles,
   users,
 } from '../db/schema.js'
+import { formatPaymentReference } from '../lib/payments/payment-reference.js'
+import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
 import { AppError } from '../lib/errors.js'
 import { sendTransactionalEmail } from '../lib/email/send.js'
 import { isRazorpayConfigured, serverEnv } from '../lib/env.js'
@@ -62,38 +65,63 @@ export async function finalizeSuccessfulPayment(input: FinalizePaymentInput) {
       }
     }
 
+    const now = new Date()
     await tx
       .update(payments)
       .set({
         status: 'succeeded',
         gatewayReference: input.razorpayPaymentId,
-        updatedAt: new Date(),
+        signatureVerified: true,
+        paidAt: now,
+        updatedAt: now,
       })
       .where(eq(payments.id, payment.id))
 
-    const paidTotal = await tx
-      .select({ total: sum(payments.amount) })
-      .from(payments)
-      .where(and(eq(payments.invoiceId, payment.invoiceId), eq(payments.status, 'succeeded')))
+    let invoiceNumber: string | null = null
+    let proposalReference: string | null = null
 
-    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, payment.invoiceId)).limit(1)
-    if (!invoice) throw new AppError('NOT_FOUND', 'Invoice not found.', 404)
+    if (payment.invoiceId) {
+      const paidTotal = await tx
+        .select({ total: sum(payments.amount) })
+        .from(payments)
+        .where(and(eq(payments.invoiceId, payment.invoiceId), eq(payments.status, 'succeeded')))
 
-    const paid = Number(paidTotal[0]?.total ?? 0)
-    const due = Number(invoice.amount)
-    const nextStatus = paid >= due ? 'paid' : 'partial'
+      const [invoice] = await tx
+        .select()
+        .from(invoices)
+        .where(eq(invoices.id, payment.invoiceId))
+        .limit(1)
+      if (!invoice) throw new AppError('NOT_FOUND', 'Invoice not found.', 404)
 
-    await tx
-      .update(invoices)
-      .set({ status: nextStatus, updatedAt: new Date() })
-      .where(eq(invoices.id, payment.invoiceId))
+      const paid = Number(paidTotal[0]?.total ?? 0)
+      const due = Number(invoice.amount)
+      const nextStatus = paid >= due ? 'paid' : 'partial'
+
+      await tx
+        .update(invoices)
+        .set({ status: nextStatus, updatedAt: now })
+        .where(eq(invoices.id, payment.invoiceId))
+
+      invoiceNumber = invoice.invoiceNumber
+    } else if (payment.proposalId) {
+      const [proposal] = await tx
+        .select()
+        .from(proposals)
+        .where(eq(proposals.id, payment.proposalId))
+        .limit(1)
+      proposalReference = proposal ? formatProposalReference(proposal.id) : null
+    }
 
     await tx.insert(auditLogs).values({
       actorUserId: input.actorUserId ?? null,
       action: 'payment.verified',
       entity: 'payments',
       entityId: payment.id,
-      metadata: JSON.stringify({ source: input.source }),
+      metadata: JSON.stringify({
+        source: input.source,
+        proposalId: payment.proposalId,
+        invoiceId: payment.invoiceId,
+      }),
     })
 
     const [customerRow] = await tx
@@ -110,23 +138,35 @@ export async function finalizeSuccessfulPayment(input: FinalizePaymentInput) {
       .where(inArray(roles.name, ['FOUNDER', 'ADMIN', 'SUPER_ADMIN']))
 
     const uniqueAdmins = [...new Set(adminUsers.map((r) => r.userId))]
+    const payRef = formatPaymentReference(payment.id)
+    const adminMessage = invoiceNumber
+      ? `Payment ${payRef} received for invoice ${invoiceNumber}.`
+      : proposalReference
+        ? `Payment ${payRef} received for proposal ${proposalReference}.`
+        : `Payment ${payRef} received.`
+
     if (uniqueAdmins.length > 0) {
       await tx.insert(notifications).values(
         uniqueAdmins.map((userId) => ({
           userId,
           type: 'payment.received',
           title: 'Payment received',
-          message: `Payment received for invoice ${invoice.invoiceNumber}.`,
+          message: adminMessage,
         })),
       )
     }
 
     if (customerRow?.userId) {
+      const customerMessage = invoiceNumber
+        ? `Your payment for invoice ${invoiceNumber} was confirmed.`
+        : proposalReference
+          ? `Your payment for proposal ${proposalReference} was confirmed.`
+          : 'Your payment was confirmed.'
       await tx.insert(notifications).values({
         userId: customerRow.userId,
         type: 'payment.received',
         title: 'Payment received',
-        message: `Your payment for invoice ${invoice.invoiceNumber} was confirmed.`,
+        message: customerMessage,
       })
     }
 
@@ -134,7 +174,7 @@ export async function finalizeSuccessfulPayment(input: FinalizePaymentInput) {
       status: 'succeeded' as const,
       paymentId: payment.id,
       duplicate: false,
-      invoiceNumber: invoice.invoiceNumber,
+      invoiceNumber,
       customerUserId: customerRow?.userId ?? null,
       customerEmail: customerRow?.email ?? null,
       amount: payment.amount,
@@ -184,7 +224,11 @@ export async function finalizeFailedPayment(input: {
       metadata: JSON.stringify({ source: input.source, reason: input.reason ?? null }),
     })
 
-    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, payment.invoiceId)).limit(1)
+    const [invoice] = payment.invoiceId
+      ? await tx.select().from(invoices).where(eq(invoices.id, payment.invoiceId)).limit(1)
+      : [null]
+
+    const payRef = formatPaymentReference(payment.id)
 
     const [customerRow] = await tx
       .select({ userId: customerProfiles.userId })
@@ -207,7 +251,7 @@ export async function finalizeFailedPayment(input: {
           title: 'Payment failed',
           message: invoice
             ? `Payment failed for invoice ${invoice.invoiceNumber}.`
-            : 'A customer payment attempt failed.',
+            : `Payment ${payRef} could not be completed.`,
         })),
       )
     }
@@ -219,7 +263,7 @@ export async function finalizeFailedPayment(input: {
         title: 'Payment failed',
         message: invoice
           ? `Your payment for invoice ${invoice.invoiceNumber} could not be completed.`
-          : 'Your payment could not be completed. You can try again from your invoice.',
+          : `Your payment ${payRef} could not be completed. You can try again from your proposal.`,
       })
     }
 

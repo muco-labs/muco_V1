@@ -246,6 +246,7 @@ export const adminApi = {
   },
   payments: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/payments`),
+    get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/payments/${id}`),
   },
   support: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/support`),

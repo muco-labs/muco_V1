@@ -93,6 +93,7 @@ export function serializeCustomerProposal(
     validUntil: row.validUntil?.toISOString() ?? null,
     sourceRequestReference: refs?.sourceRequestReference ?? null,
     projectReference: refs?.projectReference ?? null,
+    projectId: row.projectId,
     customerDecidedAt: row.customerDecidedAt?.toISOString() ?? null,
     lineItems: lineItems.map((item) => ({
       id: item.id,

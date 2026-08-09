@@ -22,6 +22,12 @@ import detailStyles from '@/components/portal/ProjectRequestDetail.module.css'
 import { formatProjectRequestReference, projectRequestNextAction } from '@/lib/conversion/project-request-reference'
 
 import { ProjectDeliveryLifecycle } from '@/components/portal/ProjectDeliveryLifecycle'
+import { startRazorpayCheckout, type RazorpayCheckoutConfig } from '@/lib/payments/razorpay-checkout'
+
+function formatMoney(amount: string, currency: string) {
+  if (currency === 'INR') return `₹${amount}`
+  return `${currency} ${amount}`
+}
 
 type ProjectRow = {
   id: string
@@ -227,6 +233,8 @@ export function CustomerProposalDetailPage() {
   const { id = '' } = useParams()
   const [note, setNote] = useState('')
   const [actionError, setActionError] = useState<string | null>(null)
+  const [payLoading, setPayLoading] = useState(false)
+  const [payMessage, setPayMessage] = useState<string | null>(null)
   const { data, error, loading, reload } = useFetch(() => customerApi.proposals.get(id), [id])
 
   if (loading) return <ListSkeleton />
@@ -238,6 +246,41 @@ export function CustomerProposalDetailPage() {
   const nextAction = data.nextAction ? String(data.nextAction) : null
   const currency = String(data.currency ?? 'INR')
   const expired = Boolean(data.expired)
+  const payment = data.payment as Record<string, unknown> | null | undefined
+  const projectId = data.projectId ? String(data.projectId) : null
+
+  async function handleProposalPay() {
+    setPayLoading(true)
+    setPayMessage(null)
+    try {
+      const intent = (await customerApi.proposals.startPayment(id)) as {
+        paymentId?: string
+        razorpay?: RazorpayCheckoutConfig
+      }
+      const paymentId = String(intent.paymentId ?? '')
+      if (!paymentId) {
+        setPayMessage('Payment could not be started.')
+        return
+      }
+      const checkout = await startRazorpayCheckout(intent.razorpay, async (payload) => {
+        await customerApi.payments.verify(paymentId, {
+          razorpayOrderId: payload.razorpay_order_id,
+          razorpayPaymentId: payload.razorpay_payment_id,
+          razorpaySignature: payload.razorpay_signature,
+        })
+        reload()
+      })
+      if (checkout.ok) {
+        setPayMessage('Payment successful. Thank you.')
+      } else {
+        setPayMessage(checkout.message)
+      }
+    } catch (err) {
+      setPayMessage(err instanceof ApiError ? err.message : 'Payment could not be started.')
+    } finally {
+      setPayLoading(false)
+    }
+  }
 
   async function decide(action: 'approve' | 'requestChanges' | 'reject') {
     const label =
@@ -326,6 +369,74 @@ export function CustomerProposalDetailPage() {
           </section>
         ) : null}
       </div>
+      {payment && String(data.status) === 'accepted' ? (
+        <section
+          className={`surface ${ui.dataCard}`}
+          style={{ marginTop: 'var(--space-6)' }}
+          aria-labelledby="proposal-payment-heading"
+        >
+          <h2 className="text-h3" id="proposal-payment-heading">
+            Payment
+          </h2>
+          {payment.status === 'paid' || payment.status === 'succeeded' ? (
+            <p className={ui.meta} role="status">
+              <strong>Payment successful.</strong>
+              {payment.paymentReference ? (
+                <>
+                  {' '}
+                  Reference: {String(payment.paymentReference)}
+                </>
+              ) : null}
+              {payment.paidAt ? (
+                <>
+                  {' '}
+                  · Paid {new Date(String(payment.paidAt)).toLocaleString()}
+                </>
+              ) : null}
+            </p>
+          ) : payment.paymentRequired === false && payment.reason ? (
+            <p className={ui.meta}>{String(payment.reason)}</p>
+          ) : payment.paymentRequired !== false ? (
+            <>
+              <p className={ui.meta} role="status">
+                <strong>Payment required</strong> to proceed after acceptance.
+              </p>
+              {payment.payableAmount ? (
+                <p className={ui.meta}>
+                  Amount: {formatMoney(String(payment.payableAmount), String(payment.currency ?? currency))}
+                </p>
+              ) : null}
+              {payment.paymentReference ? (
+                <p className={ui.meta}>Payment reference: {String(payment.paymentReference)}</p>
+              ) : null}
+              {payment.status === 'failed' || payment.lastFailed ? (
+                <p className={ui.meta} role="status">
+                  Your last payment attempt did not complete. You can try again.
+                </p>
+              ) : null}
+              {payment.canPay ? (
+                <div className={ui.actionsRow} style={{ marginTop: 'var(--space-4)' }}>
+                  <Button type="button" disabled={payLoading} onClick={() => void handleProposalPay()}>
+                    {payLoading ? 'Starting checkout…' : payment.status === 'failed' ? 'Retry payment' : 'Pay now'}
+                  </Button>
+                </div>
+              ) : payment.payBlockedReason ? (
+                <p className={ui.meta}>{String(payment.payBlockedReason)}</p>
+              ) : null}
+            </>
+          ) : null}
+          <div aria-live="polite" className={ui.meta}>
+            {payMessage}
+          </div>
+          {payment.status === 'paid' && projectId ? (
+            <p style={{ marginTop: 'var(--space-4)' }}>
+              <Link className="link-underline" to={customerPortalPaths.projectDetail(projectId)}>
+                View project
+              </Link>
+            </p>
+          ) : null}
+        </section>
+      ) : null}
       {canDecide ? (
         <form
           className={ui.form}
@@ -392,6 +503,7 @@ export function CustomerInvoicesPage() {
 export function CustomerInvoiceDetailPage() {
   const { id = '' } = useParams()
   const [payMessage, setPayMessage] = useState<string | null>(null)
+  const [payLoading, setPayLoading] = useState(false)
   const { data, error, loading, reload } = useFetch(() => customerApi.invoices.get(id), [id])
 
   if (loading) return <ListSkeleton />
@@ -403,19 +515,30 @@ export function CustomerInvoiceDetailPage() {
 
   async function handlePay() {
     setPayMessage(null)
+    setPayLoading(true)
     try {
       const intent = (await customerApi.invoices.pay(id)) as {
-        razorpay?: { configured: boolean; message?: string; keyId?: string; orderId?: string }
+        paymentId?: string
+        razorpay?: RazorpayCheckoutConfig
       }
-      if (!intent.razorpay?.configured) {
-        setPayMessage(intent.razorpay?.message ?? 'Online payments are not configured yet.')
+      const paymentId = String(intent.paymentId ?? '')
+      if (!paymentId) {
+        setPayMessage('Payment could not be started.')
         return
       }
-      setPayMessage(
-        'Razorpay checkout is ready on the server. Complete payment in the hosted flow once the checkout script is enabled for your environment.',
-      )
+      const checkout = await startRazorpayCheckout(intent.razorpay, async (payload) => {
+        await customerApi.payments.verify(paymentId, {
+          razorpayOrderId: payload.razorpay_order_id,
+          razorpayPaymentId: payload.razorpay_payment_id,
+          razorpaySignature: payload.razorpay_signature,
+        })
+        reload()
+      })
+      setPayMessage(checkout.ok ? 'Payment successful. Thank you.' : checkout.message)
     } catch (err) {
       setPayMessage(err instanceof ApiError ? err.message : 'Payment could not be started.')
+    } finally {
+      setPayLoading(false)
     }
   }
 
@@ -435,12 +558,14 @@ export function CustomerInvoiceDetailPage() {
       ) : null}
       {['sent', 'partial', 'overdue'].includes(String(invoice.status)) ? (
         <div className={ui.actionsRow} style={{ marginTop: 'var(--space-6)' }}>
-          <Button type="button" onClick={() => void handlePay()}>
-            Pay now
+          <Button type="button" disabled={payLoading} onClick={() => void handlePay()}>
+            {payLoading ? 'Starting checkout…' : 'Pay now'}
           </Button>
         </div>
       ) : null}
-      {payMessage ? <p className={ui.meta}>{payMessage}</p> : null}
+      <div aria-live="polite" className={ui.meta}>
+        {payMessage}
+      </div>
     </>
   )
 }
@@ -461,11 +586,25 @@ export function CustomerPaymentsPage() {
         <ul className={ui.stack}>
           {items.map((pay) => (
             <li key={String(pay.id)} className={`surface ${ui.dataCard}`}>
-              <span>₹{String(pay.amount)}</span>
+              <span>
+                {formatMoney(String(pay.amount), String(pay.currency ?? 'INR'))}
+              </span>
               <StatusPill status={String(pay.status)} />
+              {pay.reference ? <span className={ui.meta}>{String(pay.reference)}</span> : null}
+              {pay.proposalReference ? (
+                <span className={ui.meta}>Proposal {String(pay.proposalReference)}</span>
+              ) : null}
+              {pay.projectReference ? (
+                <span className={ui.meta}>Project {String(pay.projectReference)}</span>
+              ) : null}
               <time className={ui.meta} dateTime={String(pay.createdAt)}>
                 {new Date(String(pay.createdAt)).toLocaleString()}
               </time>
+              {pay.paidAt ? (
+                <time className={ui.meta} dateTime={String(pay.paidAt)}>
+                  Paid {new Date(String(pay.paidAt)).toLocaleString()}
+                </time>
+              ) : null}
             </li>
           ))}
         </ul>

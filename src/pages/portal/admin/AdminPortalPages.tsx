@@ -950,13 +950,96 @@ export function AdminPaymentsPage() {
         <ul className={ui.stack}>
           {items.map((pay) => (
             <li key={String(pay.id)} className={`surface ${ui.dataCard}`}>
+              <Link className="link-underline" to={adminPortalPaths.paymentDetail(String(pay.id))}>
+                {String(pay.reference ?? pay.id).slice(0, 20)}
+              </Link>
               {formatInr(String(pay.amount))}
               <StatusPill status={String(pay.status)} />
+              {pay.proposalId ? <span className={ui.meta}>Proposal linked</span> : null}
+              {pay.gatewayReference ? (
+                <span className={ui.meta}>Provider ref: {String(pay.gatewayReference)}</span>
+              ) : null}
               <span className={ui.meta}>{new Date(String(pay.createdAt)).toLocaleString()}</span>
             </li>
           ))}
         </ul>
       )}
+    </>
+  )
+}
+
+export function AdminPaymentDetailPage() {
+  const { id = '' } = useParams()
+  const { data, error, loading, reload } = useFetch(() => adminApi.payments.get(id), [id])
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data) return null
+
+  const payment = (data.payment ?? data) as Record<string, unknown>
+  const proposal = data.proposal as Record<string, unknown> | null | undefined
+
+  return (
+    <>
+      <PageIntro
+        title={String(payment.reference ?? 'Payment')}
+        description="Customer payment record (provider references only — no secrets)."
+      />
+      <StatusPill status={String(payment.status)} />
+      <dl className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
+        <div>
+          <dt className={ui.meta}>Amount</dt>
+          <dd>{formatInr(String(payment.amount))}</dd>
+        </div>
+        <div>
+          <dt className={ui.meta}>Currency</dt>
+          <dd>{String(payment.currency ?? 'INR')}</dd>
+        </div>
+        <div>
+          <dt className={ui.meta}>Provider</dt>
+          <dd>{String(payment.provider ?? 'razorpay')}</dd>
+        </div>
+        {payment.gatewayReference ? (
+          <div>
+            <dt className={ui.meta}>Provider order / payment ID</dt>
+            <dd>{String(payment.gatewayReference)}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt className={ui.meta}>Created</dt>
+          <dd>{new Date(String(payment.createdAt)).toLocaleString()}</dd>
+        </div>
+        {payment.paidAt ? (
+          <div>
+            <dt className={ui.meta}>Paid</dt>
+            <dd>{new Date(String(payment.paidAt)).toLocaleString()}</dd>
+          </div>
+        ) : null}
+        {payment.signatureVerified != null ? (
+          <div>
+            <dt className={ui.meta}>Signature verified</dt>
+            <dd>{payment.signatureVerified ? 'Yes' : 'No'}</dd>
+          </div>
+        ) : null}
+      </dl>
+      {proposal ? (
+        <section style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Proposal</h2>
+          <p className={ui.meta}>
+            <Link className="link-underline" to={adminPortalPaths.proposalDetail(String(proposal.id))}>
+              {String(proposal.reference ?? proposal.title)}
+            </Link>
+          </p>
+          {proposal.projectReference ? (
+            <p className={ui.meta}>Project {String(proposal.projectReference)}</p>
+          ) : null}
+        </section>
+      ) : null}
+      <p style={{ marginTop: 'var(--space-6)' }}>
+        <Link className="link-underline" to={adminPortalPaths.payments}>
+          Back to payments
+        </Link>
+      </p>
     </>
   )
 }

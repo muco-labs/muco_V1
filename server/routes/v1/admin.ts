@@ -113,6 +113,7 @@ import {
   sendProposalFulfillmentAdmin,
   updateProposalDraftAdmin,
 } from '../../services/proposal-fulfillment.service.js'
+import { getPaymentFulfillmentAdmin } from '../../services/proposal-payment.service.js'
 import {
   getEmployeeAccessReview,
   getExecutiveOverview,
@@ -1179,6 +1180,16 @@ adminRoutes.get('/payments', requirePermission('payments.view'), async (c) => {
   try {
     requireFinancialPermission(c.get('auth'))
     return jsonSuccess(c, { items: await listPaymentsAdmin() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/payments/:id', requirePermission('payments.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    requireFinancialPermission(auth)
+    return jsonSuccess(c, await getPaymentFulfillmentAdmin(auth, paramId(c)))
   } catch (error) {
     return handleRouteError(c, error)
   }

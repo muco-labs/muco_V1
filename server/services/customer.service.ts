@@ -26,6 +26,7 @@ import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission } from '../lib/auth/permissions.js'
 import { getSupabaseAdmin } from '../lib/supabase.js'
 import { isRazorpayConfigured, serverEnv } from '../lib/env.js'
+import { createRazorpayOrder } from '../lib/payments/razorpay-order.js'
 import {
   finalizeSuccessfulPayment,
   syncOverdueInvoices,
@@ -33,10 +34,11 @@ import {
 } from './payment.service.js'
 import { computeProjectProgressFromTasks } from './workflow.service.js'
 import { serializeCustomerProjectSummary } from './project-fulfillment.service.js'
+import { recordCustomerProposalView, serializeCustomerProposal } from './proposal-fulfillment.service.js'
 import {
-  recordCustomerProposalView,
-  serializeCustomerProposal,
-} from './proposal-fulfillment.service.js'
+  getProposalPaymentSummaryForCustomer,
+  listCustomerPaymentsEnriched,
+} from './proposal-payment.service.js'
 import {
   isProposalCustomerActionable,
   isProposalPastValidity,
@@ -413,18 +415,7 @@ export async function listCustomerProposals(ctx: CustomerContext) {
 }
 
 export async function viewCustomerProposal(ctx: CustomerContext, proposalId: string) {
-  const db = getDb()
-  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
-  const row = await recordCustomerProposalView(ctx, proposalId)
-  const lineItems = await db
-    .select()
-    .from(proposalLineItems)
-    .where(eq(proposalLineItems.proposalId, proposalId))
-    .orderBy(asc(proposalLineItems.sortOrder))
-  return serializeCustomerProposal(row, lineItems, {
-    sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
-    projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
-  })
+  return getCustomerProposal(ctx, proposalId)
 }
 
 export async function getCustomerProposal(ctx: CustomerContext, proposalId: string) {
@@ -439,10 +430,15 @@ export async function getCustomerProposal(ctx: CustomerContext, proposalId: stri
     .where(eq(proposalLineItems.proposalId, proposalId))
     .orderBy(asc(proposalLineItems.sortOrder))
 
-  return serializeCustomerProposal(row, lineItems, {
-    sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
-    projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
-  })
+  const payment = await getProposalPaymentSummaryForCustomer(ctx, proposalId)
+
+  return {
+    ...serializeCustomerProposal(row, lineItems, {
+      sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
+      projectReference: row.projectId ? formatProjectReference(row.projectId) : null,
+    }),
+    payment,
+  }
 }
 
 export async function decideProposal(
@@ -576,14 +572,7 @@ export async function getCustomerInvoice(ctx: CustomerContext, invoiceId: string
 }
 
 export async function listCustomerPayments(ctx: CustomerContext) {
-  const db = getDb()
-  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
-
-  return db
-    .select()
-    .from(payments)
-    .where(eq(payments.customerId, ctx.customerId))
-    .orderBy(desc(payments.createdAt))
+  return listCustomerPaymentsEnriched(ctx)
 }
 
 export async function listCustomerFiles(ctx: CustomerContext, projectId?: string) {
@@ -936,55 +925,39 @@ export async function createInvoicePaymentIntent(ctx: CustomerContext, invoiceId
       invoiceId: invoice.id,
       customerId: ctx.customerId,
       amount: invoice.amount,
+      currency: 'INR',
+      provider: 'razorpay',
       status: 'pending',
     })
     .returning()
 
-  if (!isRazorpayConfigured()) {
+  const order = await createRazorpayOrder({
+    amount: String(invoice.amount),
+    currency: 'INR',
+    receipt: payment.id,
+    notes: { invoiceId: invoice.id, customerId: ctx.customerId },
+  })
+
+  if (!order.configured) {
     return {
       paymentId: payment.id,
-      razorpay: { configured: false as const, message: 'Online payments are not configured yet.' },
+      razorpay: order,
     }
   }
 
-  const amountPaise = Math.round(Number(invoice.amount) * 100)
-  const auth = Buffer.from(`${serverEnv.razorpayKeyId}:${serverEnv.razorpayKeySecret}`).toString(
-    'base64',
-  )
-
-  const response = await fetch('https://api.razorpay.com/v1/orders', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${auth}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      amount: amountPaise,
-      currency: 'INR',
-      receipt: payment.id,
-      notes: { invoiceId: invoice.id, customerId: ctx.customerId },
-    }),
-  })
-
-  if (!response.ok) {
-    throw new AppError('SERVICE_UNAVAILABLE', 'Could not start payment. Try again later.', 503)
-  }
-
-  const order = (await response.json()) as { id: string }
-
   await db
     .update(payments)
-    .set({ gatewayReference: order.id, status: 'processing', updatedAt: new Date() })
+    .set({ gatewayReference: order.orderId, status: 'processing', updatedAt: new Date() })
     .where(eq(payments.id, payment.id))
 
   return {
     paymentId: payment.id,
     razorpay: {
       configured: true as const,
-      keyId: serverEnv.razorpayKeyId,
-      orderId: order.id,
-      amount: amountPaise,
-      currency: 'INR',
+      keyId: order.keyId,
+      orderId: order.orderId,
+      amount: order.amountPaise,
+      currency: order.currency,
     },
   }
 }
@@ -1016,6 +989,14 @@ export async function verifyRazorpayPayment(
     .limit(1)
 
   if (!payment) throw new AppError('NOT_FOUND', 'Payment not found.', 404)
+
+  if (
+    payment.status === 'processing' &&
+    payment.gatewayReference &&
+    payment.gatewayReference !== input.razorpayOrderId
+  ) {
+    throw new AppError('FORBIDDEN', 'Payment verification failed.', 403)
+  }
 
   return finalizeSuccessfulPayment({
     paymentId: payment.id,

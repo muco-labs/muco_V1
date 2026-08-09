@@ -66,6 +66,8 @@ export const customerApi = {
     accept: (id: string, note?: string) =>
       apiRequest(`${base}/proposals/${id}/accept`, { method: 'POST', json: { note } }),
     view: (id: string) => apiRequest<Record<string, unknown>>(`${base}/proposals/${id}/view`, { method: 'POST' }),
+    startPayment: (id: string) =>
+      apiRequest<Record<string, unknown>>(`${base}/proposals/${id}/payment`, { method: 'POST' }),
   },
   invoices: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/invoices`),
@@ -76,6 +78,19 @@ export const customerApi = {
   },
   payments: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/payments`),
+    get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/payments/${id}`),
+    verify: (
+      id: string,
+      body: {
+        razorpayOrderId: string
+        razorpayPaymentId: string
+        razorpaySignature: string
+      },
+    ) =>
+      apiRequest(`${base}/payments/${id}/verify`, {
+        method: 'POST',
+        json: body,
+      }),
   },
   files: {
     list: (projectId?: string) =>

@@ -558,20 +558,24 @@ export const payments = pgTable(
   'payments',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    invoiceId: uuid('invoice_id')
-      .notNull()
-      .references(() => invoices.id, { onDelete: 'restrict' }),
+    invoiceId: uuid('invoice_id').references(() => invoices.id, { onDelete: 'restrict' }),
+    proposalId: uuid('proposal_id').references(() => proposals.id, { onDelete: 'set null' }),
     customerId: uuid('customer_id')
       .notNull()
       .references(() => customerProfiles.id, { onDelete: 'restrict' }),
     amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    currency: text('currency').notNull().default('INR'),
+    provider: text('provider').notNull().default('razorpay'),
     status: paymentStatusEnum('status').notNull().default('pending'),
     gatewayReference: text('gateway_reference'),
+    signatureVerified: boolean('signature_verified').notNull().default(false),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('payments_invoice_id_idx').on(table.invoiceId),
+    index('payments_proposal_id_idx').on(table.proposalId),
     index('payments_customer_id_idx').on(table.customerId),
     index('payments_gateway_reference_idx').on(table.gatewayReference),
   ],
