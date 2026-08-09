@@ -34,6 +34,7 @@ export function computeFreelancerTaskWorkload(
   freelancerId: string,
   now = new Date(),
 ): FreelancerTaskWorkload {
+  /** Project-scoped rows; same active/overdue/blocked rules as summarizeFreelancerTaskRows (4.19). */
   const mine = taskRows.filter((t) => t.assignedFreelancerId === freelancerId)
   let activeTaskCount = 0
   let overdueTaskCount = 0

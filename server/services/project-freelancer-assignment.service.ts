@@ -125,6 +125,15 @@ export async function assertFreelancerEligibleForProjectAssignment(freelancerId:
   return row
 }
 
+/** Task assignee must be on the project and pass the same eligibility gates as new project assignment. */
+export async function assertFreelancerEligibleForTaskAssignment(
+  projectId: string,
+  freelancerId: string,
+) {
+  await assertFreelancerOnProject(projectId, freelancerId)
+  await assertFreelancerEligibleForProjectAssignment(freelancerId)
+}
+
 export async function assertFreelancerOnProject(projectId: string, freelancerId: string) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
@@ -339,7 +348,6 @@ export async function addProjectFreelancerAdmin(
   if (!role) throw new AppError('VALIDATION_ERROR', 'Invalid project role.', 400)
 
   await assertFreelancerEligibleForProjectAssignment(freelancerId)
-  await assertFreelancerAvailableForNewAssignment(freelancerId)
 
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)

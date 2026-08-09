@@ -27,8 +27,7 @@ import {
 } from '../lib/projects/task-delivery.js'
 import { computeMilestoneProgressPercent } from '../lib/projects/milestone-delivery.js'
 import {
-  assertFreelancerOnProject,
-  assertFreelancerAvailableForNewAssignment,
+  assertFreelancerEligibleForTaskAssignment,
   notifyFreelancerTaskAssigned,
 } from './project-freelancer-assignment.service.js'
 
@@ -245,8 +244,7 @@ export async function createProjectTaskAdmin(
   assertSingleTaskAssignee(input.assignedEmployeeId, input.assignedFreelancerId)
   if (input.assignedEmployeeId) await assertAssigneeIsMember(projectId, input.assignedEmployeeId)
   if (input.assignedFreelancerId) {
-    await assertFreelancerOnProject(projectId, input.assignedFreelancerId)
-    await assertFreelancerAvailableForNewAssignment(input.assignedFreelancerId)
+    await assertFreelancerEligibleForTaskAssignment(projectId, input.assignedFreelancerId)
   }
 
   const priority = input.priority ?? 'medium'
@@ -354,9 +352,8 @@ export async function updateProjectTaskAdmin(
   assertSingleTaskAssignee(nextEmployeeId, nextFreelancerId)
   if (nextEmployeeId) await assertAssigneeIsMember(projectId, nextEmployeeId)
   if (nextFreelancerId) {
-    await assertFreelancerOnProject(projectId, nextFreelancerId)
     if (nextFreelancerId !== existing.assignedFreelancerId) {
-      await assertFreelancerAvailableForNewAssignment(nextFreelancerId)
+      await assertFreelancerEligibleForTaskAssignment(projectId, nextFreelancerId)
     }
   }
 
