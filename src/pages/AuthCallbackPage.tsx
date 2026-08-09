@@ -12,6 +12,7 @@ import { consumeOAuthReturnPath } from '@/lib/auth/oauth-return-path'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { waitForAuthSession } from '@/lib/supabase/wait-for-auth-session'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
+import { logAuthDiag, listSbStorageKeyNames } from '@/lib/auth/auth-diagnostics'
 import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
 
@@ -25,6 +26,7 @@ export function AuthCallbackPage() {
     let cancelled = false
 
     async function finish() {
+      logAuthDiag('callback_reached', { callbackReached: true })
       const client = getSupabaseClient()
       if (!client) {
         setError('Authentication is not configured.')
@@ -32,6 +34,13 @@ export function AuthCallbackPage() {
       }
 
       const { session, error: sessionError } = await waitForAuthSession(client)
+      logAuthDiag('callback_session', {
+        sessionExists: Boolean(session),
+        sessionUserIdExists: Boolean(session?.user?.id),
+        getSessionErrorName: sessionError?.name ?? null,
+        getSessionErrorMessage: sessionError?.message ?? null,
+        sbStorageKeyCount: listSbStorageKeyNames().length,
+      })
       if (sessionError || !session?.user) {
         if (!cancelled) {
           setError(friendlyAuthError(sessionError, 'Sign-in could not be completed. Try again.'))
@@ -54,6 +63,21 @@ export function AuthCallbackPage() {
       const fromState = (location.state as { from?: string } | null)?.from
       const from = fromState ?? consumeOAuthReturnPath()
       const destination = resolvePostAuthDestination(me, from)
+      let destinationHost: string | null = null
+      let destinationPath: string | null = null
+      try {
+        const parsed = new URL(destination, window.location.origin)
+        destinationHost = parsed.hostname
+        destinationPath = parsed.pathname
+      } catch {
+        destinationPath = destination
+      }
+      logAuthDiag('post_auth_navigation', {
+        destinationHost,
+        destinationPath,
+        registered: me.registered ?? null,
+        profileRole: me.roles?.[0] ?? null,
+      })
       if (!cancelled) {
         completeAuthNavigation(navigate, destination)
       }

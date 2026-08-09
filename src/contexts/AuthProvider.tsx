@@ -9,6 +9,7 @@ import type { AuthChangeEvent } from '@supabase/supabase-js'
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
 import { roleCanAccessPortal } from '@/config/access'
+import { logAuthDiag } from '@/lib/auth/auth-diagnostics'
 import { AuthContext, type MeResponse } from './auth-context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,8 +37,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await apiRequest<MeResponse>('/api/v1/auth/me')
       setProfile(me)
-    } catch {
+      logAuthDiag('auth_me', {
+        httpStatus: 200,
+        profileLoaded: true,
+        registered: me.registered ?? null,
+        profileRole: me.roles?.[0] ?? null,
+      })
+    } catch (error) {
       setProfile(null)
+      const status =
+        error && typeof error === 'object' && 'status' in error
+          ? Number((error as { status: number }).status)
+          : null
+      logAuthDiag('auth_me', {
+        httpStatus: status,
+        profileLoaded: false,
+      })
     }
   }, [])
 
@@ -57,6 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const onAuthEvent = (event: AuthChangeEvent, nextSession: typeof session) => {
       setSession(nextSession)
+      logAuthDiag('auth_provider_event', {
+        event,
+        sessionExists: Boolean(nextSession),
+        sessionUserIdExists: Boolean(nextSession?.user?.id),
+      })
       if (event === 'SIGNED_OUT') {
         setProfile(null)
       }
@@ -67,7 +87,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: subscription } = client.auth.onAuthStateChange(onAuthEvent)
 
-    void client.auth.initialize().finally(() => {
+    void client.auth.initialize().then((init) => {
+      logAuthDiag('supabase_initialize', {
+        initializeSucceeded: !init.error,
+        initializeErrorName: init.error?.name ?? null,
+        initializeErrorMessage: init.error?.message ?? null,
+        sessionExists: Boolean(init.data.session),
+        sessionUserIdExists: Boolean(init.data.session?.user?.id),
+        urlHasOAuthCode:
+          typeof window !== 'undefined' &&
+          new URLSearchParams(window.location.search).has('code'),
+      })
+    }).finally(() => {
       finishInitialLoad()
     })
 
