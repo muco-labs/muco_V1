@@ -1,92 +1,150 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { EmptyState, ListSkeleton, PortalError, StatusPill } from '@/components/portal/CustomerPortalUi'
+import {
+  EmptyState,
+  ListSkeleton,
+  PageIntro,
+  PortalAttention,
+  PortalError,
+  StatusPill,
+} from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { useFetch } from '@/hooks/useFetch'
 import { freelancerApi, type FreelancerProjectSummary, type FreelancerTask } from '@/services/freelancer-portal'
 import { freelancerPortalPaths } from '@/config/freelancer-portal'
 import { Button } from '@/components/ui/Button'
+import {
+  approvalStatusLabel,
+  availabilityStatusTone,
+  friendlyFreelancerPortalError,
+} from '@/lib/freelancer/portal-errors'
+import { taskStatusTone } from '@/lib/employee/portal-errors'
 
 const TASK_STATUS_OPTIONS = ['todo', 'in_progress', 'blocked', 'done'] as const
 
 export function FreelancerDashboardPage() {
-  const { data, error, loading } = useFetch(() => freelancerApi.dashboard(), [])
+  const { data, error, loading, reload } = useFetch(() => freelancerApi.dashboard(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
+  if (!data) return null
 
   const profile = data?.profile as Record<string, unknown> | undefined
   const projects = data?.projects ?? []
   const availability = data?.availability as Record<string, unknown> | undefined
   const workload = data?.workload as Record<string, unknown> | undefined
+  const overdue = Number(workload?.overdueTaskCount ?? 0)
+  const blocked = Number(workload?.blockedTaskCount ?? 0)
+  const availStatus = availability ? String(availability.availabilityStatus) : ''
+  const needsAttention = overdue > 0 || blocked > 0
 
   return (
     <>
-      <h1 className="text-h2">Freelancer dashboard</h1>
+      {needsAttention ? (
+        <PortalAttention
+          title={
+            overdue > 0 && blocked > 0
+              ? `${overdue} overdue and ${blocked} blocked task${blocked === 1 ? '' : 's'}`
+              : overdue > 0
+                ? `${overdue} overdue task${overdue === 1 ? '' : 's'}`
+                : `${blocked} blocked task${blocked === 1 ? '' : 's'}`
+          }
+          description="Review assigned tasks and update status when you can."
+        >
+          <Link className="link-underline" to={freelancerPortalPaths.tasks}>
+            Open tasks
+          </Link>
+        </PortalAttention>
+      ) : null}
+      {availStatus === 'unavailable' ? (
+        <PortalAttention
+          title="You are marked unavailable"
+          description="MUCO will not assign new work until you update availability."
+        >
+          <Link className="link-underline" to={freelancerPortalPaths.availability}>
+            Update availability
+          </Link>
+        </PortalAttention>
+      ) : null}
+
+      <PageIntro
+        label="Freelancer workspace"
+        title={profile ? `Welcome, ${String(profile.fullName)}` : 'Dashboard'}
+        description={
+          profile
+            ? approvalStatusLabel(String(profile.approvalStatus ?? 'pending'))
+            : 'Your assignments and operational status.'
+        }
+      />
+
+      <div className={ui.cardGrid}>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Availability</h2>
+          {availability ? (
+            <>
+              <StatusPill
+                status={String(availability.availabilityStatusLabel ?? availability.availabilityStatus)}
+                tone={availabilityStatusTone(availStatus)}
+              />
+              {availability.availabilityNote ? (
+                <p className={ui.meta}>{String(availability.availabilityNote)}</p>
+              ) : null}
+              <Link className="link-underline" to={freelancerPortalPaths.availability}>
+                Manage availability
+              </Link>
+            </>
+          ) : (
+            <p className={ui.meta}>Availability not loaded.</p>
+          )}
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Workload</h2>
+          {workload ? (
+            <ul className={ui.meta} style={{ margin: 0, paddingLeft: '1.1rem' }}>
+              <li>Active projects: {Number(workload.activeProjectCount ?? 0)}</li>
+              <li>Active tasks: {Number(workload.activeTaskCount ?? 0)}</li>
+              <li>Overdue tasks: {overdue}</li>
+              <li>Blocked tasks: {blocked}</li>
+            </ul>
+          ) : (
+            <p className={ui.meta}>No workload data.</p>
+          )}
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            <h2 className="text-h3" style={{ margin: 0 }}>
+              Assigned projects
+            </h2>
+            <Link className="link-underline" to={freelancerPortalPaths.projects}>
+              View all
+            </Link>
+          </div>
+          {projects.length === 0 ? (
+            <EmptyState
+              title="No projects yet"
+              description={String(data.assignmentsMessage ?? 'When MUCO assigns you to a project, it will appear here.')}
+            />
+          ) : (
+            <ul className={ui.stack}>
+              {projects.map((p) => (
+                <li key={p.id}>
+                  <Link className="link-underline" to={freelancerPortalPaths.projectDetail(p.id)}>
+                    {p.name}
+                  </Link>
+                  <p className={ui.meta}>
+                    {p.reference} · {p.statusLabel} · {p.activeTaskCount} active tasks
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </article>
+      </div>
       {profile ? (
-        <p>
-          {String(profile.fullName)} · Verification {String(profile.verificationStatus)} · Approval{' '}
-          {String(profile.approvalStatus)}
+        <p className={ui.meta} style={{ marginTop: 'var(--space-6)' }}>
+          Verification: {String(profile.verificationStatus ?? '—')}
         </p>
       ) : null}
-      <section aria-labelledby="availability-heading" className={ui.stack}>
-        <h2 id="availability-heading" className="text-h3">
-          Availability
-        </h2>
-        {availability ? (
-          <div className={`surface ${ui.dataCard}`}>
-            <p>
-              <StatusPill status={String(availability.availabilityStatus)} />{' '}
-              <span>{String(availability.availabilityStatusLabel ?? availability.availabilityStatus)}</span>
-            </p>
-            {availability.availabilityNote ? (
-              <p className={ui.meta}>{String(availability.availabilityNote)}</p>
-            ) : null}
-            <p className={ui.meta}>
-              <Link to={freelancerPortalPaths.availability}>Update availability</Link>
-            </p>
-          </div>
-        ) : (
-          <p className={ui.meta}>Availability not loaded.</p>
-        )}
-      </section>
-      <section aria-labelledby="workload-heading" className={ui.stack}>
-        <h2 id="workload-heading" className="text-h3">
-          Workload
-        </h2>
-        {workload ? (
-          <ul className={ui.meta}>
-            <li>Active projects: {Number(workload.activeProjectCount ?? 0)}</li>
-            <li>Active tasks: {Number(workload.activeTaskCount ?? 0)}</li>
-            <li>Overdue tasks: {Number(workload.overdueTaskCount ?? 0)}</li>
-            <li>Blocked tasks: {Number(workload.blockedTaskCount ?? 0)}</li>
-          </ul>
-        ) : (
-          <p className={ui.meta}>No workload data.</p>
-        )}
-      </section>
-      <section aria-labelledby="assignments-heading">
-        <h2 id="assignments-heading" className="text-h3">
-          Assigned work
-        </h2>
-        {projects.length === 0 ? (
-          <p>{data?.assignmentsMessage}</p>
-        ) : (
-          <ul className={ui.stack}>
-            {projects.map((p) => (
-              <li key={p.id} className={`surface ${ui.dataCard}`}>
-                <Link className="link-underline" to={freelancerPortalPaths.projectDetail(p.id)}>
-                  <strong>{p.name}</strong>
-                </Link>
-                <p className={ui.meta}>
-                  {p.reference} · {p.statusLabel} · {p.projectRoleLabel} · {p.activeTaskCount} active
-                  tasks
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </>
   )
 }
@@ -95,13 +153,13 @@ export function FreelancerProjectsPage() {
   const { data, error, loading, reload } = useFetch(() => freelancerApi.listProjects(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
 
   const items = data?.items ?? []
 
   return (
     <>
-      <h1 className="text-h2">My projects</h1>
+      <PageIntro title="My projects" description="Projects you are assigned to on the MUCO network." />
       {items.length === 0 ? (
         <EmptyState
           title="No projects yet"
@@ -133,19 +191,22 @@ export function FreelancerProjectDetailPage() {
   const { data, error, loading, reload } = useFetch(() => freelancerApi.getProject(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const tasks = (data.tasks as FreelancerTask[]) ?? []
 
   return (
     <>
-      <p>
-        <Link to={freelancerPortalPaths.projects}>← My projects</Link>
-      </p>
-      <h1 className="text-h2">{data.name}</h1>
+      <PageIntro
+        label="Project"
+        title={data.name}
+        description={`${data.reference} · ${data.statusLabel} · ${data.projectRoleLabel}`}
+      />
       <p className={ui.meta}>
-        {data.reference} · {data.statusLabel} · {data.projectRoleLabel}
+        <Link className="link-underline" to={freelancerPortalPaths.projects}>
+          Back to projects
+        </Link>
       </p>
       <section aria-labelledby="freelancer-project-tasks">
         <h2 id="freelancer-project-tasks" className="text-h3">
@@ -197,7 +258,7 @@ function FreelancerTaskRow({ task, onUpdated }: { task: FreelancerTask; onUpdate
           </p>
           {task.nextAction ? <p className={ui.meta}>{task.nextAction}</p> : null}
         </div>
-        <StatusPill status={task.status} />
+        <StatusPill status={task.statusLabel ?? task.status} tone={taskStatusTone(task.status)} />
       </div>
       {task.status !== 'done' && task.status !== 'cancelled' ? (
         <label className={ui.field}>
@@ -227,13 +288,13 @@ export function FreelancerTasksPage() {
   const { data, error, loading, reload } = useFetch(() => freelancerApi.listTasks(), [])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
 
   const items = data?.items ?? []
 
   return (
     <>
-      <h1 className="text-h2">Assigned tasks</h1>
+      <PageIntro title="Assigned tasks" description="Tasks across your projects that need your action." />
       {items.length === 0 ? (
         <EmptyState title="No tasks" description="Tasks assigned to you across projects appear here." />
       ) : (
@@ -255,7 +316,7 @@ export function FreelancerProfilePage() {
   const [status, setStatus] = useState<string | null>(null)
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   async function save(e: FormEvent<HTMLFormElement>) {
@@ -280,7 +341,7 @@ export function FreelancerProfilePage() {
 
   return (
     <>
-      <h1 className="text-h2">Profile</h1>
+      <PageIntro title="Profile" description="Your public freelancer identity on the MUCO network." />
       <form onSubmit={(e) => void save(e)} className="stack" style={{ maxWidth: '36rem' }}>
         <label>
           Headline
@@ -320,7 +381,7 @@ export function FreelancerAvailabilityPage() {
   }, [data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const canManage = Boolean(data.canManageAvailability)
@@ -348,9 +409,13 @@ export function FreelancerAvailabilityPage() {
 
   return (
     <>
-      <h1 className="text-h2">Availability</h1>
+      <PageIntro
+        title="Availability"
+        description="Controls whether MUCO can assign you new work. Unavailable freelancers are excluded from new assignments."
+      />
       <p>
-        Current: <StatusPill status={currentStatus} /> {currentLabel}
+        Current:{' '}
+        <StatusPill status={currentLabel} tone={availabilityStatusTone(currentStatus)} />
       </p>
       {data.availabilityNote ? <p className={ui.meta}>{String(data.availabilityNote)}</p> : null}
       {!canManage ? (
@@ -444,7 +509,7 @@ export function FreelancerServicesPage() {
   const selected = catalog.find((c) => c.slug === serviceSlug)
 
   if (loading || catalogFetch.loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
 
   async function addService(e: FormEvent) {
     e.preventDefault()
@@ -500,7 +565,10 @@ export function FreelancerServicesPage() {
 
   return (
     <>
-      <h1 className="text-h2">My services</h1>
+      <PageIntro
+        title="My services"
+        description="MUCO catalog services you deliver. Pricing is for internal operations—not shown on the public site."
+      />
       <p className={ui.meta} role="status" aria-live="polite">
         {message}
       </p>
@@ -627,7 +695,7 @@ export function FreelancerSkillsPage() {
   const selected = catalog.find((c) => c.slug === serviceSlug)
 
   if (loading || catalogFetch.loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyFreelancerPortalError(error)} onRetry={reload} />
 
   async function addSkill(e: FormEvent) {
     e.preventDefault()
@@ -660,7 +728,7 @@ export function FreelancerSkillsPage() {
 
   return (
     <>
-      <h1 className="text-h2">My skills</h1>
+      <PageIntro title="My skills" description="Skills tied to MUCO catalog services you deliver." />
       <p className={ui.meta} role="status" aria-live="polite">
         {message}
       </p>

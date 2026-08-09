@@ -9,12 +9,16 @@ export const freelancerPortalPaths = {
   availability: '/app/freelancer/availability',
 } as const
 
-export const freelancerNav = [
+export const freelancerNavPrimary = [
   { label: 'Dashboard', path: freelancerPortalPaths.root, end: true },
-  { label: 'My projects', path: freelancerPortalPaths.projects },
   { label: 'Tasks', path: freelancerPortalPaths.tasks },
+  { label: 'My projects', path: freelancerPortalPaths.projects },
   { label: 'My services', path: freelancerPortalPaths.services },
   { label: 'My skills', path: freelancerPortalPaths.skills },
-  { label: 'Profile', path: freelancerPortalPaths.profile },
   { label: 'Availability', path: freelancerPortalPaths.availability },
 ] as const
+
+export const freelancerNavMore = [{ label: 'Profile', path: freelancerPortalPaths.profile }] as const
+
+/** @deprecated Use freelancerNavPrimary + freelancerNavMore */
+export const freelancerNav = [...freelancerNavPrimary, ...freelancerNavMore] as const
