@@ -31,3 +31,7 @@ dist-ssr
 
 .vercel
 .env*
+
+# Local scratch / migration probes (not source of truth)
+tmp-migrations-out/
+tmp-*.html
