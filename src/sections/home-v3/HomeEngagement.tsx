@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
-import { FinalCta } from '@/components/design-system/FinalCta'
 import { pricingNote, pricingTiers, maintenanceNote } from '@/data/pricing'
 import { routePaths } from '@/config/routes'
 import { startProjectHref } from '@/lib/conversion/start-project-link'
@@ -50,8 +49,6 @@ export function HomeEngagementSections() {
           <p className={styles.maintenance}>{maintenanceNote}</p>
         </div>
       </section>
-
-      <FinalCta source="home_cta" />
     </>
   )
 }

@@ -116,6 +116,10 @@
   --container-2xl: 84rem;
   --header-height: 5rem;
 
+  --card-padding: var(--space-6);
+  --card-radius: var(--radius-lg);
+  --section-gap: clamp(var(--space-16), 8vw, var(--space-28));
+
   --z-header: 100;
   --z-overlay: 200;
   --z-modal: 300;

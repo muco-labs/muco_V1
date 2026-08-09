@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
 import { FounderPortrait } from '@/components/content/FounderPortrait'
-import { founder } from '@/content/founder'
 import { teamMembers, teamHiringNote } from '@/content/team'
 import { routePaths } from '@/config/routes'
 import styles from './HomeTeam.module.css'
@@ -29,26 +28,25 @@ export function HomeTeamSection() {
                 <FounderPortrait
                   name={member.name}
                   imageSrc={member.imageSrc}
-                  size="md"
-                  placeholderLabel="Team photo"
+                  size="team"
+                  objectPosition={member.imageObjectPosition}
                 />
-                <div>
+                <div className={styles.body}>
                   <h3 className="text-h3">{member.name}</h3>
                   <p className={styles.role}>{member.role}</p>
                   {member.bio ? <p className={styles.bio}>{member.bio}</p> : null}
+                  {member.skills?.length ? (
+                    <ul className={styles.skills} aria-label="Core expertise">
+                      {member.skills.slice(0, 4).map((skill) => (
+                        <li key={skill}>{skill}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               </article>
             </Reveal>
           ))}
         </div>
-        <Reveal className={styles.founderLink}>
-          <p>
-            <strong>{founder.name}</strong> — {founder.title}.{' '}
-            <Link className="link-underline" to={`${routePaths.about}#founder`}>
-              Read founder story
-            </Link>
-          </p>
-        </Reveal>
       </div>
     </section>
   )

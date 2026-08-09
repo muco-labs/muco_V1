@@ -1,11 +1,15 @@
 import styles from './FounderPortrait.module.css'
 
+type PortraitSize = 'md' | 'lg' | 'hero' | 'team' | 'editorial'
+
 type FounderPortraitProps = {
   name: string
   imageSrc?: string
-  size?: 'md' | 'lg' | 'hero'
+  size?: PortraitSize
   /** Shown on intentional placeholder surfaces (e.g. "Founder photo"). */
   placeholderLabel?: string
+  objectPosition?: string
+  loading?: 'lazy' | 'eager'
 }
 
 function initialsFromName(name: string): string {
@@ -22,17 +26,23 @@ export function FounderPortrait({
   imageSrc,
   size = 'lg',
   placeholderLabel = 'Photo pending',
+  objectPosition = 'center 20%',
+  loading = 'lazy',
 }: FounderPortraitProps) {
   const initials = initialsFromName(name)
+  const hoverable = size === 'lg' || size === 'hero' || size === 'md'
 
   if (imageSrc) {
     return (
-      <div className={`${styles.frame} ${styles[size]} ${styles.interactive}`}>
+      <div
+        className={`${styles.frame} ${styles[size]} ${hoverable ? styles.interactive : ''}`}
+      >
         <img
           src={imageSrc}
           alt={name}
           className={styles.photo}
-          loading="lazy"
+          style={{ objectPosition }}
+          loading={loading}
           decoding="async"
         />
       </div>

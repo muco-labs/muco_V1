@@ -1,0 +1,27 @@
+.introActive :global(main.page-main),
+.introActive :global(header),
+.introActive :global(footer),
+.introActive :global([aria-label='Quick action']) {
+  visibility: hidden;
+}
+
+.homeRevealed {
+  animation: home-reveal 0.55s var(--ease-out);
+}
+
+@keyframes home-reveal {
+  from {
+    opacity: 0.92;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homeRevealed {
+    animation: none;
+  }
+}

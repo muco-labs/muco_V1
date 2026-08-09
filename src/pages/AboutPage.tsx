@@ -2,16 +2,15 @@ import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { FounderPortrait } from '@/components/content/FounderPortrait'
 import { BreadcrumbSchema, PersonSchema } from '@/components/seo/StructuredData'
+import { PageHero } from '@/components/design-system/PageHero'
+import { FinalCta } from '@/components/design-system/FinalCta'
 import { Reveal } from '@/components/motion/Reveal'
-import { Button } from '@/components/ui/Button'
 import { pageSeo } from '@/config/seo'
-import { analyticsEvents } from '@/lib/analytics'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
 import { teamGroups, teamMembers, teamHiringNote } from '@/data/team'
 import { deliveryProcess } from '@/content/process'
 import { routePaths } from '@/config/routes'
-import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { env } from '@/config/env'
 import styles from './AboutPage.module.css'
 
@@ -38,216 +37,272 @@ export function AboutPage() {
         url={`${env.siteUrl}${about.path}#founder`}
       />
       <div className={styles.page}>
-        <section className={styles.hero}>
-          <div className="shell">
-            <Reveal>
-              <p className="text-label">About</p>
-              <h1 className="text-display">Technology with founder-led accountability.</h1>
-              <p className={styles.lead}>{company.tagline}</p>
-              <p className={styles.lead}>{company.whoWeServe}</p>
-            </Reveal>
-          </div>
-        </section>
+        <PageHero
+          eyebrow="About"
+          title="Technology with founder-led accountability."
+          lead={company.tagline}
+        >
+          <p className={styles.heroSecondary}>{company.whoWeServe}</p>
+          <nav className={styles.jumpNav} aria-label="On this page">
+            <a className={styles.jumpLink} href="#founder">
+              Founder
+            </a>
+            <a className={styles.jumpLink} href="#team">
+              Team
+            </a>
+            <Link className={styles.jumpLink} to={routePaths.careers}>
+              Careers
+            </Link>
+          </nav>
+        </PageHero>
 
-        <section className="section section--tight">
+        <section className="section section--tight" aria-labelledby="about-who">
           <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">Who we are</h2>
-            </Reveal>
-            {company.story.map((paragraph, index) => (
-              <Reveal key={paragraph.slice(0, 24)} delayMs={index * 60}>
-                <p className={styles.story}>{paragraph}</p>
-              </Reveal>
-            ))}
-            <p className={styles.disambiguation}>{company.disambiguation}</p>
-          </div>
-        </section>
-
-        <section className="section section--tight">
-          <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">What we build</h2>
-              <p className={styles.story}>{company.whyWeExist}</p>
-            </Reveal>
-            <ul className={styles.builds}>
-              {company.whatWeBuild.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section className="section section--tight">
-          <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">How we work</h2>
-              <p className={styles.story}>{company.howWeWork}</p>
-            </Reveal>
-            <ol className={styles.process}>
-              {deliveryProcess.map((stage, index) => (
-                <li key={stage.step}>
-                  <span className={styles.processIndex}>{String(index + 1).padStart(2, '0')}</span>
-                  <div>
-                    <strong>{stage.step}</strong>
-                    <p>{stage.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section className="section section--tight">
-          <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">Mission & vision</h2>
-            </Reveal>
-            <div className={styles.split}>
+            <div className={styles.sectionBlock}>
               <Reveal>
-                <h3 className="text-label">Mission</h3>
-                <p>{company.mission}</p>
+                <h2 id="about-who" className="text-h2">
+                  Who we are
+                </h2>
+              </Reveal>
+              <div className={styles.prose}>
+                {company.story.map((paragraph, index) => (
+                  <Reveal key={paragraph.slice(0, 24)} delayMs={index * 60}>
+                    <p className={styles.story}>{paragraph}</p>
+                  </Reveal>
+                ))}
+                <Reveal delayMs={120}>
+                  <p className={styles.disambiguation}>{company.disambiguation}</p>
+                </Reveal>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--tight" aria-labelledby="about-build">
+          <div className="shell">
+            <div className={styles.sectionBlock}>
+              <Reveal>
+                <h2 id="about-build" className="text-h2">
+                  What we build
+                </h2>
+                <p className={styles.story}>{company.whyWeExist}</p>
               </Reveal>
               <Reveal delayMs={80}>
-                <h3 className="text-label">Vision</h3>
-                <p>{company.vision}</p>
-              </Reveal>
-            </div>
-            <Reveal delayMs={120}>
-              <h3 className="text-label">Engineering philosophy</h3>
-              <p className={styles.story}>{company.engineeringPhilosophy}</p>
-            </Reveal>
-          </div>
-        </section>
-
-        <section className="section section--tight">
-          <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">Values</h2>
-            </Reveal>
-            <div className={styles.values}>
-              {company.values.map((value) => (
-                <article key={value.title} className="surface">
-                  <h3 className="text-h3">{value.title}</h3>
-                  <p>{value.body}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section" id="founder">
-          <div className="shell">
-            <div className={styles.founder}>
-              <Reveal>
-                <FounderPortrait
-                  name={founder.name}
-                  imageSrc={founder.imageSrc}
-                  size="hero"
-                  placeholderLabel="Founder photo"
-                />
-              </Reveal>
-              <Reveal delayMs={100}>
-                <p className="text-label">Founder</p>
-                <h2 className="text-h2">{founder.name}</h2>
-                <p className={styles.founderTitle}>{founder.title}</p>
-                <p>{founder.introduction}</p>
-                <h3 className="text-label">Vision</h3>
-                <p className={styles.vision}>{founder.vision}</p>
-                <h3 className="text-label">Role</h3>
-                <p>{founder.role}</p>
-                <h3 className="text-label">Focus areas</h3>
-                <ul className={styles.skills}>
-                  {founder.skills.map((skill) => (
-                    <li key={skill}>{skill}</li>
+                <ul className={styles.builds}>
+                  {company.whatWeBuild.map((item) => (
+                    <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <p>{founder.philosophy}</p>
-                <ul className={styles.links}>
-                  {founder.links.map((link) => (
-                    <li key={link.href}>
-                      <a className="link-underline" href={link.href}>
-                        {link.label}
-                      </a>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--tight" aria-labelledby="about-process">
+          <div className="shell">
+            <div className={styles.sectionBlock}>
+              <Reveal>
+                <h2 id="about-process" className="text-h2">
+                  How we work
+                </h2>
+                <p className={styles.story}>{company.howWeWork}</p>
+              </Reveal>
+              <Reveal delayMs={80}>
+                <ol className={styles.process}>
+                  {deliveryProcess.map((stage, index) => (
+                    <li key={stage.step}>
+                      <span className={styles.processIndex}>{String(index + 1).padStart(2, '0')}</span>
+                      <div>
+                        <strong className={styles.processStep}>{stage.step}</strong>
+                        <p>{stage.detail}</p>
+                      </div>
                     </li>
                   ))}
-                </ul>
+                </ol>
               </Reveal>
             </div>
           </div>
         </section>
 
-        <section className="section section--tight" id="team">
+        <section className="section section--tight" aria-labelledby="about-mission">
           <div className="shell">
-            <Reveal>
-              <h2 className="text-h2">Team</h2>
-              <p className={styles.teamNote}>{teamHiringNote}</p>
-            </Reveal>
-            <div className={styles.teamGrid}>
-              {teamMembers.map((member) => (
-                <article key={member.id} className={`surface ${styles.memberCard}`}>
+            <div className={styles.sectionBlock}>
+              <Reveal>
+                <h2 id="about-mission" className="text-h2">
+                  Mission & vision
+                </h2>
+              </Reveal>
+              <div className={styles.split}>
+                <Reveal>
+                  <h3 className="text-label">Mission</h3>
+                  <p className={styles.missionCopy}>{company.mission}</p>
+                </Reveal>
+                <Reveal delayMs={80}>
+                  <h3 className="text-label">Vision</h3>
+                  <p className={styles.missionCopy}>{company.vision}</p>
+                </Reveal>
+              </div>
+              <Reveal delayMs={120}>
+                <div className={styles.philosophy}>
+                  <h3 className="text-label">Engineering philosophy</h3>
+                  <p className={styles.story}>{company.engineeringPhilosophy}</p>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--tight" aria-labelledby="about-values">
+          <div className="shell">
+            <div className={styles.sectionBlock}>
+              <Reveal>
+                <h2 id="about-values" className="text-h2">
+                  Values
+                </h2>
+              </Reveal>
+              <div className={styles.values}>
+                {company.values.map((value, index) => (
+                  <Reveal key={value.title} delayMs={index * 50}>
+                    <article className="surface">
+                      <h3 className="text-h3">{value.title}</h3>
+                      <p>{value.body}</p>
+                    </article>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          className={`section ${styles.anchorSection}`}
+          id="founder"
+          aria-labelledby="about-founder"
+        >
+          <div className="shell">
+            <div className={styles.sectionBlock}>
+              <Reveal>
+                <h2 id="about-founder" className="text-h2">
+                  Our founder
+                </h2>
+              </Reveal>
+              <div className={styles.founder}>
+                <Reveal>
                   <FounderPortrait
-                    name={member.name}
-                    imageSrc={member.imageSrc}
-                    size="md"
-                    placeholderLabel="Team photo"
+                    name={founder.name}
+                    imageSrc={founder.imageSrc}
+                    size="hero"
+                    placeholderLabel="Founder photo"
+                    loading="eager"
                   />
-                  <div>
-                    <h3 className="text-h3">{member.name}</h3>
-                    <p className={styles.memberRole}>{member.role}</p>
-                    {member.bio ? <p>{member.bio}</p> : null}
-                    {member.skills?.length ? (
-                      <ul className={styles.memberSkills}>
-                        {member.skills.map((skill) => (
+                </Reveal>
+                <Reveal delayMs={100}>
+                  <div className={styles.founderBody}>
+                    <h3 className={styles.founderName}>{founder.name}</h3>
+                    <p className={styles.founderTitle}>{founder.title}</p>
+                    <p className={styles.founderIntro}>{founder.introduction}</p>
+                    <div className={styles.founderDetail}>
+                      <h4 className="text-label">Founder vision</h4>
+                      <p className={styles.vision}>{founder.vision}</p>
+                    </div>
+                    <div className={styles.founderDetail}>
+                      <h4 className="text-label">Role</h4>
+                      <p>{founder.role}</p>
+                    </div>
+                    <div className={styles.founderDetail}>
+                      <h4 className="text-label">Focus areas</h4>
+                      <ul className={styles.skills}>
+                        {founder.skills.map((skill) => (
                           <li key={skill}>{skill}</li>
                         ))}
                       </ul>
-                    ) : null}
-                    {member.links?.length ? (
-                      <ul className={styles.links}>
-                        {member.links.map((link) => (
-                          <li key={link.href}>
-                            <a className="link-underline" href={link.href}>
-                              {link.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+                    </div>
+                    <p className={styles.founderPhilosophy}>{founder.philosophy}</p>
+                    <ul className={styles.links}>
+                      {founder.links.map((link) => (
+                        <li key={link.href}>
+                          <a className={styles.contactLink} href={link.href}>
+                            {link.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </article>
-              ))}
-            </div>
-            <div className={styles.teamGroups}>
-              {teamGroups.map((group) => (
-                <article key={group.id} className="surface">
-                  <h3 className="text-label">{group.label}</h3>
-                  <p className={styles.groupDesc}>{group.description}</p>
-                </article>
-              ))}
+                </Reveal>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="section section--tight">
+        <section
+          className={`section section--tight ${styles.anchorSection}`}
+          id="team"
+          aria-labelledby="about-team"
+        >
           <div className="shell">
-            <Reveal className={`surface ${styles.cta}`}>
-              <h2 className="text-h2">Work with MUCO LABS</h2>
-              <p>Tell us what you are building—we will respond with a practical next step.</p>
-              <div className={styles.ctaActions}>
-                <Button
-                  to={startProjectHref({ source: 'about' })}
-                  trackEvent={analyticsEvents.startProjectClick}
-                  trackParams={{ source: 'about' }}
-                >
-                  Start a Project
-                </Button>
-                <Link className="link-underline" to={routePaths.work}>
-                  View work
-                </Link>
+            <div className={styles.sectionBlock}>
+              <Reveal>
+                <h2 id="about-team" className="text-h2">
+                  Team
+                </h2>
+                <p className={styles.teamNote}>{teamHiringNote}</p>
+              </Reveal>
+              <div className={styles.teamGrid}>
+                {teamMembers.map((member, index) => (
+                  <Reveal key={member.id} delayMs={index * 60}>
+                    <article className={`surface ${styles.memberCard}`}>
+                      <FounderPortrait
+                        name={member.name}
+                        imageSrc={member.imageSrc}
+                        size="team"
+                        objectPosition={member.imageObjectPosition}
+                      />
+                      <div className={styles.memberBody}>
+                        <h3 className="text-h3">{member.name}</h3>
+                        <p className={styles.memberRole}>{member.role}</p>
+                        {member.bio ? <p className={styles.memberBio}>{member.bio}</p> : null}
+                        {member.skills?.length ? (
+                          <ul className={styles.memberSkills}>
+                            {member.skills.map((skill) => (
+                              <li key={skill}>{skill}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                        {member.links?.length ? (
+                          <ul className={styles.memberLinks}>
+                            {member.links.map((link) => (
+                              <li key={link.href}>
+                                <a className={styles.contactLink} href={link.href}>
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    </article>
+                  </Reveal>
+                ))}
               </div>
-            </Reveal>
+              <div className={styles.teamGroups}>
+                {teamGroups.map((group) => (
+                  <article key={group.id} className="surface">
+                    <h3 className="text-label">{group.label}</h3>
+                    <p className={styles.groupDesc}>{group.description}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
+
+        <FinalCta
+          title="Work with MUCO LABS"
+          body="Tell us what you are building—we will respond with a practical next step."
+          source="about"
+          secondaryLabel="View work"
+          secondaryHref={routePaths.work}
+        />
       </div>
     </>
   )

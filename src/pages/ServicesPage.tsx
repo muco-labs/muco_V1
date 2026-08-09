@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/Button'
 import styles from './ServicesPage.module.css'
 
 const services = pageSeo.services
-const [featured, ...rest] = serviceHighlights
 
 export function ServicesPage() {
   return (
@@ -37,17 +36,12 @@ export function ServicesPage() {
         />
         <section className="section">
           <div className="shell">
-            <div className={styles.editorial}>
-              <Reveal className={styles.featuredSlot}>
-                <ServiceCard service={featured} variant="featured" />
-              </Reveal>
-              <div className={styles.grid}>
-                {rest.map((service, index) => (
-                  <Reveal key={service.slug} delayMs={index * 60}>
-                    <ServiceCard service={service} />
-                  </Reveal>
-                ))}
-              </div>
+            <div className={styles.grid}>
+              {serviceHighlights.map((service, index) => (
+                <Reveal key={service.slug} delayMs={index * 50}>
+                  <ServiceCard service={service} />
+                </Reveal>
+              ))}
             </div>
             <div className={styles.cta}>
               <Button to={startProjectHref({ source: 'services' })}>Start a project</Button>

@@ -2,67 +2,22 @@
   padding-bottom: var(--space-16);
 }
 
-.editorial {
-  display: grid;
-  gap: var(--space-6);
-}
-
-@media (min-width: 64rem) {
-  .editorial {
-    grid-template-columns: 1fr 1.2fr;
-    align-items: start;
-  }
-
-  .featuredSlot {
-    grid-row: span 2;
-  }
-}
-
 .grid {
   display: grid;
   gap: var(--space-6);
+  grid-template-columns: 1fr;
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 40rem) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.card {
-  padding: var(--space-6);
-  display: grid;
-  gap: var(--space-3);
-  height: 100%;
-}
-
-.category {
-  margin: 0;
-  font-size: var(--text-small);
-  color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.from {
-  margin: 0;
-  font-family: var(--font-display);
-  color: var(--color-text);
-}
-
-.problem {
-  margin: 0;
-  font-size: var(--text-small);
-  color: var(--color-text-muted);
-}
-
-.delivers {
-  margin: 0;
-  padding-left: 1.1rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-small);
-  display: grid;
-  gap: var(--space-1);
+@media (min-width: 64rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .cta {
@@ -71,47 +26,4 @@
   flex-wrap: wrap;
   gap: var(--space-4);
   align-items: center;
-}
-
-.categoryLegacy {
-  padding-block: var(--space-10);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.category ul {
-  margin: var(--space-6) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: var(--space-2);
-}
-
-@media (min-width: 48rem) {
-  .category ul {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.link {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: var(--color-text);
-  transition: border-color var(--duration-fast) var(--ease-out);
-}
-
-.link:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.soon {
-  display: block;
-  padding: var(--space-4);
-  color: var(--color-text-subtle);
-  font-size: var(--text-small);
 }

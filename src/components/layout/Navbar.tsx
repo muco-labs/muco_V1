@@ -4,6 +4,7 @@ import { HiBars3, HiMagnifyingGlass, HiXMark } from 'react-icons/hi2'
 import { authRoutes } from '@/config/auth'
 import { routePaths } from '@/config/routes'
 import { site } from '@/config/site'
+import { brandAssets } from '@/config/brand-assets'
 import { primaryNav } from '@/data/navigation'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { startProjectHref } from '@/lib/conversion/start-project-link'
@@ -50,10 +51,23 @@ export function Navbar() {
     <>
       <header className={cn(styles.header, scrolled && styles.scrolled)}>
         <div className={`shell ${styles.bar}`}>
-          <Link to={routePaths.home} className={styles.brand} aria-label={`${site.name} home`}>
+        <Link to={routePaths.home} className={styles.brand} aria-label={`${site.name} home`}>
+          {brandAssets.logo.status === 'available' && brandAssets.logo.src ? (
+            <span className={styles.brandLogoSlot}>
+              <img
+                src={brandAssets.logo.src}
+                alt=""
+                className={styles.brandLogo}
+                width={512}
+                height={512}
+                decoding="async"
+              />
+            </span>
+          ) : (
             <span className={styles.mark} aria-hidden="true" />
-            <span>{site.name}</span>
-          </Link>
+          )}
+          <span>{site.name}</span>
+        </Link>
 
           <nav className={styles.desktopNav} aria-label="Primary">
             <ul>

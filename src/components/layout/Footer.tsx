@@ -4,8 +4,10 @@ import { footerNav } from '@/data/navigation'
 import { serviceHighlights } from '@/content/services-catalog'
 import { servicePath, routePaths } from '@/config/routes'
 import { site } from '@/config/site'
+import { brandAssets } from '@/config/brand-assets'
 import { socialLinkList } from '@/content/social'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './Footer.module.css'
 
 export function Footer() {
@@ -17,9 +19,24 @@ export function Footer() {
         <div className={styles.grid}>
           <div>
             <Link to={routePaths.home} className={styles.brand}>
-              {site.name}
+              {brandAssets.logo.status === 'available' && brandAssets.logo.src ? (
+                <span className={styles.brandLogoSlot}>
+                  <img
+                    src={brandAssets.logo.src}
+                    alt=""
+                    className={styles.brandLogo}
+                    width={512}
+                    height={512}
+                    decoding="async"
+                  />
+                </span>
+              ) : null}
+              <span>{site.name}</span>
             </Link>
             <p className={styles.desc}>{company.footerBlurb}</p>
+            <Link to={startProjectHref({ source: 'footer' })} className={styles.footerCta}>
+              Start a project
+            </Link>
             <a
               href={`mailto:${site.contactEmail}`}
               className={styles.email}

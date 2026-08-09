@@ -9,13 +9,17 @@ import { faqs, homeFaqIds } from '@/content/faqs'
 import { pageSeo } from '@/config/seo'
 import { HomeCultureSections } from '@/sections/home-v3/HomeCulture'
 import { HomeEngagementSections } from '@/sections/home-v3/HomeEngagement'
+import { FinalCta } from '@/components/design-system/FinalCta'
 import { HomeFaqSection } from '@/sections/home-v3/HomeFaq'
 import { HomeFounderSpotlight } from '@/sections/home-v3/HomeFounderSpotlight'
 import { HomeServicesShowcase } from '@/sections/home-v3/HomeServicesShowcase'
-import { HomeStorySections } from '@/sections/home-v3/HomeStory'
-import { HomeSystemsSections } from '@/sections/home-v3/HomeSystems'
+import {
+  HomeHowWeWorkSection,
+  HomeLocalErodeSection,
+  HomeTechnologySection,
+  HomeWorkPreviewSection,
+} from '@/sections/home-v3/HomeSystems'
 import { HomeTeamSection } from '@/sections/home-v3/HomeTeam'
-import { HomeTrustStrip } from '@/sections/home-v3/HomeTrustStrip'
 import { SignatureHero } from '@/sections/home-v3/SignatureHero'
 
 const home = pageSeo.home
@@ -38,15 +42,17 @@ export function HomePage() {
       <LocalBusinessSchema />
       <FaqPageSchema faqs={homeFaqs} />
       <SignatureHero />
-      <HomeTrustStrip />
-      <HomeStorySections />
       <HomeServicesShowcase />
-      <HomeSystemsSections />
       <HomeCultureSections />
+      <HomeHowWeWorkSection />
+      <HomeTechnologySection />
+      <HomeWorkPreviewSection />
       <HomeFounderSpotlight />
       <HomeTeamSection />
       <HomeEngagementSections />
+      <HomeLocalErodeSection />
       <HomeFaqSection />
+      <FinalCta source="home_cta" />
     </>
   )
 }

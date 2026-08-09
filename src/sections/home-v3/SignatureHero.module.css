@@ -1,6 +1,12 @@
 .hero {
+  position: relative;
   padding-block: clamp(var(--space-16), 10vw, var(--space-32));
   border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.backdrop {
+  opacity: 0.65;
 }
 
 .grid {
@@ -17,6 +23,8 @@
 }
 
 .copy {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: var(--space-6);
   max-width: 38rem;
@@ -41,6 +49,8 @@
 }
 
 .visual {
+  position: relative;
+  z-index: 1;
   min-height: 18rem;
 }
 

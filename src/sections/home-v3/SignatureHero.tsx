@@ -1,3 +1,4 @@
+import { TechnicalBackdrop } from '@/components/opening/TechnicalBackdrop'
 import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
 import { HeroSignalPanel } from '@/components/home/HeroSignalPanel'
@@ -11,6 +12,7 @@ import styles from './SignatureHero.module.css'
 export function SignatureHero() {
   return (
     <section className={styles.hero} aria-labelledby="home-hero-title">
+      <TechnicalBackdrop intensity="ambient" className={styles.backdrop} />
       <div className="shell">
         <div className={styles.grid}>
           <Reveal className={styles.copy}>

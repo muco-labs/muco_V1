@@ -1,0 +1,88 @@
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--color-brand-bg, #050816);
+}
+
+.grid {
+  position: absolute;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  opacity: 0.55;
+}
+
+.intro .grid {
+  opacity: 0.75;
+}
+
+.lines {
+  opacity: 0.4;
+}
+
+.intro .lines {
+  animation: grid-drift 14s linear infinite;
+}
+
+.nodes circle {
+  filter: drop-shadow(0 0 6px rgba(0, 194, 255, 0.45));
+}
+
+.intro .nodes circle:nth-child(odd) {
+  animation: node-pulse 3.2s ease-in-out infinite;
+}
+
+.path {
+  stroke-dasharray: 8 12;
+  animation: path-flow 10s linear infinite;
+}
+
+.pathAlt {
+  stroke-dasharray: 4 10;
+  animation: path-flow 14s linear infinite reverse;
+  opacity: 0.7;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(30, 136, 255, 0.14), transparent 65%),
+    radial-gradient(ellipse 40% 30% at 80% 20%, rgba(0, 194, 255, 0.1), transparent 55%);
+}
+
+@keyframes grid-drift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-24px, -16px);
+  }
+}
+
+@keyframes node-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes path-flow {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro .lines,
+  .path,
+  .pathAlt,
+  .intro .nodes circle {
+    animation: none;
+  }
+}

@@ -1,3 +1,4 @@
+import { brandAssets } from '@/config/brand-assets'
 import { contact } from '@/content/contact'
 import { socialLinks } from '@/content/social'
 
@@ -46,4 +47,6 @@ export const founder: FounderProfile = {
     { label: 'LinkedIn (company)', href: socialLinks.linkedin },
     { label: 'X', href: socialLinks.x },
   ],
+  imageSrc:
+    brandAssets.founderPhoto.status === 'available' ? brandAssets.founderPhoto.src : undefined,
 }

@@ -43,6 +43,23 @@
   box-shadow: 0 0 12px rgba(0, 194, 255, 0.35);
 }
 
+.brandLogoSlot {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  overflow: hidden;
+}
+
+.brandLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(2.35);
+  transform-origin: center;
+}
+
 .desktopNav {
   display: none;
   flex: 1;
