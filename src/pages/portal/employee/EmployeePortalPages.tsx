@@ -6,6 +6,7 @@ import {
   ListSkeleton,
   PageIntro,
   PortalError,
+  ProjectSectionNav,
   StatusPill,
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
@@ -16,6 +17,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { employeeApi } from '@/services/employee-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
+import { friendlyEmployeePortalError, taskStatusTone } from '@/lib/employee/portal-errors'
 
 export function EmployeeTasksPage() {
   const [status, setStatus] = useState('')
@@ -28,7 +30,7 @@ export function EmployeeTasksPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -65,7 +67,10 @@ export function EmployeeTasksPage() {
               <Link className="link-underline" to={employeePortalPaths.taskDetail(String(task.id))}>
                 {String(task.title)}
               </Link>
-              <StatusPill status={taskStatusLabels[String(task.status)] ?? String(task.status)} />
+              <StatusPill
+                status={taskStatusLabels[String(task.status)] ?? String(task.status)}
+                tone={taskStatusTone(String(task.status))}
+              />
               {task.dueDate ? (
                 <time className={ui.meta} dateTime={String(task.dueDate)}>
                   Due {new Date(String(task.dueDate)).toLocaleDateString()}
@@ -82,6 +87,8 @@ export function EmployeeTasksPage() {
 export function EmployeeTaskDetailPage() {
   const { id = '' } = useParams()
   const [status, setStatus] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const { data, error, loading, reload } = useFetch(() => employeeApi.tasks.get(id), [id])
 
   useEffect(() => {
@@ -89,37 +96,68 @@ export function EmployeeTaskDetailPage() {
   }, [data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
   if (!data) return null
 
+  const projectId = data.projectId ? String(data.projectId) : null
+
   async function saveStatus() {
+    setSaveError(null)
+    setSaving(true)
     try {
       await employeeApi.tasks.update(id, { status })
       reload()
     } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Update failed')
+      setSaveError(err instanceof ApiError ? err.message : 'Update failed.')
+    } finally {
+      setSaving(false)
     }
   }
 
   return (
     <>
-      <PageIntro title={String(data.title)} />
-      <p>{data.description ? String(data.description) : null}</p>
-      <StatusPill status={taskStatusLabels[String(data.status)] ?? String(data.status)} />
+      <PageIntro title={String(data.title)} label="Task" />
+      {projectId ? (
+        <p className={ui.meta}>
+          <Link className="link-underline" to={employeePortalPaths.projectDetail(projectId)}>
+            View project
+          </Link>
+        </p>
+      ) : null}
+      {data.description ? <p style={{ marginTop: 'var(--space-3)' }}>{String(data.description)}</p> : null}
+      <StatusPill
+        status={taskStatusLabels[String(data.status)] ?? String(data.status)}
+        tone={taskStatusTone(String(data.status))}
+      />
+      {data.dueDate ? (
+        <p className={ui.meta}>
+          <time dateTime={String(data.dueDate)}>Due {new Date(String(data.dueDate)).toLocaleString()}</time>
+        </p>
+      ) : null}
       <div className={ui.form} style={{ marginTop: 'var(--space-4)' }}>
         <div className={ui.field}>
           <label htmlFor="task-status">Update status</label>
-          <select id="task-status" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select id="task-status" value={status} onChange={(e) => setStatus(e.target.value)} disabled={saving}>
             <option value="todo">To do</option>
             <option value="in_progress">In progress</option>
             <option value="blocked">Blocked</option>
             <option value="done">Completed</option>
           </select>
         </div>
-        <Button type="button" onClick={() => void saveStatus()}>
-          Save
+        {saveError ? (
+          <p className={ui.meta} role="alert">
+            {friendlyEmployeePortalError(saveError)}
+          </p>
+        ) : null}
+        <Button type="button" disabled={saving} aria-busy={saving} onClick={() => void saveStatus()}>
+          {saving ? 'Saving…' : 'Save'}
         </Button>
       </div>
+      <p style={{ marginTop: 'var(--space-6)' }}>
+        <Link className="link-underline" to={employeePortalPaths.tasks}>
+          Back to tasks
+        </Link>
+      </p>
     </>
   )
 }
@@ -129,7 +167,7 @@ export function EmployeeProjectsPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -158,7 +196,7 @@ export function EmployeeProjectDetailPage() {
   const { data, error, loading, reload } = useFetch(() => employeeApi.projects.get(id), [id])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
   if (!data) return null
 
   const project = data.project as Record<string, unknown>
@@ -169,9 +207,18 @@ export function EmployeeProjectDetailPage() {
   return (
     <>
       <PageIntro title={String(project.name)} description={String(data.customerCompany ?? '')} />
+      <ProjectSectionNav
+        items={[
+          { href: '#project-milestones', label: 'Milestones' },
+          { href: '#project-team', label: 'Team' },
+          { href: '#project-tasks', label: 'Tasks' },
+        ]}
+      />
       <StatusPill status={String(project.status)} />
-      <section style={{ marginTop: 'var(--space-6)' }}>
-        <h2 className="text-h3">Milestones</h2>
+      <section id="project-milestones" style={{ marginTop: 'var(--space-6)' }} aria-labelledby="emp-project-milestones">
+        <h2 id="emp-project-milestones" className="text-h3">
+          Milestones
+        </h2>
         {milestones.length === 0 ? (
           <p className={ui.meta}>No milestones yet.</p>
         ) : (
@@ -184,8 +231,10 @@ export function EmployeeProjectDetailPage() {
           </ol>
         )}
       </section>
-      <section style={{ marginTop: 'var(--space-4)' }}>
-        <h2 className="text-h3">Team</h2>
+      <section id="project-team" style={{ marginTop: 'var(--space-4)' }} aria-labelledby="emp-project-team">
+        <h2 id="emp-project-team" className="text-h3">
+          Team
+        </h2>
         <ul className={ui.stack}>
           {team.map((member, index) => (
             <li key={index} className={ui.meta}>
@@ -194,16 +243,29 @@ export function EmployeeProjectDetailPage() {
           ))}
         </ul>
       </section>
-      <section style={{ marginTop: 'var(--space-4)' }}>
-        <h2 className="text-h3">Tasks</h2>
+      <section id="project-tasks" style={{ marginTop: 'var(--space-4)' }} aria-labelledby="emp-project-tasks">
+        <h2 id="emp-project-tasks" className="text-h3">
+          Tasks
+        </h2>
         <ul className={ui.stack}>
           {tasks.map((t) => (
-            <li key={String(t.id)} className={ui.meta}>
-              {String(t.title)} — <StatusPill status={String(t.status)} />
+            <li key={String(t.id)}>
+              <Link className="link-underline" to={employeePortalPaths.taskDetail(String(t.id))}>
+                {String(t.title)}
+              </Link>{' '}
+              <StatusPill
+                status={taskStatusLabels[String(t.status)] ?? String(t.status)}
+                tone={taskStatusTone(String(t.status))}
+              />
             </li>
           ))}
         </ul>
       </section>
+      <p style={{ marginTop: 'var(--space-6)' }}>
+        <Link className="link-underline" to={employeePortalPaths.projects}>
+          Back to projects
+        </Link>
+      </p>
     </>
   )
 }
@@ -219,7 +281,7 @@ export function EmployeeFilesPage() {
   }
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -255,7 +317,7 @@ export function EmployeeMessagesPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -268,7 +330,10 @@ export function EmployeeMessagesPage() {
         <Button type="submit">Send</Button>
       </form>
       {items.length === 0 ? (
-        <EmptyState title="No messages yet" description="No messages yet." />
+        <EmptyState
+          title="No messages yet"
+          description="Messages from your projects will appear here after you send or receive one."
+        />
       ) : (
         <div className={ui.messageList}>
           {items.map((m) => (
@@ -287,7 +352,7 @@ export function EmployeeNotificationsPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -323,7 +388,7 @@ export function EmployeeDeadlinesPage() {
   const items = (data?.items as Array<Record<string, unknown>>) ?? []
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   return (
     <>
@@ -363,7 +428,7 @@ export function EmployeeProfilePage() {
   }, [data])
 
   if (loading) return <ListSkeleton />
-  if (error) return <PortalError message={error} onRetry={reload} />
+  if (error) return <PortalError message={friendlyEmployeePortalError(error)} onRetry={reload} />
 
   async function save(e: FormEvent) {
     e.preventDefault()
