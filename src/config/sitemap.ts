@@ -1,8 +1,8 @@
 import { env } from '@/config/env'
-import { indexablePaths } from '@/config/indexable-routes'
+import { getSitemapIndexablePaths } from '@/config/indexable-routes'
 
-export function getSitemapXml(siteUrl = env.siteUrl): string {
-  const urls = indexablePaths
+export function getSitemapXml(siteUrl = env.siteUrl, additionalPaths: string[] = []): string {
+  const urls = getSitemapIndexablePaths(additionalPaths)
     .map((path) => {
       const loc = path === '/' ? siteUrl : `${siteUrl}${path}`
       return `  <url><loc>${escapeXml(loc)}</loc></url>`

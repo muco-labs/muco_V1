@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-seo.mjs && tsc -b && tsc -p tsconfig.server.json --noEmit && vite build",
-    "generate:seo": "node scripts/generate-seo.mjs",
+    "build": "tsx --tsconfig scripts/tsconfig.json scripts/generate-seo.ts && tsc -b && tsc -p tsconfig.server.json --noEmit && vite build",
+    "generate:seo": "tsx --tsconfig scripts/tsconfig.json scripts/generate-seo.ts",
     "dev:api": "tsx watch server/dev.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/db/migrate.ts",

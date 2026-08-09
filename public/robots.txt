@@ -9,5 +9,7 @@ Disallow: /login/
 Disallow: /signup/
 Disallow: /auth/
 Disallow: /team/
+Disallow: /start-project/
+Disallow: /freelancers/
 
 Sitemap: https://mucolabs.com/sitemap.xml

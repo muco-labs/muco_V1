@@ -1,7 +1,9 @@
+import { brandAssets } from '@/config/brand-assets'
 import { serializeJsonLd } from '@/utils/json-ld'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
 import { env } from '@/config/env'
+import { defaultOgImagePath } from '@/config/seo'
 import { site } from '@/config/site'
 
 type StructuredDataProps = {
@@ -33,7 +35,7 @@ export function OrganizationSchema() {
     '@type': 'Organization',
     name: site.legalName,
     url: env.siteUrl,
-    logo: `${env.siteUrl}/favicon.svg`,
+    logo: `${env.siteUrl}${brandAssets.logo.src ?? '/favicon.svg'}`,
     description: site.defaultDescription,
     email: site.contactEmail,
     address: {
@@ -96,7 +98,8 @@ export function LocalBusinessSchema() {
         email: site.contactEmail,
         telephone: site.contactPhone,
         description: site.defaultDescription,
-        image: `${env.siteUrl}/og/og-default.svg`,
+        image: `${env.siteUrl}${defaultOgImagePath}`,
+        logo: `${env.siteUrl}${brandAssets.logoMark.src ?? brandAssets.logo.src ?? '/favicon.svg'}`,
         address: {
           '@type': 'PostalAddress',
           addressLocality: company.location.city,

@@ -12,6 +12,8 @@ Disallow: /login/
 Disallow: /signup/
 Disallow: /auth/
 Disallow: /team/
+Disallow: /start-project/
+Disallow: /freelancers/
 
 Sitemap: ${siteUrl}/sitemap.xml
 `

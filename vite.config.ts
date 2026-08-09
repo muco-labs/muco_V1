@@ -5,14 +5,22 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
-const seoScript = path.join(rootDir, 'scripts/generate-seo.mjs')
+const seoScript = path.join(rootDir, 'scripts/generate-seo.ts')
 
 function generateSeoArtifacts() {
-  spawnSync(process.execPath, [seoScript], {
-    stdio: 'inherit',
-    cwd: rootDir,
-    env: process.env,
-  })
+  const tsconfig = path.join(rootDir, 'scripts/tsconfig.json')
+  const result = spawnSync(
+    process.execPath,
+    [path.join(rootDir, 'node_modules/tsx/dist/cli.mjs'), '--tsconfig', tsconfig, seoScript],
+    {
+      stdio: 'inherit',
+      cwd: rootDir,
+      env: process.env,
+    },
+  )
+  if (result.status !== 0) {
+    throw new Error('generate-seo failed')
+  }
 }
 
 // https://vite.dev/config/
