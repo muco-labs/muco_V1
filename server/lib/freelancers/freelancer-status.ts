@@ -1,3 +1,5 @@
+import { isFreelancerOpenForNewAssignments } from './freelancer-availability.js'
+
 export function formatFreelancerReference(id: string): string {
   const normalized = id.replace(/-/g, '').slice(0, 8).toUpperCase()
   return normalized.length >= 8 ? `FL-${normalized}` : `FL-${id.slice(0, 12)}`
@@ -29,9 +31,11 @@ export function isFreelancerEligibleForProjectAssignment(input: {
   if (!input.userId) return false
   if (!ELIGIBLE_FREELANCER_USER_STATUSES.has(input.userStatus)) return false
   if (!input.openToProjects) return false
-  if (input.availabilityStatus !== 'available') return false
+  if (!isFreelancerOpenForNewAssignments(input.availabilityStatus)) return false
   return true
 }
+
+export { isFreelancerOpenForNewAssignments } from './freelancer-availability.js'
 
 export function canTransitionVerification(from: string, to: string): boolean {
   if (from === to) return true

@@ -44,7 +44,7 @@ export function AdminFreelancersPage() {
               </p>
               <p className={ui.meta}>
                 Verification {String(row.verificationStatus)} · Approval {String(row.approvalStatus)} ·{' '}
-                {String(row.availabilityStatus)}
+                {String(row.availabilityStatusLabel ?? row.availabilityStatus)}
               </p>
             </li>
           ))}
@@ -59,6 +59,7 @@ export function AdminFreelancerDetailPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.freelancers.get(id), [id])
   const servicesFetch = useFetch(() => adminApi.freelancers.listServices(id), [id])
   const skillsFetch = useFetch(() => adminApi.freelancers.listSkills(id), [id])
+  const workloadFetch = useFetch(() => adminApi.freelancers.getWorkload(id), [id])
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -69,6 +70,7 @@ export function AdminFreelancerDetailPage() {
   const notes = (data.internalNotes as Array<Record<string, unknown>>) ?? []
   const services = (servicesFetch.data?.items as Array<Record<string, unknown>>) ?? []
   const skills = (skillsFetch.data?.items as Array<Record<string, unknown>>) ?? []
+  const workload = workloadFetch.data
 
   async function patch(body: Record<string, unknown>) {
     setBusy(true)
@@ -97,6 +99,32 @@ export function AdminFreelancerDetailPage() {
     <>
       <PageIntro title={String(data.fullName)} description={String(data.reference)} />
       <p className={ui.meta}>{String(data.email)}</p>
+      <p className={ui.meta}>
+        Verification {String(data.verificationStatus)} · Approval {String(data.approvalStatus)} ·{' '}
+        {String(data.availabilityStatusLabel ?? data.availabilityStatus)}
+      </p>
+      {data.availabilityNote ? (
+        <p className={ui.meta}>Availability note: {String(data.availabilityNote)}</p>
+      ) : null}
+      <section aria-labelledby="fl-workload-heading" className={ui.stack}>
+        <h2 id="fl-workload-heading" className="text-h3">
+          Workload
+        </h2>
+        {workloadFetch.loading ? (
+          <p className={ui.meta}>Loading workload…</p>
+        ) : workloadFetch.error ? (
+          <p className={ui.meta}>Could not load workload.</p>
+        ) : workload ? (
+          <ul className={ui.meta}>
+            <li>Active projects: {Number(workload.activeProjectCount ?? 0)}</li>
+            <li>Active tasks: {Number(workload.activeTaskCount ?? 0)}</li>
+            <li>Overdue tasks: {Number(workload.overdueTaskCount ?? 0)}</li>
+            <li>Blocked tasks: {Number(workload.blockedTaskCount ?? 0)}</li>
+          </ul>
+        ) : (
+          <p className={ui.meta}>No workload data.</p>
+        )}
+      </section>
       <p>{String(data.bio)}</p>
       <div className={ui.actionsRow} style={{ flexWrap: 'wrap' }}>
         <Button type="button" disabled={busy} onClick={() => void patch({ verificationStatus: 'verified' })}>

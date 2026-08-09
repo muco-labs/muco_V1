@@ -144,6 +144,7 @@ import {
   listFreelancerSkillsAdmin,
   patchFreelancerServiceAdmin,
 } from '../../services/freelancer-offerings.service.js'
+import { getFreelancerWorkloadAdmin } from '../../services/freelancer-workload.service.js'
 import {
   freelancerAdminPatchSchema,
   freelancerNoteSchema,
@@ -622,6 +623,15 @@ adminRoutes.get('/freelancers/:id/skills', requirePermission('freelancers.view')
   try {
     const auth = c.get('auth')
     return jsonSuccess(c, { items: await listFreelancerSkillsAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/freelancers/:id/workload', requirePermission('freelancers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getFreelancerWorkloadAdmin(auth, paramId(c)))
   } catch (error) {
     return handleRouteError(c, error)
   }

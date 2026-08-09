@@ -22,6 +22,10 @@ import {
 } from '../lib/projects/project-member-roles.js'
 import { computeFreelancerTaskWorkload } from '../lib/projects/project-team.js'
 import { isFreelancerEligibleForProjectAssignment } from '../lib/freelancers/freelancer-status.js'
+import {
+  assertFreelancerOpenForNewAssignments,
+  presentFreelancerAvailabilityLabel,
+} from '../lib/freelancers/freelancer-availability.js'
 
 function assertProjectsAssignPermission(auth: AuthContext) {
   if (!hasPermission(auth.permissions, 'projects.assign')) {
@@ -138,14 +142,38 @@ export async function assertFreelancerOnProject(projectId: string, freelancerId:
   }
 }
 
+export async function assertFreelancerAvailableForNewAssignment(freelancerId: string) {
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [row] = await db
+    .select({ availabilityStatus: freelancerProfiles.availabilityStatus })
+    .from(freelancerProfiles)
+    .where(eq(freelancerProfiles.id, freelancerId))
+    .limit(1)
+
+  if (!row) throw new AppError('VALIDATION_ERROR', 'Freelancer not found.', 400)
+
+  try {
+    assertFreelancerOpenForNewAssignments(row.availabilityStatus)
+  } catch {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      'This freelancer is unavailable and cannot receive new assignments.',
+      400,
+    )
+  }
+}
+
 function serializeFreelancerMember(
   row: {
     freelancerId: string
     role: string
     displayName: string
     professionalRole: string
+    availabilityStatus: string
   },
-  workload: { activeTaskCount: number; overdueTaskCount: number },
+  workload: { activeTaskCount: number; overdueTaskCount: number; blockedTaskCount: number },
 ) {
   return {
     freelancerId: row.freelancerId,
@@ -153,8 +181,11 @@ function serializeFreelancerMember(
     roleLabel: presentProjectMemberRoleLabel(row.role),
     displayName: row.displayName,
     professionalRole: row.professionalRole,
+    availabilityStatus: row.availabilityStatus,
+    availabilityStatusLabel: presentFreelancerAvailabilityLabel(row.availabilityStatus),
     activeTaskCount: workload.activeTaskCount,
     overdueTaskCount: workload.overdueTaskCount,
+    blockedTaskCount: workload.blockedTaskCount,
     canRemove: workload.activeTaskCount === 0,
   }
 }
@@ -172,6 +203,7 @@ export async function listProjectFreelancersDetailedAdmin(auth: AuthContext, pro
       role: projectFreelancers.role,
       fullName: freelancerProfiles.fullName,
       professionalRole: freelancerProfiles.professionalRole,
+      availabilityStatus: freelancerProfiles.availabilityStatus,
     })
     .from(projectFreelancers)
     .innerJoin(freelancerProfiles, eq(projectFreelancers.freelancerId, freelancerProfiles.id))
@@ -186,6 +218,7 @@ export async function listProjectFreelancersDetailedAdmin(auth: AuthContext, pro
         role: r.role,
         displayName: r.fullName,
         professionalRole: r.professionalRole,
+        availabilityStatus: r.availabilityStatus,
       },
       computeFreelancerTaskWorkload(taskRows, r.freelancerId),
     ),
@@ -262,6 +295,8 @@ export async function listProjectFreelancerCandidatesAdmin(
       freelancerId: row.freelancerId,
       displayName: row.fullName,
       professionalRole: row.professionalRole,
+      availabilityStatus: row.availabilityStatus,
+      availabilityStatusLabel: presentFreelancerAvailabilityLabel(row.availabilityStatus),
     })
   }
 
@@ -304,6 +339,7 @@ export async function addProjectFreelancerAdmin(
   if (!role) throw new AppError('VALIDATION_ERROR', 'Invalid project role.', 400)
 
   await assertFreelancerEligibleForProjectAssignment(freelancerId)
+  await assertFreelancerAvailableForNewAssignment(freelancerId)
 
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)

@@ -36,6 +36,12 @@ describe('freelancer project assignment eligibility', () => {
     ).toBe(false)
   })
 
+  it('accepts limited availability', () => {
+    expect(
+      isFreelancerEligibleForProjectAssignment({ ...eligibleBase, availabilityStatus: 'limited' }),
+    ).toBe(true)
+  })
+
   it('rejects when not open to projects', () => {
     expect(isFreelancerEligibleForProjectAssignment({ ...eligibleBase, openToProjects: false })).toBe(
       false,
@@ -53,6 +59,7 @@ describe('freelancer task workload', () => {
     expect(computeFreelancerTaskWorkload(rows, 'fl-1')).toEqual({
       activeTaskCount: 1,
       overdueTaskCount: 0,
+      blockedTaskCount: 0,
     })
   })
 })

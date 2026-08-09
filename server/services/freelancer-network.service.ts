@@ -14,6 +14,7 @@ import { hasPermission } from '../lib/auth/permissions.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { assignRoleToUser } from './auth.service.js'
 import { formatFreelancerReference, canFreelancerSetAvailability, canTransitionApproval, canTransitionVerification } from '../lib/freelancers/freelancer-status.js'
+import { presentFreelancerAvailabilityLabel } from '../lib/freelancers/freelancer-availability.js'
 import { deserializePortfolioUrls, serializePortfolioUrls } from '../lib/freelancers/portfolio-url.js'
 import { labelFreelancerServiceCategory } from '../lib/freelancers/service-categories.js'
 import type { FreelancerApplyInput } from '../lib/validation/freelancers.js'
@@ -59,6 +60,8 @@ export function serializeFreelancerPortalProfile(row: typeof freelancerProfiles.
     verificationStatus: row.verificationStatus,
     approvalStatus: row.approvalStatus,
     availabilityStatus: row.availabilityStatus,
+    availabilityStatusLabel: presentFreelancerAvailabilityLabel(row.availabilityStatus),
+    availabilityUpdatedAt: row.availabilityUpdatedAt?.toISOString() ?? null,
     canManageAvailability: canFreelancerSetAvailability(row),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -75,6 +78,7 @@ function serializeFreelancerAdminList(row: typeof freelancerProfiles.$inferSelec
     verificationStatus: row.verificationStatus,
     approvalStatus: row.approvalStatus,
     availabilityStatus: row.availabilityStatus,
+    availabilityStatusLabel: presentFreelancerAvailabilityLabel(row.availabilityStatus),
     serviceCategories: parseCategories(row.serviceCategories),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -356,7 +360,7 @@ export async function updateFreelancerPortalProfile(
 
 export async function updateFreelancerAvailability(
   auth: AuthContext,
-  input: { availabilityStatus: 'available' | 'unavailable'; availabilityNote?: string },
+  input: { availabilityStatus: 'available' | 'limited' | 'unavailable'; availabilityNote?: string },
 ) {
   const ctx = await requireFreelancerContext(auth)
   const existing = await getOwnedFreelancerProfile(ctx)
@@ -380,6 +384,7 @@ export async function updateFreelancerAvailability(
         input.availabilityNote === undefined
           ? undefined
           : input.availabilityNote.trim() || null,
+      availabilityUpdatedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(freelancerProfiles.id, existing.id))
@@ -387,7 +392,7 @@ export async function updateFreelancerAvailability(
 
   await db.insert(auditLogs).values({
     actorUserId: auth.userId,
-    action: 'freelancer.availability_changed',
+    action: 'freelancer.availability_updated',
     entity: 'freelancer_profiles',
     entityId: updated.id,
     metadata: JSON.stringify({ availabilityStatus: input.availabilityStatus }),
@@ -488,6 +493,47 @@ export async function getFreelancerAdmin(auth: AuthContext, freelancerId: string
   )
 }
 
+export async function updateFreelancerAvailabilityAdmin(
+  auth: AuthContext,
+  freelancerId: string,
+  input: { availabilityStatus: 'available' | 'limited' | 'unavailable'; availabilityNote?: string | null },
+) {
+  assertFreelancerAdmin(auth, 'freelancers.manage')
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [existing] = await db
+    .select()
+    .from(freelancerProfiles)
+    .where(eq(freelancerProfiles.id, freelancerId))
+    .limit(1)
+  if (!existing) throw new AppError('NOT_FOUND', 'Freelancer not found.', 404)
+
+  const [updated] = await db
+    .update(freelancerProfiles)
+    .set({
+      availabilityStatus: input.availabilityStatus,
+      availabilityNote:
+        input.availabilityNote === undefined
+          ? undefined
+          : input.availabilityNote?.trim() || null,
+      availabilityUpdatedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(freelancerProfiles.id, freelancerId))
+    .returning()
+
+  await db.insert(auditLogs).values({
+    actorUserId: auth.userId,
+    action: 'freelancer.availability_admin_updated',
+    entity: 'freelancer_profiles',
+    entityId: freelancerId,
+    metadata: JSON.stringify({ availabilityStatus: input.availabilityStatus }),
+  })
+
+  return serializeFreelancerPortalProfile(updated)
+}
+
 export async function patchFreelancerAdmin(
   auth: AuthContext,
   freelancerId: string,
@@ -527,10 +573,24 @@ export async function patchFreelancerAdmin(
       verificationStatus: input.verificationStatus as typeof freelancerProfiles.verificationStatus.enumValues[number] | undefined,
       approvalStatus: input.approvalStatus as typeof freelancerProfiles.approvalStatus.enumValues[number] | undefined,
       availabilityStatus: input.availabilityStatus as typeof freelancerProfiles.availabilityStatus.enumValues[number] | undefined,
+      availabilityUpdatedAt:
+        input.availabilityStatus && input.availabilityStatus !== existing.availabilityStatus
+          ? new Date()
+          : undefined,
       updatedAt: new Date(),
     })
     .where(eq(freelancerProfiles.id, freelancerId))
     .returning()
+
+  if (input.availabilityStatus && input.availabilityStatus !== existing.availabilityStatus) {
+    await db.insert(auditLogs).values({
+      actorUserId: auth.userId,
+      action: 'freelancer.availability_admin_updated',
+      entity: 'freelancer_profiles',
+      entityId: freelancerId,
+      metadata: JSON.stringify({ availabilityStatus: input.availabilityStatus }),
+    })
+  }
 
   if (input.verificationStatus && input.verificationStatus !== existing.verificationStatus) {
     await db.insert(auditLogs).values({

@@ -15,8 +15,11 @@ type ProjectFreelancer = {
   professionalRole: string
   role: string
   roleLabel: string
+  availabilityStatus: string
+  availabilityStatusLabel: string
   activeTaskCount: number
   overdueTaskCount: number
+  blockedTaskCount: number
   canRemove: boolean
 }
 
@@ -24,6 +27,8 @@ type Candidate = {
   freelancerId: string
   displayName: string
   professionalRole: string
+  availabilityStatus?: string
+  availabilityStatusLabel?: string
 }
 
 type Props = {
@@ -145,9 +150,10 @@ export function AdminProjectFreelancersSection({
                     Freelancer
                   </span>
                   <p className={ui.meta}>
-                    {member.professionalRole} · {member.roleLabel} · Active tasks{' '}
-                    {member.activeTaskCount}
+                    {member.professionalRole} · {member.roleLabel} · {member.availabilityStatusLabel}{' '}
+                    · Active tasks {member.activeTaskCount}
                     {member.overdueTaskCount > 0 ? ` · Overdue ${member.overdueTaskCount}` : ''}
+                    {member.blockedTaskCount > 0 ? ` · Blocked ${member.blockedTaskCount}` : ''}
                   </p>
                   {!member.canRemove ? (
                     <p className={ui.meta} role="status">
@@ -219,7 +225,8 @@ export function AdminProjectFreelancersSection({
                 <option value="">Select freelancer</option>
                 {candidates.map((c) => (
                   <option key={c.freelancerId} value={c.freelancerId}>
-                    {c.displayName} ({c.professionalRole})
+                    {c.displayName} ({c.professionalRole}
+                    {c.availabilityStatusLabel ? ` · ${c.availabilityStatusLabel}` : ''})
                   </option>
                 ))}
               </select>

@@ -28,6 +28,7 @@ import {
 import { computeMilestoneProgressPercent } from '../lib/projects/milestone-delivery.js'
 import {
   assertFreelancerOnProject,
+  assertFreelancerAvailableForNewAssignment,
   notifyFreelancerTaskAssigned,
 } from './project-freelancer-assignment.service.js'
 
@@ -243,7 +244,10 @@ export async function createProjectTaskAdmin(
   if (input.milestoneId) await assertMilestoneOnProject(projectId, input.milestoneId)
   assertSingleTaskAssignee(input.assignedEmployeeId, input.assignedFreelancerId)
   if (input.assignedEmployeeId) await assertAssigneeIsMember(projectId, input.assignedEmployeeId)
-  if (input.assignedFreelancerId) await assertFreelancerOnProject(projectId, input.assignedFreelancerId)
+  if (input.assignedFreelancerId) {
+    await assertFreelancerOnProject(projectId, input.assignedFreelancerId)
+    await assertFreelancerAvailableForNewAssignment(input.assignedFreelancerId)
+  }
 
   const priority = input.priority ?? 'medium'
   if (!(TASK_PRIORITIES as readonly string[]).includes(priority)) {
@@ -349,7 +353,12 @@ export async function updateProjectTaskAdmin(
   }
   assertSingleTaskAssignee(nextEmployeeId, nextFreelancerId)
   if (nextEmployeeId) await assertAssigneeIsMember(projectId, nextEmployeeId)
-  if (nextFreelancerId) await assertFreelancerOnProject(projectId, nextFreelancerId)
+  if (nextFreelancerId) {
+    await assertFreelancerOnProject(projectId, nextFreelancerId)
+    if (nextFreelancerId !== existing.assignedFreelancerId) {
+      await assertFreelancerAvailableForNewAssignment(nextFreelancerId)
+    }
+  }
 
   if (input.priority && !(TASK_PRIORITIES as readonly string[]).includes(input.priority)) {
     throw new AppError('VALIDATION_ERROR', 'Invalid priority.', 400)

@@ -1088,6 +1088,7 @@ export const freelancerApprovalStatusEnum = pgEnum('freelancer_approval_status',
 
 export const freelancerAvailabilityStatusEnum = pgEnum('freelancer_availability_status', [
   'available',
+  'limited',
   'unavailable',
 ])
 
@@ -1128,6 +1129,7 @@ export const freelancerProfiles = pgTable(
     availabilityStatus: freelancerAvailabilityStatusEnum('availability_status')
       .notNull()
       .default('unavailable'),
+    availabilityUpdatedAt: timestamp('availability_updated_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

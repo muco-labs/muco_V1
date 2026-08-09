@@ -44,14 +44,14 @@ export const freelancerProfileUpdateSchema = z.object({
 })
 
 export const freelancerAvailabilitySchema = z.object({
-  availabilityStatus: z.enum(['available', 'unavailable']),
+  availabilityStatus: z.enum(['available', 'limited', 'unavailable']),
   availabilityNote: z.string().max(1000).optional(),
 })
 
 export const freelancerAdminPatchSchema = z.object({
   verificationStatus: z.enum(['pending', 'verified', 'failed']).optional(),
   approvalStatus: z.enum(['under_review', 'approved', 'rejected', 'suspended']).optional(),
-  availabilityStatus: z.enum(['available', 'unavailable']).optional(),
+  availabilityStatus: z.enum(['available', 'limited', 'unavailable']).optional(),
 })
 
 export const freelancerNoteSchema = z.object({

@@ -33,6 +33,10 @@ import {
   listFreelancerSkillsPortal,
   updateFreelancerServicePortal,
 } from '../../services/freelancer-offerings.service.js'
+import {
+  getFreelancerAvailabilityPortal,
+  getFreelancerWorkloadPortal,
+} from '../../services/freelancer-workload.service.js'
 import { parsePortfolioUrls } from '../../lib/freelancers/portfolio-url.js'
 
 export const freelancerRoutes = new Hono()
@@ -86,14 +90,36 @@ freelancerRoutes.patch('/availability', ...stack, async (c) => {
   }
 })
 
+freelancerRoutes.get('/availability', ...stack, async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getFreelancerAvailabilityPortal(auth))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+freelancerRoutes.get('/workload', ...stack, async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getFreelancerWorkloadPortal(auth))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 freelancerRoutes.get('/dashboard', ...stack, async (c) => {
   try {
     const auth = c.get('auth')
     const profile = await getFreelancerPortalProfile(auth)
     const projects = await listFreelancerAssignedProjects(auth)
+    const availability = await getFreelancerAvailabilityPortal(auth)
+    const workload = await getFreelancerWorkloadPortal(auth)
     return jsonSuccess(c, {
       profile,
       projects,
+      availability,
+      workload,
       assignmentsMessage:
         projects.length === 0
           ? 'Assignments will appear here when MUCO Labs assigns a project to you.'

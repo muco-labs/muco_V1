@@ -33,6 +33,8 @@ export const freelancerApi = {
     apiRequest<{
       profile: Record<string, unknown>
       projects: FreelancerProjectSummary[]
+      availability: Record<string, unknown> | null
+      workload: Record<string, unknown> | null
       assignmentsMessage: string | null
     }>(`${base}/dashboard`),
   listProjects: () => apiRequest<{ items: FreelancerProjectSummary[] }>(`${base}/projects`),
@@ -63,4 +65,6 @@ export const freelancerApi = {
   createSkill: (body: Record<string, unknown>) =>
     apiRequest(`${base}/skills`, { method: 'POST', json: body }),
   deleteSkill: (id: string) => apiRequest(`${base}/skills/${id}`, { method: 'DELETE' }),
+  getAvailability: () => apiRequest<Record<string, unknown>>(`${base}/availability`),
+  getWorkload: () => apiRequest<Record<string, unknown>>(`${base}/workload`),
 }

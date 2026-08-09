@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { EmptyState, ListSkeleton, PortalError, StatusPill } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
@@ -17,6 +17,8 @@ export function FreelancerDashboardPage() {
 
   const profile = data?.profile as Record<string, unknown> | undefined
   const projects = data?.projects ?? []
+  const availability = data?.availability as Record<string, unknown> | undefined
+  const workload = data?.workload as Record<string, unknown> | undefined
 
   return (
     <>
@@ -27,6 +29,42 @@ export function FreelancerDashboardPage() {
           {String(profile.approvalStatus)}
         </p>
       ) : null}
+      <section aria-labelledby="availability-heading" className={ui.stack}>
+        <h2 id="availability-heading" className="text-h3">
+          Availability
+        </h2>
+        {availability ? (
+          <div className={`surface ${ui.dataCard}`}>
+            <p>
+              <StatusPill status={String(availability.availabilityStatus)} />{' '}
+              <span>{String(availability.availabilityStatusLabel ?? availability.availabilityStatus)}</span>
+            </p>
+            {availability.availabilityNote ? (
+              <p className={ui.meta}>{String(availability.availabilityNote)}</p>
+            ) : null}
+            <p className={ui.meta}>
+              <Link to={freelancerPortalPaths.availability}>Update availability</Link>
+            </p>
+          </div>
+        ) : (
+          <p className={ui.meta}>Availability not loaded.</p>
+        )}
+      </section>
+      <section aria-labelledby="workload-heading" className={ui.stack}>
+        <h2 id="workload-heading" className="text-h3">
+          Workload
+        </h2>
+        {workload ? (
+          <ul className={ui.meta}>
+            <li>Active projects: {Number(workload.activeProjectCount ?? 0)}</li>
+            <li>Active tasks: {Number(workload.activeTaskCount ?? 0)}</li>
+            <li>Overdue tasks: {Number(workload.overdueTaskCount ?? 0)}</li>
+            <li>Blocked tasks: {Number(workload.blockedTaskCount ?? 0)}</li>
+          </ul>
+        ) : (
+          <p className={ui.meta}>No workload data.</p>
+        )}
+      </section>
       <section aria-labelledby="assignments-heading">
         <h2 id="assignments-heading" className="text-h3">
           Assigned work
@@ -268,25 +306,41 @@ export function FreelancerProfilePage() {
 }
 
 export function FreelancerAvailabilityPage() {
-  const { data, error, loading, reload } = useFetch(() => freelancerApi.profile(), [])
+  const { data, error, loading, reload } = useFetch(() => freelancerApi.getAvailability(), [])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [status, setStatus] = useState<'available' | 'limited' | 'unavailable'>('available')
+  const [note, setNote] = useState('')
+
+  useEffect(() => {
+    if (!data) return
+    const s = data.availabilityStatus
+    if (s === 'available' || s === 'limited' || s === 'unavailable') setStatus(s)
+    if (typeof data.availabilityNote === 'string') setNote(data.availabilityNote)
+  }, [data])
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
   if (!data) return null
 
   const canManage = Boolean(data.canManageAvailability)
+  const currentStatus = String(data.availabilityStatus)
+  const currentLabel = String(data.availabilityStatusLabel ?? currentStatus)
 
-  async function setAvailability(status: 'available' | 'unavailable') {
+  async function save(e: FormEvent) {
+    e.preventDefault()
+    if (!canManage) return
     setBusy(true)
     setMessage(null)
     try {
-      await freelancerApi.updateAvailability({ availabilityStatus: status })
-      setMessage('Availability updated.')
+      await freelancerApi.updateAvailability({
+        availabilityStatus: status,
+        availabilityNote: note.trim() || undefined,
+      })
+      setMessage('Availability saved.')
       reload()
     } catch {
-      setMessage('Availability cannot be changed until you are verified and approved.')
+      setMessage('Could not save availability. You must be verified and approved.')
     } finally {
       setBusy(false)
     }
@@ -295,18 +349,54 @@ export function FreelancerAvailabilityPage() {
   return (
     <>
       <h1 className="text-h2">Availability</h1>
-      <p>Current: {String(data.availabilityStatus)}</p>
+      <p>
+        Current: <StatusPill status={currentStatus} /> {currentLabel}
+      </p>
+      {data.availabilityNote ? <p className={ui.meta}>{String(data.availabilityNote)}</p> : null}
       {!canManage ? (
         <p>Availability can be updated after MUCO verifies and approves your profile.</p>
       ) : (
-        <div className="actions-row">
-          <Button type="button" disabled={busy} onClick={() => void setAvailability('available')}>
-            Mark available
+        <form onSubmit={(e) => void save(e)} className={ui.stack} style={{ maxWidth: '28rem' }}>
+          <fieldset className={ui.stack}>
+            <legend className="text-h3">Set availability</legend>
+            {(
+              [
+                ['available', 'Available — open for new assignments'],
+                ['limited', 'Limited capacity — still eligible for new work'],
+                ['unavailable', 'Unavailable — no new assignments'],
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value} className={ui.field}>
+                <input
+                  type="radio"
+                  name="availabilityStatus"
+                  value={value}
+                  checked={status === value}
+                  disabled={busy}
+                  onChange={() => setStatus(value)}
+                />{' '}
+                {label}
+              </label>
+            ))}
+          </fieldset>
+          <label className={ui.field}>
+            <span>Note (optional)</span>
+            <textarea
+              value={note}
+              maxLength={1000}
+              rows={3}
+              aria-label="Availability note"
+              placeholder={String(data.availabilityNote ?? '')}
+              onChange={(e) => setNote(e.target.value)}
+              onFocus={() => {
+                if (!note && data.availabilityNote) setNote(String(data.availabilityNote))
+              }}
+            />
+          </label>
+          <Button type="submit" disabled={busy}>
+            Save availability
           </Button>
-          <Button type="button" variant="secondary" disabled={busy} onClick={() => void setAvailability('unavailable')}>
-            Mark unavailable
-          </Button>
-        </div>
+        </form>
       )}
       <p role="status" aria-live="polite">
         {message}

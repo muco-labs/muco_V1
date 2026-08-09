@@ -139,6 +139,8 @@ export const adminApi = {
     listServices: (id: string) =>
       apiRequest<{ items: unknown[] }>(`${base}/freelancers/${id}/services`),
     listSkills: (id: string) => apiRequest<{ items: unknown[] }>(`${base}/freelancers/${id}/skills`),
+    getWorkload: (id: string) =>
+      apiRequest<Record<string, unknown>>(`${base}/freelancers/${id}/workload`),
     patchService: (freelancerId: string, serviceId: string, body: Record<string, unknown>) =>
       apiRequest(`${base}/freelancers/${freelancerId}/services/${serviceId}`, {
         method: 'PATCH',

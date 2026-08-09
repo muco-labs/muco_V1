@@ -1,4 +1,11 @@
 import { isTaskOverdue, TERMINAL_TASK_STATUSES, type TaskDeliveryStatus } from './task-delivery.js'
+import { isTerminalProjectStatus } from './project-delivery.js'
+
+export type FreelancerTaskWorkload = {
+  activeTaskCount: number
+  overdueTaskCount: number
+  blockedTaskCount: number
+}
 
 export function isActiveProjectTaskStatus(status: string): boolean {
   return !TERMINAL_TASK_STATUSES.has(status as TaskDeliveryStatus)
@@ -26,18 +33,44 @@ export function computeFreelancerTaskWorkload(
   taskRows: Array<{ assignedFreelancerId: string | null; status: string; dueDate: Date | null }>,
   freelancerId: string,
   now = new Date(),
-): { activeTaskCount: number; overdueTaskCount: number } {
+): FreelancerTaskWorkload {
   const mine = taskRows.filter((t) => t.assignedFreelancerId === freelancerId)
   let activeTaskCount = 0
   let overdueTaskCount = 0
+  let blockedTaskCount = 0
   for (const task of mine) {
     if (!isActiveProjectTaskStatus(task.status)) continue
     activeTaskCount += 1
+    if (task.status === 'blocked') blockedTaskCount += 1
     if (isTaskOverdue({ status: task.status, dueDate: task.dueDate }, now)) {
       overdueTaskCount += 1
     }
   }
-  return { activeTaskCount, overdueTaskCount }
+  return { activeTaskCount, overdueTaskCount, blockedTaskCount }
+}
+
+export function summarizeFreelancerTaskRows(
+  taskRows: Array<{ status: string; dueDate: Date | null }>,
+  now = new Date(),
+): FreelancerTaskWorkload {
+  let activeTaskCount = 0
+  let overdueTaskCount = 0
+  let blockedTaskCount = 0
+  for (const task of taskRows) {
+    if (!isActiveProjectTaskStatus(task.status)) continue
+    activeTaskCount += 1
+    if (task.status === 'blocked') blockedTaskCount += 1
+    if (isTaskOverdue({ status: task.status, dueDate: task.dueDate }, now)) {
+      overdueTaskCount += 1
+    }
+  }
+  return { activeTaskCount, overdueTaskCount, blockedTaskCount }
+}
+
+export function countActiveFreelancerProjects(
+  projectRows: Array<{ status: string }>,
+): number {
+  return projectRows.filter((p) => !isTerminalProjectStatus(p.status)).length
 }
 
 export const INTERNAL_TEAM_ROLES = new Set(['EMPLOYEE', 'ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
