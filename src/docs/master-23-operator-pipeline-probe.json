@@ -1,0 +1,113 @@
+{
+  "master": "MASTER-23",
+  "generatedAt": "2026-08-09T20:30:52.173Z",
+  "pipeline": {
+    "master22Docs": "PASS (committed on main)",
+    "operatorConfiguration": "OPERATOR — execute MASTER-22 checklist",
+    "vercel": "VERCEL DASHBOARD VERIFICATION REQUIRED (CLI BLOCKED)",
+    "supabaseAuthSettings": {
+      "status": "PASS",
+      "httpStatus": 200,
+      "external": {
+        "email": true,
+        "google": false,
+        "github": false
+      }
+    },
+    "founderAccount": {
+      "bootstrapPostEmptyBodyStatus": 404,
+      "interpretation": "FOUNDER_BOOTSTRAP_SECRET likely unset on Production (endpoint hidden)",
+      "founderRowsInDb": 0
+    },
+    "testCustomers": {
+      "customerRows": 1,
+      "customerRoleCount": 1,
+      "secondCustomerForIdor": "BLOCKED (need CUSTOMER_B)",
+      "mucoLoginIdPopulated": 0
+    },
+    "employee": {
+      "employeeRoleCount": 0
+    },
+    "freelancer": {
+      "freelancerRoleCount": 0
+    },
+    "googleOAuth": {
+      "supabaseProviderEnabled": false,
+      "browserQa": "BLOCKED (operator credentials)"
+    },
+    "githubOAuth": {
+      "supabaseProviderEnabled": false,
+      "browserQa": "BLOCKED (operator credentials)"
+    },
+    "email": {
+      "supabaseEmailProvider": true,
+      "resendLocal": "MISSING"
+    },
+    "razorpay": {
+      "keysLocal": "MISSING",
+      "webhookProbeStatus": 403
+    },
+    "storage": {
+      "buckets": [],
+      "bucketConfigured": "BLOCKED (no buckets)"
+    },
+    "liveBrowserQa": "BLOCKED (no operator test passwords)",
+    "idorRoleIsolation": {
+      "securityGateRun": "MISSING",
+      "bearerCustomerA": "MISSING"
+    },
+    "finalSecurity": "Run npm test + SECURITY_GATE_RUN=1 when bearers exist"
+  },
+  "dnsHttps": {
+    "note": "Re-run master-19 for full portal matrix"
+  },
+  "portalAuthRoutes": [
+    {
+      "method": "GET",
+      "url": "https://app.mucolabs.com/auth/sign-in",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://app.mucolabs.com/auth/callback",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.mucolabs.com/auth/sign-in",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://admin.mucolabs.com/auth/callback",
+      "status": 200
+    }
+  ],
+  "productionSignals": {
+    "founderBootstrapEndpoint": {
+      "method": "POST",
+      "url": "https://www.mucolabs.com/api/v1/admin/bootstrap/founder",
+      "status": 404
+    },
+    "passwordLoginValidation": {
+      "method": "POST",
+      "url": "https://www.mucolabs.com/api/v1/auth/password-login",
+      "status": 400
+    },
+    "health": {
+      "method": "GET",
+      "url": "https://www.mucolabs.com/api/health",
+      "status": 200
+    },
+    "razorpayWebhookRoute": {
+      "method": "POST",
+      "url": "https://www.mucolabs.com/api/v1/webhooks/razorpay",
+      "status": 403
+    }
+  },
+  "localEnvPresence": {
+    "FOUNDER_BOOTSTRAP_SECRET": "MISSING",
+    "SUPABASE_ANON_KEY": "MISSING",
+    "CORS_ORIGINS": "MISSING"
+  }
+}
