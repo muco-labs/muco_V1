@@ -2,14 +2,11 @@ import { and, asc, desc, eq, max } from 'drizzle-orm'
 import { getDb } from '../db/client.js'
 import {
   auditLogs,
-  employeeProfiles,
   milestones,
   payments,
-  projectMembers,
   projects,
   proposalLineItems,
   proposals,
-  users,
 } from '../db/schema.js'
 import { AppError } from '../lib/errors.js'
 import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
@@ -291,27 +288,8 @@ export async function listProjectMilestonesAdmin(auth: AuthContext, projectId: s
 }
 
 export async function listProjectMembersAdmin(auth: AuthContext, projectId: string) {
-  assertProjectsPermission(auth, 'projects.view')
-  const db = getDb()
-  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
-
-  const rows = await db
-    .select({
-      role: projectMembers.role,
-      employeeId: employeeProfiles.id,
-      jobTitle: employeeProfiles.jobTitle,
-      fullName: users.fullName,
-    })
-    .from(projectMembers)
-    .innerJoin(employeeProfiles, eq(projectMembers.employeeId, employeeProfiles.id))
-    .innerJoin(users, eq(employeeProfiles.userId, users.id))
-    .where(eq(projectMembers.projectId, projectId))
-
-  return rows.map((r) => ({
-    employeeId: r.employeeId,
-    role: r.role,
-    displayName: r.fullName ?? r.jobTitle ?? 'Team member',
-  }))
+  const { listProjectMembersDetailedAdmin } = await import('./project-team.service.js')
+  return listProjectMembersDetailedAdmin(auth, projectId)
 }
 
 export async function getProjectDeliveryAdminExtras(auth: AuthContext, projectId: string) {

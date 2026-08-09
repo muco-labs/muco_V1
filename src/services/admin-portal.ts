@@ -222,6 +222,19 @@ export const adminApi = {
       apiRequest(`${base}/projects`, { method: 'POST', json: body }),
     assignMember: (projectId: string, body: { employeeId: string; role: string }) =>
       apiRequest(`${base}/projects/${projectId}/members`, { method: 'POST', json: body }),
+    listMembers: (projectId: string) =>
+      apiRequest<{ items: unknown[] }>(`${base}/projects/${projectId}/members`),
+    listMemberCandidates: (projectId: string) =>
+      apiRequest<{ items: unknown[] }>(`${base}/projects/${projectId}/member-candidates`),
+    addMember: (projectId: string, body: { employeeId: string; role: string }) =>
+      apiRequest(`${base}/projects/${projectId}/members`, { method: 'POST', json: body }),
+    updateMemberRole: (projectId: string, memberId: string, body: { role: string }) =>
+      apiRequest(`${base}/projects/${projectId}/members/${memberId}`, {
+        method: 'PATCH',
+        json: body,
+      }),
+    removeMember: (projectId: string, memberId: string) =>
+      apiRequest(`${base}/projects/${projectId}/members/${memberId}`, { method: 'DELETE' }),
     applyTemplate: (projectId: string, templateId: string) =>
       apiRequest(`${base}/projects/${projectId}/apply-template`, {
         method: 'POST',

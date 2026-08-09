@@ -18,7 +18,6 @@ import { serverEnv } from '../../lib/env.js'
 import { bootstrapFounderAccount } from '../../services/auth.service.js'
 import {
   adminSearch,
-  assignProjectMemberAdmin,
   assertCanChangeUserStatus,
   approveProposalForSend,
   createInvoiceAdmin,
@@ -47,6 +46,13 @@ import {
   updateSupportAdmin,
   updateTaskAdmin,
 } from '../../services/admin.service.js'
+import {
+  addProjectMemberAdmin,
+  listProjectMemberCandidatesAdmin,
+  listProjectMembersDetailedAdmin,
+  removeProjectMemberAdmin,
+  updateProjectMemberRoleAdmin,
+} from '../../services/project-team.service.js'
 import {
   getAdminConversation,
   listAdminConversations,
@@ -1183,18 +1189,83 @@ const assignSchema = z.object({
   role: z.string().min(1).max(80),
 })
 
+const memberRoleSchema = z.object({
+  role: z.string().min(1).max(80),
+})
+
+adminRoutes.get('/projects/:id/members', requirePermission('projects.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listProjectMembersDetailedAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/projects/:id/member-candidates', requirePermission('projects.assign'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listProjectMemberCandidatesAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.post('/projects/:id/members', requirePermission('projects.assign'), async (c) => {
   try {
     const auth = c.get('auth')
     const body = await c.req.json().catch(() => null)
     const parsed = assignSchema.safeParse(body)
     if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid assignment.', 400)
-    await assignProjectMemberAdmin(auth.userId, paramId(c), parsed.data.employeeId, parsed.data.role)
-    return jsonSuccess(c, { ok: true })
+    return jsonSuccess(
+      c,
+      await addProjectMemberAdmin(auth, paramId(c), parsed.data.employeeId, parsed.data.role),
+      201,
+    )
   } catch (error) {
     return handleRouteError(c, error)
   }
 })
+
+adminRoutes.patch(
+  '/projects/:id/members/:memberId',
+  requirePermission('projects.assign'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const body = await c.req.json().catch(() => null)
+      const parsed = memberRoleSchema.safeParse(body)
+      if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid role.', 400)
+      return jsonSuccess(
+        c,
+        await updateProjectMemberRoleAdmin(
+          auth,
+          paramId(c),
+          paramId(c, 'memberId'),
+          parsed.data.role,
+        ),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+adminRoutes.delete(
+  '/projects/:id/members/:memberId',
+  requirePermission('projects.assign'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(
+        c,
+        await removeProjectMemberAdmin(auth, paramId(c), paramId(c, 'memberId')),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
 
 adminRoutes.get('/tasks', requirePermission('tasks.view'), async (c) => {
   try {

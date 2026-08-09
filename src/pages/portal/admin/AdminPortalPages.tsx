@@ -20,6 +20,7 @@ import { ApiError } from '@/services/api'
 import { CrmEntryChannelBadge } from '@/components/portal/crm/CrmStartProjectLeadPanel'
 import { AdminProjectFilesSection } from '@/components/portal/AdminProjectFilesSection'
 import { AdminProjectTasksSection } from '@/components/portal/AdminProjectTasksSection'
+import { AdminProjectTeamSection } from '@/components/portal/AdminProjectTeamSection'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -522,6 +523,7 @@ export function AdminProjectDetailPage() {
   const canManageFiles = Boolean(profile?.permissions.includes('files.delete'))
   const canCreateTasks = Boolean(profile?.permissions.includes('tasks.create'))
   const canManageTasks = Boolean(profile?.permissions.includes('tasks.update'))
+  const canAssignTeam = Boolean(profile?.permissions.includes('projects.assign'))
   const { data, error, loading, reload } = useFetch(() => adminApi.projects.get(id), [id])
   const [statusDraft, setStatusDraft] = useState('')
   const [saving, setSaving] = useState(false)
@@ -796,18 +798,11 @@ export function AdminProjectDetailPage() {
         }))}
       />
 
-      {members.length > 0 ? (
-        <section style={{ marginTop: 'var(--space-6)' }}>
-          <h2 className="text-h3">Team</h2>
-          <ul className={ui.stack}>
-            {members.map((m) => (
-              <li key={String(m.employeeId)} className={ui.meta}>
-                {String(m.displayName)} · {String(m.role)}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <AdminProjectTeamSection
+        projectId={id}
+        canAssign={canAssignTeam}
+        onMembersChange={() => void reload()}
+      />
 
       {canUpdate ? (
         <section className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>
