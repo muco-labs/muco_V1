@@ -1,9 +1,11 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes } from '@/config/auth'
+import { resolveSafeCustomerReturnPath } from '@/lib/auth/safe-return-path'
 import { pageSeo } from '@/config/seo'
 import { Button } from '@/components/ui/Button'
+import { useAuth } from '@/contexts/AuthProvider'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { completeRegistration, signUpCustomer } from '@/services/auth'
 import styles from './AuthPage.module.css'
@@ -13,6 +15,8 @@ const signUp = pageSeo.authSignUp
 
 export function AuthSignUpPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { refreshProfile } = useAuth()
   const [fullName, setFullName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
@@ -21,6 +25,7 @@ export function AuthSignUpPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const configured = isSupabaseConfigured()
+  const returnState = location.state
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -39,10 +44,12 @@ export function AuthSignUpPage() {
         } catch {
           /* profile created after verification */
         }
-        navigate(authRoutes.verifyEmail, { replace: true })
+        navigate(authRoutes.verifyEmail, { replace: true, state: returnState })
         return
       }
-      navigate(authRoutes.signIn, { replace: true })
+      await refreshProfile()
+      const from = (returnState as { from?: string } | null)?.from
+      navigate(resolveSafeCustomerReturnPath(from), { replace: true })
     } catch {
       setError('Sign up failed. Try again or use a different email.')
     } finally {
@@ -114,7 +121,7 @@ export function AuthSignUpPage() {
               </form>
             )}
             <div className={styles.actions}>
-              <Link className="link-underline" to={authRoutes.signIn}>
+              <Link className="link-underline" to={authRoutes.signIn} state={returnState}>
                 Sign in
               </Link>
             </div>

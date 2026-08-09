@@ -5,6 +5,7 @@ import { Container } from '@/components/ui/Container'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
 import { analyticsEvents } from '@/lib/analytics'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './NotFoundPage.module.css'
 
 const notFound = pageSeo.notFound
@@ -32,7 +33,7 @@ export function NotFoundPage() {
               View services
             </Button>
             <Button
-              to={routePaths.contact}
+              to={startProjectHref({ source: '404' })}
               variant="ghost"
               trackEvent={analyticsEvents.startProjectClick}
               trackParams={{ source: '404' }}

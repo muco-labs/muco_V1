@@ -13,7 +13,7 @@ import {
   internationalServiceLinks,
 } from '@/content/market/international'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { useEffect } from 'react'
 import styles from './ErodePage.module.css'
 
@@ -101,7 +101,7 @@ export function InternationalPage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'international_hub' })}
+                to={startProjectHref({ source: 'international_hub' })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'international_hub' }}
               >

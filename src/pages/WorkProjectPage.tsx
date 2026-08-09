@@ -10,7 +10,7 @@ import {
   portfolioKindLabel,
   portfolioStatusLabel,
 } from '@/data/portfolio'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { routePaths, servicePath } from '@/config/routes'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { getWorkProjectSeo } from '@/config/seo'
@@ -173,8 +173,7 @@ export function WorkProjectPage() {
               </Link>
             ) : null}
             <Button
-              to={contactHref({
-                project: project.id,
+              to={startProjectHref({
                 service: project.relatedServiceSlug,
                 source: 'work_detail',
               })}

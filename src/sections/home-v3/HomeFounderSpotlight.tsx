@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { founder } from '@/content/founder'
 import { routePaths } from '@/config/routes'
 import { analyticsEvents } from '@/lib/analytics'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './HomeFounderSpotlight.module.css'
 
 export function HomeFounderSpotlight() {
@@ -29,7 +30,7 @@ export function HomeFounderSpotlight() {
               <p className={styles.philosophy}>{founder.philosophy}</p>
               <div className={styles.actions}>
                 <Button
-                  to={routePaths.contact}
+                  to={startProjectHref({ source: 'home_founder' })}
                   trackEvent={analyticsEvents.startProjectClick}
                   trackParams={{ source: 'home_founder' }}
                 >

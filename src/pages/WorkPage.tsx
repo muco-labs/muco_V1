@@ -9,6 +9,7 @@ import { FinalCta } from '@/components/design-system/FinalCta'
 import { portfolioProjects } from '@/data/portfolio'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { Button } from '@/components/ui/Button'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import styles from './WorkPage.module.css'
@@ -50,9 +51,7 @@ export function WorkPage() {
             </div>
             <div className={styles.cta}>
               <Button
-                to={routePaths.contact}
-                trackEvent={analyticsEvents.startProjectClick}
-                trackParams={{ source: 'work' }}
+                to={startProjectHref({ source: 'work' })}
               >
                 Discuss your project
               </Button>

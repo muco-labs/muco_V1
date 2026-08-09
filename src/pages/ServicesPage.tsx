@@ -8,6 +8,7 @@ import { FinalCta } from '@/components/design-system/FinalCta'
 import { serviceHighlights } from '@/content/services-catalog'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { Button } from '@/components/ui/Button'
 import styles from './ServicesPage.module.css'
 
@@ -49,7 +50,7 @@ export function ServicesPage() {
               </div>
             </div>
             <div className={styles.cta}>
-              <Button to={routePaths.contact}>Start a project</Button>
+              <Button to={startProjectHref({ source: 'services' })}>Start a project</Button>
               <Link className="link-underline" to={routePaths.pricing}>
                 See pricing
               </Link>

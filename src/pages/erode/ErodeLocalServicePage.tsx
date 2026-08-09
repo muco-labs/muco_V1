@@ -10,7 +10,7 @@ import {
   isErodeLocalServiceSlug,
 } from '@/content/erode/local-services'
 import { analyticsEvents } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { useEffect } from 'react'
 import { trackEvent } from '@/lib/analytics'
 import styles from '../ErodePage.module.css'
@@ -83,7 +83,10 @@ export function ErodeLocalServicePage() {
             </p>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: pageSource, service: content.nationalServiceSlug, city: 'Erode' })}
+                to={startProjectHref({
+                  source: pageSource,
+                  service: content.nationalServiceSlug,
+                })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: pageSource }}
               >

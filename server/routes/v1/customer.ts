@@ -34,6 +34,16 @@ import {
   updateCustomerProfile,
   verifyRazorpayPayment,
 } from '../../services/customer.service.js'
+import {
+  createCustomerProjectRequest,
+  getCustomerProjectRequest,
+  getProjectIntakePrefill,
+  listCustomerProjectRequests,
+} from '../../services/project-intake.service.js'
+import {
+  formatZodIntakeErrors,
+  projectIntakeSchema,
+} from '../../lib/validation/project-intake.js'
 
 export const customerRoutes = new Hono()
 
@@ -448,6 +458,57 @@ customerRoutes.patch('/notifications/:id/read', ...customerStack, async (c) => {
     const ctx = await requireCustomerContext(auth)
     const row = await markNotificationRead(ctx, paramId(c))
     return jsonSuccess(c, row)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+customerRoutes.get('/project-requests/prefill', ...customerStack, async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    return jsonSuccess(c, await getProjectIntakePrefill(ctx))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+customerRoutes.get('/project-requests', ...customerStack, async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    return jsonSuccess(c, { items: await listCustomerProjectRequests(ctx) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+customerRoutes.get('/project-requests/:id', ...customerStack, async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    return jsonSuccess(c, await getCustomerProjectRequest(ctx, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+customerRoutes.post('/project-requests', ...customerStack, async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    const body = await c.req.json().catch(() => null)
+    const parsed = projectIntakeSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'Please check your project details.',
+        400,
+        formatZodIntakeErrors(parsed.error),
+      )
+    }
+    const result = await createCustomerProjectRequest(ctx, parsed.data)
+    return jsonSuccess(c, result, 201)
   } catch (error) {
     return handleRouteError(c, error)
   }

@@ -1,11 +1,12 @@
 import { useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
+import { startProjectPaths } from '@/config/start-project'
 import { analyticsEvents } from '@/lib/analytics'
 import { routePaths } from '@/config/routes'
 import styles from './StickyStartCta.module.css'
 
-const hiddenPaths = [routePaths.contact, '/auth/']
+const hiddenPaths = [routePaths.contact, '/auth/', startProjectPaths.entry, '/app/start-project']
 
 export function StickyStartCta() {
   const location = useLocation()
@@ -13,7 +14,7 @@ export function StickyStartCta() {
 
   if (hidden) return null
 
-  const href = contactHref({ source: 'sticky' })
+  const href = startProjectHref({ source: 'sticky' })
 
   return (
     <div className={styles.bar} role="region" aria-label="Quick action">

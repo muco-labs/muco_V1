@@ -13,7 +13,7 @@ import {
   tamilNaduServiceLinks,
 } from '@/content/market/tamil-nadu'
 import { analyticsEvents } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { useEffect } from 'react'
 import { trackEvent } from '@/lib/analytics'
 import styles from './ErodePage.module.css'
@@ -97,7 +97,7 @@ export function TamilNaduPage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'tamil_nadu_hub' })}
+                to={startProjectHref({ source: 'tamil_nadu_hub' })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'tamil_nadu_hub' }}
               >

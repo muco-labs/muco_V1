@@ -665,3 +665,118 @@ export function CustomerSettingsPage() {
     </>
   )
 }
+
+type ProjectRequestRow = {
+  id: string
+  status: string
+  serviceInterest: string | null
+  budget: string | null
+  timeline: string | null
+  createdAt: string
+  summary: string
+}
+
+export function CustomerProjectRequestsPage() {
+  const { data, error, loading, reload } = useFetch(
+    () => customerApi.projectRequests.list(),
+    [],
+  )
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+
+  const items = data?.items ?? []
+
+  return (
+    <>
+      <PageIntro
+        title="Project requests"
+        description="Submissions from the Start Project flow. Quotes and active projects appear separately when available."
+      />
+      <p className={ui.meta}>
+        <Link className="link-underline" to={customerPortalPaths.startProject}>
+          Start a new project request
+        </Link>
+      </p>
+      {items.length === 0 ? (
+        <EmptyState
+          title="No project requests yet"
+          description="Use Start a project to tell us what you need."
+          action={
+            <Button to={customerPortalPaths.startProject}>Start a project</Button>
+          }
+        />
+      ) : (
+        <ul className={ui.stack}>
+          {items.map((row: ProjectRequestRow) => (
+            <li key={row.id} className={`surface ${ui.dataCard}`}>
+              <Link
+                className="link-underline"
+                to={customerPortalPaths.projectRequestDetail(row.id)}
+              >
+                <h2 className="text-h3">{row.serviceInterest ?? 'Project request'}</h2>
+              </Link>
+              <StatusPill status={row.status} />
+              <p className={ui.meta}>
+                {new Date(row.createdAt).toLocaleString()}
+                {row.budget ? ` · ${row.budget}` : ''}
+                {row.timeline ? ` · ${row.timeline}` : ''}
+              </p>
+              <p>{row.summary}{row.summary.length >= 160 ? '…' : ''}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  )
+}
+
+export function CustomerProjectRequestDetailPage() {
+  const { id = '' } = useParams()
+  const { data, error, loading, reload } = useFetch(
+    () => customerApi.projectRequests.get(id),
+    [id],
+  )
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!data) return null
+
+  return (
+    <>
+      <PageIntro
+        label="Project request"
+        title={String(data.serviceInterest ?? 'Request')}
+        description={`Submitted ${new Date(String(data.createdAt)).toLocaleString()}`}
+      />
+      <StatusPill status={String(data.status)} />
+      <div className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>
+        <p className={ui.meta}>
+          {String(data.name)}
+          {' · '}
+          {String(data.email)}
+          {data.phone ? ` · ${String(data.phone)}` : ''}
+        </p>
+        {data.budget ? <p className={ui.meta}>Budget: {String(data.budget)}</p> : null}
+        {data.timeline ? <p className={ui.meta}>Timeline: {String(data.timeline)}</p> : null}
+        {data.website ? (
+          <p className={ui.meta}>
+            Website:{' '}
+            <a className="link-underline" href={String(data.website)} rel="noopener noreferrer">
+              {String(data.website)}
+            </a>
+          </p>
+        ) : null}
+        <h2 className="text-h3" style={{ marginTop: 'var(--space-4)' }}>
+          Requirements
+        </h2>
+        <p style={{ whiteSpace: 'pre-wrap' }}>{String(data.projectDescription ?? '')}</p>
+      </div>
+      <p style={{ marginTop: 'var(--space-4)' }}>
+        <Link className="link-underline" to={customerPortalPaths.requests}>
+          Back to project requests
+        </Link>
+      </p>
+    </>
+  )
+}

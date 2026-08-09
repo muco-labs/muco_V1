@@ -1,0 +1,120 @@
+.start {
+  padding: var(--space-8) 0 var(--space-10);
+}
+
+.shell {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.progress {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.progressStep {
+  flex: 1;
+  min-width: 3rem;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-fg) 12%, transparent);
+}
+
+.progressStepActive {
+  background: var(--color-accent);
+}
+
+.progressStepDone {
+  background: color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+.card {
+  padding: var(--space-6);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field label {
+  display: block;
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-fg) 18%, transparent);
+  background: var(--color-bg-elevated);
+  color: inherit;
+  font: inherit;
+}
+
+.field textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.grid2 {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.serviceList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.serviceOption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-fg) 14%, transparent);
+  cursor: pointer;
+}
+
+.serviceOption:has(input:checked) {
+  border-color: var(--color-accent);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.meta {
+  font-size: var(--text-sm);
+  color: color-mix(in srgb, var(--color-fg) 70%, transparent);
+}
+
+.review dt {
+  font-weight: 600;
+  margin-top: var(--space-3);
+}
+
+.review dd {
+  margin: var(--space-1) 0 0;
+  white-space: pre-wrap;
+}
+
+.error {
+  color: var(--color-danger, #f87171);
+}

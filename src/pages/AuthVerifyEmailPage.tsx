@@ -1,12 +1,24 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes } from '@/config/auth'
+import { resolveSafeCustomerReturnPath } from '@/lib/auth/safe-return-path'
 import { useAuth } from '@/contexts/AuthProvider'
 import { Button } from '@/components/ui/Button'
 import styles from './AuthPage.module.css'
 
 export function AuthVerifyEmailPage() {
   const { profile, refreshProfile } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const from = (location.state as { from?: string } | null)?.from
+
+  useEffect(() => {
+    if (!profile?.emailVerified) return
+    if (profile.status && profile.status !== 'active') return
+    if (!from) return
+    navigate(resolveSafeCustomerReturnPath(from), { replace: true })
+  }, [profile?.emailVerified, profile?.status, from, navigate])
 
   return (
     <>
@@ -22,14 +34,14 @@ export function AuthVerifyEmailPage() {
             <h1 className="text-h1">{authCopy.verifyTitle}</h1>
             <p>
               {profile?.emailVerified
-                ? 'Your email is verified. You can sign in to the customer application.'
+                ? 'Your email is verified. You can continue to your project intake or sign in to the portal.'
                 : 'Check your inbox for a verification link. After verifying, refresh this page or sign in.'}
             </p>
             <div className={styles.actions}>
               <Button type="button" onClick={() => void refreshProfile()}>
                 Refresh status
               </Button>
-              <Link className="link-underline" to={authRoutes.signIn}>
+              <Link className="link-underline" to={authRoutes.signIn} state={location.state}>
                 Sign in
               </Link>
             </div>

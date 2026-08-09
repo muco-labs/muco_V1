@@ -15,7 +15,7 @@ import {
 import { faqs } from '@/content/faqs'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { servicePath } from '@/config/routes'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import styles from './PricingPage.module.css'
@@ -105,7 +105,7 @@ export function PricingPage() {
                       <p className={styles.limit}>{tier.limitations}</p>
                     ) : null}
                     <Button
-                      to={contactHref({ source: `pricing_${tier.id}` })}
+                      to={startProjectHref({ source: `pricing_${tier.id}` })}
                       variant={tier.featured ? 'primary' : 'secondary'}
                       trackEvent={analyticsEvents.startProjectClick}
                       trackParams={{ source: 'pricing', tier: tier.id }}
@@ -121,7 +121,7 @@ export function PricingPage() {
                 After you reach out, we confirm scope and send a written quote—no surprise fees.
               </p>
               <Button
-                to={contactHref({ source: 'pricing' })}
+                to={startProjectHref({ source: 'pricing' })}
                 size="lg"
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'pricing' }}

@@ -24,15 +24,33 @@ export function ProtectedPortal({ portal, children }: ProtectedPortalProps) {
         : portal === 'admin'
           ? authRoutes.adminSignIn
           : authRoutes.signIn
-    return <Navigate to={loginPath} replace state={{ from: location.pathname }} />
+    return (
+      <Navigate
+        to={loginPath}
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    )
   }
 
   if (!profile?.registered) {
-    return <Navigate to={authRoutes.signUp} replace />
+    return (
+      <Navigate
+        to={authRoutes.signUp}
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    )
   }
 
   if (profile.status && profile.status !== 'active') {
-    return <Navigate to={authRoutes.verifyEmail} replace />
+    return (
+      <Navigate
+        to={authRoutes.verifyEmail}
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    )
   }
 
   if (!canAccessPortal(portal)) {

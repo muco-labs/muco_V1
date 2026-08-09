@@ -1,7 +1,8 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
-import { authCopy, authRoutes, portalRoutes } from '@/config/auth'
+import { authCopy, authRoutes } from '@/config/auth'
+import { resolveSafeCustomerReturnPath } from '@/lib/auth/safe-return-path'
 import { pageSeo } from '@/config/seo'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthProvider'
@@ -31,11 +32,7 @@ export function AuthSignInPage() {
       await signInWithPassword(email, password)
       await refreshProfile()
       const from = (location.state as { from?: string } | null)?.from
-      if (from) {
-        navigate(from, { replace: true })
-        return
-      }
-      navigate(portalRoutes.customer, { replace: true })
+      navigate(resolveSafeCustomerReturnPath(from), { replace: true })
     } catch {
       setError('Sign in failed. Check your email and password.')
     } finally {
@@ -94,7 +91,7 @@ export function AuthSignInPage() {
               </Link>
             </p>
             <div className={styles.actions}>
-              <Link className="link-underline" to={authRoutes.signUp}>
+              <Link className="link-underline" to={authRoutes.signUp} state={location.state}>
                 Create an account
               </Link>
             </div>

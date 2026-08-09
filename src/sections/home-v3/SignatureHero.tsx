@@ -5,6 +5,7 @@ import { Reveal } from '@/components/motion/Reveal'
 import { company } from '@/content/company'
 import { site } from '@/config/site'
 import { analyticsEvents } from '@/lib/analytics'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './SignatureHero.module.css'
 
 export function SignatureHero() {
@@ -23,7 +24,7 @@ export function SignatureHero() {
             </p>
             <div className={styles.actions}>
               <Button
-                to={routePaths.contact}
+                to={startProjectHref({ source: 'home_hero' })}
                 size="lg"
                 trackEvent={analyticsEvents.heroCtaClick}
                 trackParams={{ source: 'home_hero', cta: 'start_project' }}

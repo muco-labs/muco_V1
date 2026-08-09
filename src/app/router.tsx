@@ -99,6 +99,20 @@ const CustomerSupportDetailPage = lazyCustomerPage('CustomerSupportDetailPage')
 const CustomerNotificationsPage = lazyCustomerPage('CustomerNotificationsPage')
 const CustomerProfilePage = lazyCustomerPage('CustomerProfilePage')
 const CustomerSettingsPage = lazyCustomerPage('CustomerSettingsPage')
+const CustomerProjectRequestsPage = lazyCustomerPage('CustomerProjectRequestsPage')
+const CustomerProjectRequestDetailPage = lazyCustomerPage('CustomerProjectRequestDetailPage')
+const StartProjectEntryPage = lazyPage(
+  () => import('@/pages/start-project/StartProjectEntryPage'),
+  'StartProjectEntryPage',
+)
+const StartProjectFlowPage = lazyPage(
+  () => import('@/pages/start-project/StartProjectFlowPage'),
+  'StartProjectFlowPage',
+)
+const StartProjectSuccessPage = lazyPage(
+  () => import('@/pages/start-project/StartProjectFlowPage'),
+  'StartProjectSuccessPage',
+)
 const EmployeeDashboardPage = lazyPage(
   () => import('@/pages/portal/employee/EmployeeDashboardPage'),
   'EmployeeDashboardPage',
@@ -219,6 +233,7 @@ export const router = createBrowserRouter([
       { path: 'about', element: <AboutPage /> },
       { path: 'insights', element: <InsightsPage /> },
       { path: 'contact', element: <ContactPage /> },
+      { path: 'start-project', element: <StartProjectEntryPage /> },
       { path: 'pricing', element: <PricingPage /> },
       { path: 'erode', element: <ErodePage /> },
       { path: 'erode/:serviceSlug', element: <ErodeLocalServicePage /> },
@@ -244,6 +259,10 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <CustomerDashboardPage /> },
+          { path: 'start-project', element: <StartProjectFlowPage /> },
+          { path: 'start-project/success/:id', element: <StartProjectSuccessPage /> },
+          { path: 'project-requests', element: <CustomerProjectRequestsPage /> },
+          { path: 'project-requests/:id', element: <CustomerProjectRequestDetailPage /> },
           { path: 'projects', element: <CustomerProjectsPage /> },
           { path: 'projects/:id', element: <CustomerProjectDetailPage /> },
           { path: 'proposals', element: <CustomerProposalsPage /> },

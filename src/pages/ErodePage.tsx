@@ -12,7 +12,7 @@ import { routePaths } from '@/config/routes'
 import { erodeLocalFaqs, erodeLocalPage, erodeServiceLinks } from '@/content/erode-local'
 import { company } from '@/content/company'
 import { analyticsEvents } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './ErodePage.module.css'
 
 const erode = pageSeo.erode
@@ -89,7 +89,7 @@ export function ErodePage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'erode_local', city: 'Erode' })}
+                to={startProjectHref({ source: 'erode_local' })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'erode_local' }}
               >

@@ -27,6 +27,7 @@ import {
 import { serviceFaqs, serviceRelatedSlugs } from '@/data/service-seo'
 import { getServiceContent } from '@/data/service-content'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './UiUxDesignServiceDetail.module.css'
 
 const SLUG: ServiceSlug = 'ui-ux-design'
@@ -75,7 +76,7 @@ export function UiUxDesignServiceDetail() {
                 <p className={styles.heroSupport}>{uiUxHero.supporting}</p>
                 <div className={styles.heroActions}>
                   <Button
-                    to={routePaths.contact}
+                    to={startProjectHref({ service: SLUG, source: 'ui_ux_service' })}
                     size="lg"
                     trackEvent={analyticsEvents.startProjectClick}
                     trackParams={{ source: 'service_ui_ux_hero', service_slug: SLUG }}
@@ -281,7 +282,7 @@ export function UiUxDesignServiceDetail() {
 
           <div className={styles.footerCta}>
             <Button
-              to={routePaths.contact}
+              to={startProjectHref({ service: SLUG, source: 'ui_ux_service' })}
               size="lg"
               trackEvent={analyticsEvents.startProjectClick}
               trackParams={{ source: 'service_ui_ux_footer', service_slug: SLUG }}

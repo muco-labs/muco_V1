@@ -1,5 +1,10 @@
+import { startProjectPaths } from '@/config/start-project'
+
 export const customerPortalPaths = {
   root: '/app',
+  startProject: startProjectPaths.flow,
+  requests: startProjectPaths.requests,
+  projectRequestDetail: (id: string) => `/app/project-requests/${id}`,
   projects: '/app/projects',
   projectDetail: (id: string) => `/app/projects/${id}`,
   proposals: '/app/proposals',
@@ -18,6 +23,8 @@ export const customerPortalPaths = {
 
 export const customerNav = [
   { label: 'Dashboard', path: customerPortalPaths.root, end: true },
+  { label: 'Project requests', path: customerPortalPaths.requests },
+  { label: 'Start a project', path: customerPortalPaths.startProject },
   { label: 'Projects', path: customerPortalPaths.projects },
   { label: 'Proposals', path: customerPortalPaths.proposals },
   { label: 'Invoices', path: customerPortalPaths.invoices },

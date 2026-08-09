@@ -6,6 +6,7 @@ import { routePaths } from '@/config/routes'
 import { site } from '@/config/site'
 import { primaryNav } from '@/data/navigation'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 import styles from './Navbar.module.css'
@@ -80,7 +81,7 @@ export function Navbar() {
             </Link>
           </div>
           <Button
-            to={routePaths.contact}
+            to={startProjectHref({ source: 'navbar' })}
             size="sm"
             trackEvent={analyticsEvents.startProjectClick}
             trackParams={{ source: 'navbar' }}
@@ -137,7 +138,7 @@ export function Navbar() {
             </Link>
           </div>
           <Button
-            to={routePaths.contact}
+            to={startProjectHref({ source: 'navbar_mobile' })}
             fullWidth
             onClick={() => setOpen(false)}
             trackEvent={analyticsEvents.startProjectClick}

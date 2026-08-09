@@ -7,7 +7,7 @@ import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
 import { industrySolutionSlugs, industrySolutions, industrySolutionPath } from '@/content/solutions/industries'
 import { analyticsEvents } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './ErodePage.module.css'
 
 const solutions = pageSeo.solutions
@@ -61,7 +61,7 @@ export function SolutionsPage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'solutions_hub' })}
+                to={startProjectHref({ source: 'solutions_hub' })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'solutions_hub' }}
               >

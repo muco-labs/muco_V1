@@ -11,6 +11,7 @@ import { founder } from '@/data/founder'
 import { teamGroups, teamMembers, teamHiringNote } from '@/data/team'
 import { deliveryProcess } from '@/content/process'
 import { routePaths } from '@/config/routes'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { env } from '@/config/env'
 import styles from './AboutPage.module.css'
 
@@ -234,7 +235,7 @@ export function AboutPage() {
               <p>Tell us what you are building—we will respond with a practical next step.</p>
               <div className={styles.ctaActions}>
                 <Button
-                  to={routePaths.contact}
+                  to={startProjectHref({ source: 'about' })}
                   trackEvent={analyticsEvents.startProjectClick}
                   trackParams={{ source: 'about' }}
                 >

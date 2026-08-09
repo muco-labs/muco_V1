@@ -10,7 +10,7 @@ import {
   isIndustrySolutionSlug,
 } from '@/content/solutions/industries'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { useEffect } from 'react'
 import styles from '../ErodePage.module.css'
 
@@ -88,7 +88,7 @@ export function IndustrySolutionPage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: pageSource })}
+                to={startProjectHref({ source: pageSource })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: pageSource }}
               >

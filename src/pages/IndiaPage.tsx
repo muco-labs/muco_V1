@@ -13,7 +13,7 @@ import {
   indiaServiceLinks,
 } from '@/content/market/india'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { useEffect } from 'react'
 import styles from './ErodePage.module.css'
 
@@ -97,7 +97,7 @@ export function IndiaPage() {
             </ul>
             <div className={styles.actions}>
               <Button
-                to={contactHref({ source: 'india_hub' })}
+                to={startProjectHref({ source: 'india_hub' })}
                 trackEvent={analyticsEvents.startProjectClick}
                 trackParams={{ source: 'india_hub' }}
               >

@@ -13,7 +13,7 @@ import { env } from '@/config/env'
 import { routePaths, servicePath } from '@/config/routes'
 import { getServiceContent } from '@/data/service-content'
 import { portfolioForService, workPath } from '@/data/portfolio'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { serviceFaqs, serviceRelatedSlugs } from '@/data/service-seo'
 import { getServiceBySlug } from '@/data/services'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
@@ -190,7 +190,7 @@ export function ServiceDetailPage() {
 
           <div className={styles.actions}>
             <Button
-              to={contactHref({ service: content.slug, source: 'service_detail' })}
+              to={startProjectHref({ service: content.slug, source: 'service_detail' })}
               size="lg"
               trackEvent={analyticsEvents.serviceCtaClick}
               trackParams={{ source: 'service_detail', service_slug: content.slug }}

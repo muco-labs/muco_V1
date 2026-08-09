@@ -3,6 +3,7 @@ import { Reveal } from '@/components/motion/Reveal'
 import { FinalCta } from '@/components/design-system/FinalCta'
 import { pricingNote, pricingTiers, maintenanceNote } from '@/data/pricing'
 import { routePaths } from '@/config/routes'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './HomeEngagement.module.css'
 
 export function HomeEngagementSections() {
@@ -31,7 +32,10 @@ export function HomeEngagementSections() {
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
-                  <Link className="link-underline" to={routePaths.contact}>
+                  <Link
+                    className="link-underline"
+                    to={startProjectHref({ source: `home_pricing_${tier.id}` })}
+                  >
                     {tier.cta}
                   </Link>
                 </article>

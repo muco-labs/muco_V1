@@ -1,6 +1,6 @@
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
-import { contactHref } from '@/lib/conversion/contact-link'
+import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { routePaths } from '@/config/routes'
 import { analyticsEvents } from '@/lib/analytics'
 import styles from './FinalCta.module.css'
@@ -22,7 +22,7 @@ export function FinalCta({
   secondaryLabel = 'Explore Services',
   secondaryHref = routePaths.services,
 }: FinalCtaProps) {
-  const primaryHref = contactHref({ source, service })
+  const primaryHref = startProjectHref({ source, service })
   return (
     <section className="section section--tight" aria-labelledby="final-cta-title">
       <div className="shell">

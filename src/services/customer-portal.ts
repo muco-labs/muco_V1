@@ -93,4 +93,25 @@ export const customerApi = {
     markRead: (id: string) =>
       apiRequest(`${base}/notifications/${id}/read`, { method: 'PATCH' }),
   },
+  projectRequests: {
+    prefill: () => apiRequest<Record<string, unknown>>(`${base}/project-requests/prefill`),
+    list: () =>
+      apiRequest<{
+        items: Array<{
+          id: string
+          status: string
+          serviceInterest: string | null
+          budget: string | null
+          timeline: string | null
+          createdAt: string
+          summary: string
+        }>
+      }>(`${base}/project-requests`),
+    get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/project-requests/${id}`),
+    create: (body: Record<string, unknown>) =>
+      apiRequest<{ id: string; status: string }>(`${base}/project-requests`, {
+        method: 'POST',
+        json: body,
+      }),
+  },
 }
