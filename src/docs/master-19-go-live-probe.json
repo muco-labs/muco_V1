@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T20:08:04.700Z",
+  "generatedAt": "2026-08-09T20:29:14.672Z",
   "master": "MASTER-19",
   "vercelProjectLink": {
     "projectName": "muco-v1",
@@ -71,7 +71,7 @@
       "status": 308,
       "server": "Vercel",
       "location": "https://www.mucolabs.com/",
-      "vercelId": "bom1::cg6s9-1786306085179-efa74f33f1b7",
+      "vercelId": "bom1::hw282-1786307355421-a11d479b0146",
       "tls": "HTTPS"
     },
     "www": {
@@ -79,7 +79,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::ktfhl-1786306085678-a5255bf6de9f",
+      "vercelId": "bom1::qtkl4-1786307356112-2afc58f451e0",
       "tls": "HTTPS",
       "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
       "hasSignInRoute": false,
@@ -90,7 +90,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::h7c4j-1786306086490-50c7a2b9f57e",
+      "vercelId": "bom1::pl6rh-1786307356974-7fb6fc4f74ee",
       "tls": "HTTPS",
       "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
       "hasSignInRoute": false,
@@ -101,7 +101,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::cdth6-1786306087036-19d022e7f2ec",
+      "vercelId": "bom1::rg9sc-1786307357523-bd60bbf640ce",
       "tls": "HTTPS",
       "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
       "hasSignInRoute": false,
@@ -112,7 +112,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::zsvrj-1786306087596-2cdb2484e6c2",
+      "vercelId": "bom1::trh8t-1786307358211-932b22077cda",
       "tls": "HTTPS",
       "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
       "hasSignInRoute": false,
@@ -123,7 +123,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::z7cwb-1786306088178-daabff2065cf",
+      "vercelId": "bom1::qtkl4-1786307358567-d178bb787506",
       "tls": "HTTPS",
       "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
       "hasSignInRoute": false,
@@ -134,7 +134,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::iad1::qtkl4-1786306088277-853198cb38d0",
+      "vercelId": "bom1::iad1::g2kzr-1786307358672-54809f8e9a57",
       "tls": "HTTPS"
     }
   },
@@ -144,7 +144,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::2rswt-1786306090849-5450bf8e8365",
+      "vercelId": "bom1::n4n62-1786307361284-0fa536bec91b",
       "tls": "HTTPS"
     },
     "sitemapHasVercelApp": false,
