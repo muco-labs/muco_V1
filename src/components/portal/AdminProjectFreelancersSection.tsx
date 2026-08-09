@@ -9,78 +9,86 @@ import {
   presentProjectMemberRoleLabel,
 } from '@/lib/projects/project-member-roles'
 
-type ProjectMember = {
-  employeeId: string
+type ProjectFreelancer = {
+  freelancerId: string
   displayName: string
+  professionalRole: string
   role: string
   roleLabel: string
   activeTaskCount: number
   overdueTaskCount: number
   canRemove: boolean
-  employmentState?: string
-  userStatus?: string
 }
 
 type Candidate = {
-  employeeId: string
+  freelancerId: string
   displayName: string
+  professionalRole: string
 }
 
 type Props = {
   projectId: string
   canAssign: boolean
-  onMembersChange?: () => void
+  onFreelancersChange?: () => void
 }
 
-export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange }: Props) {
+export function AdminProjectFreelancersSection({
+  projectId,
+  canAssign,
+  onFreelancersChange,
+}: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [employeeId, setEmployeeId] = useState('')
+  const [freelancerId, setFreelancerId] = useState('')
   const [role, setRole] = useState<string>('developer')
+  const [search, setSearch] = useState('')
 
   const { data, error, loading, reload } = useFetch(
-    () => adminApi.projects.listMembers(projectId),
+    () => adminApi.projects.listFreelancers(projectId),
     [projectId],
   )
 
   const candidatesFetch = useFetch(
-    () => (canAssign ? adminApi.projects.listMemberCandidates(projectId) : Promise.resolve({ items: [] })),
-    [projectId, canAssign],
+    () =>
+      canAssign
+        ? adminApi.projects.listFreelancerCandidates(projectId, search || undefined)
+        : Promise.resolve({ items: [] }),
+    [projectId, canAssign, search],
   )
 
-  const members = (data?.items as ProjectMember[]) ?? []
+  const freelancers = (data?.items as ProjectFreelancer[]) ?? []
   const candidates = (candidatesFetch.data?.items as Candidate[]) ?? []
 
   async function refreshAll() {
     await reload()
     await candidatesFetch.reload()
-    onMembersChange?.()
+    onFreelancersChange?.()
   }
 
-  async function addMember(e: FormEvent) {
+  async function addFreelancer(e: FormEvent) {
     e.preventDefault()
-    if (!canAssign || !employeeId) return
+    if (!canAssign || !freelancerId) return
     setBusy(true)
     setMessage(null)
     try {
-      await adminApi.projects.addMember(projectId, { employeeId, role })
-      setEmployeeId('')
-      setMessage('Team member added.')
+      await adminApi.projects.addFreelancer(projectId, { freelancerId, role })
+      setFreelancerId('')
+      setMessage('Freelancer assigned.')
       await refreshAll()
     } catch {
-      setMessage('Could not add team member. They may already be on the project.')
+      setMessage('Could not assign freelancer. They may already be on the project or ineligible.')
     } finally {
       setBusy(false)
     }
   }
 
-  async function changeRole(member: ProjectMember, nextRole: string) {
+  async function changeRole(member: ProjectFreelancer, nextRole: string) {
     if (!canAssign || nextRole === member.role) return
     setBusy(true)
     setMessage(null)
     try {
-      await adminApi.projects.updateMemberRole(projectId, member.employeeId, { role: nextRole })
-      setMessage('Role updated.')
+      await adminApi.projects.updateFreelancerRole(projectId, member.freelancerId, { role: nextRole })
+      setMessage('Freelancer role updated.')
       await refreshAll()
     } catch {
       setMessage('Could not update role.')
@@ -89,56 +97,61 @@ export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange 
     }
   }
 
-  async function removeMember(member: ProjectMember) {
+  async function removeFreelancer(member: ProjectFreelancer) {
     if (!canAssign) return
     if (!member.canRemove) {
-      setMessage('Reassign active tasks before removing this member.')
+      setMessage('Reassign active tasks before removing this freelancer.')
       return
     }
     if (!window.confirm(`Remove ${member.displayName} from this project?`)) return
     setBusy(true)
     setMessage(null)
     try {
-      await adminApi.projects.removeMember(projectId, member.employeeId)
-      setMessage('Team member removed.')
+      await adminApi.projects.removeFreelancer(projectId, member.freelancerId)
+      setMessage('Freelancer removed.')
       await refreshAll()
     } catch {
-      setMessage('Could not remove member. They may still have active tasks.')
+      setMessage('Could not remove freelancer. They may still have active tasks.')
     } finally {
       setBusy(false)
     }
   }
 
-  if (loading) return <ListSkeleton rows={3} />
+  if (loading) return <ListSkeleton rows={2} />
   if (error) return <PortalError message={error} onRetry={reload} />
 
   return (
-    <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }} aria-labelledby="admin-project-team">
-      <h2 id="admin-project-team" className="text-h3">
-        Employees
-      </h2>
+    <section className={ui.stack} aria-labelledby="admin-project-freelancers">
+      <h3 id="admin-project-freelancers" className="text-h4">
+        Freelancers
+      </h3>
       <p className={ui.meta} role="status" aria-live="polite">
         {message}
       </p>
 
-      {members.length === 0 ? (
-        <EmptyState title="No team members" description="Add employees who will deliver this project." />
+      {freelancers.length === 0 ? (
+        <EmptyState
+          title="No freelancers assigned"
+          description="Assign approved freelancers from the network to deliver work on this project."
+        />
       ) : (
         <ul className={ui.stack}>
-          {members.map((member) => (
-            <li key={member.employeeId} className={`surface ${ui.dataCard}`}>
+          {freelancers.map((member) => (
+            <li key={member.freelancerId} className={`surface ${ui.dataCard}`}>
               <div className={ui.actionsRow} style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div style={{ flex: '1 1 12rem', minWidth: 0 }}>
                   <strong>{member.displayName}</strong>
+                  <span className={ui.meta} style={{ marginLeft: '0.5rem' }}>
+                    Freelancer
+                  </span>
                   <p className={ui.meta}>
-                    {member.roleLabel} · Active tasks {member.activeTaskCount}
-                    {member.overdueTaskCount > 0
-                      ? ` · Overdue ${member.overdueTaskCount}`
-                      : ''}
+                    {member.professionalRole} · {member.roleLabel} · Active tasks{' '}
+                    {member.activeTaskCount}
+                    {member.overdueTaskCount > 0 ? ` · Overdue ${member.overdueTaskCount}` : ''}
                   </p>
                   {!member.canRemove ? (
                     <p className={ui.meta} role="status">
-                      Reassign active tasks before removing this member.
+                      Reassign active tasks before removing this freelancer.
                     </p>
                   ) : null}
                 </div>
@@ -152,7 +165,7 @@ export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange 
                             ? member.role
                             : 'other'
                         }
-                        aria-label={`Role for ${member.displayName}`}
+                        aria-label={`Project role for ${member.displayName}`}
                         disabled={busy}
                         onChange={(e) => void changeRole(member, e.target.value)}
                       >
@@ -167,7 +180,7 @@ export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange 
                       type="button"
                       variant="ghost"
                       disabled={busy || !member.canRemove}
-                      onClick={() => void removeMember(member)}
+                      onClick={() => void removeFreelancer(member)}
                     >
                       Remove
                     </Button>
@@ -180,22 +193,33 @@ export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange 
       )}
 
       {canAssign ? (
-        <form className={ui.form} onSubmit={(e) => void addMember(e)}>
-          <h3 className="text-h4">Add team member</h3>
+        <form className={ui.form} onSubmit={(e) => void addFreelancer(e)}>
+          <h4 className="text-h4">Assign freelancer</h4>
           <div className={ui.actionsRow} style={{ flexWrap: 'wrap' }}>
             <label className={ui.field}>
-              <span>Employee</span>
+              <span>Search</span>
+              <input
+                type="search"
+                value={search}
+                placeholder="Name or role"
+                aria-label="Search freelancer candidates"
+                disabled={busy}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+            <label className={ui.field}>
+              <span>Freelancer</span>
               <select
-                value={employeeId}
+                value={freelancerId}
                 required
-                aria-label="Select employee to add"
+                aria-label="Select freelancer"
                 disabled={busy || candidates.length === 0}
-                onChange={(e) => setEmployeeId(e.target.value)}
+                onChange={(e) => setFreelancerId(e.target.value)}
               >
-                <option value="">Select employee</option>
+                <option value="">Select freelancer</option>
                 {candidates.map((c) => (
-                  <option key={c.employeeId} value={c.employeeId}>
-                    {c.displayName}
+                  <option key={c.freelancerId} value={c.freelancerId}>
+                    {c.displayName} ({c.professionalRole})
                   </option>
                 ))}
               </select>
@@ -204,7 +228,7 @@ export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange 
               <span>Project role</span>
               <select
                 value={role}
-                aria-label="Project role for new member"
+                aria-label="Project role for freelancer"
                 disabled={busy}
                 onChange={(e) => setRole(e.target.value)}
               >
@@ -216,8 +240,8 @@ export function AdminProjectTeamSection({ projectId, canAssign, onMembersChange 
               </select>
             </label>
           </div>
-          <Button type="submit" disabled={busy || !employeeId}>
-            {busy ? 'Saving…' : 'Add member'}
+          <Button type="submit" disabled={busy || !freelancerId}>
+            {busy ? 'Saving…' : 'Assign freelancer'}
           </Button>
         </form>
       ) : null}

@@ -7,6 +7,7 @@ import { adminApi } from '@/services/admin-portal'
 
 type MilestoneOption = { id: string; name: string }
 type MemberOption = { employeeId: string; displayName: string }
+type FreelancerOption = { freelancerId: string; displayName: string }
 
 type AdminProjectTask = {
   id: string
@@ -19,10 +20,28 @@ type AdminProjectTask = {
   statusLabel: string
   priority: string
   assigneeEmployeeId: string | null
+  assigneeFreelancerId?: string | null
   assigneeName: string | null
   dueDate: string | null
   overdue: boolean
   updatedAt: string
+}
+
+function assigneeSelectValue(task: AdminProjectTask): string {
+  if (task.assigneeFreelancerId) return `f:${task.assigneeFreelancerId}`
+  if (task.assigneeEmployeeId) return `e:${task.assigneeEmployeeId}`
+  return ''
+}
+
+function parseAssigneeSelect(value: string): Record<string, string | null> {
+  if (!value) return { assignedEmployeeId: null, assignedFreelancerId: null }
+  if (value.startsWith('f:')) {
+    return { assignedEmployeeId: null, assignedFreelancerId: value.slice(2) }
+  }
+  if (value.startsWith('e:')) {
+    return { assignedEmployeeId: value.slice(2), assignedFreelancerId: null }
+  }
+  return { assignedEmployeeId: value, assignedFreelancerId: null }
 }
 
 const STATUS_OPTIONS = ['todo', 'in_progress', 'blocked', 'done', 'cancelled'] as const
@@ -34,6 +53,7 @@ type Props = {
   canManage: boolean
   milestones: MilestoneOption[]
   members: MemberOption[]
+  freelancers: FreelancerOption[]
 }
 
 export function AdminProjectTasksSection({
@@ -42,6 +62,7 @@ export function AdminProjectTasksSection({
   canManage,
   milestones,
   members,
+  freelancers,
 }: Props) {
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
@@ -88,7 +109,7 @@ export function AdminProjectTasksSection({
         title: title.trim(),
         description: description.trim() || undefined,
         milestoneId: newMilestoneId || undefined,
-        assignedEmployeeId: newAssigneeId || undefined,
+        ...parseAssigneeSelect(newAssigneeId),
         priority: newPriority,
         dueDate: newDueDate || undefined,
       })
@@ -283,21 +304,30 @@ export function AdminProjectTasksSection({
                   <label className={ui.field}>
                     <span className={ui.meta}>Assignee</span>
                     <select
-                      value={task.assigneeEmployeeId ?? ''}
+                      value={assigneeSelectValue(task)}
                       aria-label={`Assignee for ${task.title}`}
                       disabled={busy}
-                      onChange={(e) =>
-                        void patchTask(task.id, {
-                          assignedEmployeeId: e.target.value || null,
-                        })
-                      }
+                      onChange={(e) => void patchTask(task.id, parseAssigneeSelect(e.target.value))}
                     >
                       <option value="">Unassigned</option>
-                      {members.map((m) => (
-                        <option key={m.employeeId} value={m.employeeId}>
-                          {m.displayName}
-                        </option>
-                      ))}
+                      {members.length ? (
+                        <optgroup label="Employees">
+                          {members.map((m) => (
+                            <option key={m.employeeId} value={`e:${m.employeeId}`}>
+                              {m.displayName}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ) : null}
+                      {freelancers.length ? (
+                        <optgroup label="Freelancers">
+                          {freelancers.map((m) => (
+                            <option key={m.freelancerId} value={`f:${m.freelancerId}`}>
+                              {m.displayName}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ) : null}
                     </select>
                   </label>
                   <Button type="button" disabled={busy} onClick={() => void completeTask(task.id)}>
@@ -360,11 +390,24 @@ export function AdminProjectTasksSection({
                 aria-label="Assignee for new task"
               >
                 <option value="">Unassigned</option>
-                {members.map((m) => (
-                  <option key={m.employeeId} value={m.employeeId}>
-                    {m.displayName}
-                  </option>
-                ))}
+                {members.length ? (
+                  <optgroup label="Employees">
+                    {members.map((m) => (
+                      <option key={m.employeeId} value={`e:${m.employeeId}`}>
+                        {m.displayName}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+                {freelancers.length ? (
+                  <optgroup label="Freelancers">
+                    {freelancers.map((m) => (
+                      <option key={m.freelancerId} value={`f:${m.freelancerId}`}>
+                        {m.displayName}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
               </select>
             </label>
             <label className={ui.field}>

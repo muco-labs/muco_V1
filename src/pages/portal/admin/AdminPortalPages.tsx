@@ -21,6 +21,7 @@ import { CrmEntryChannelBadge } from '@/components/portal/crm/CrmStartProjectLea
 import { AdminProjectFilesSection } from '@/components/portal/AdminProjectFilesSection'
 import { AdminProjectTasksSection } from '@/components/portal/AdminProjectTasksSection'
 import { AdminProjectTeamSection } from '@/components/portal/AdminProjectTeamSection'
+import { AdminProjectFreelancersSection } from '@/components/portal/AdminProjectFreelancersSection'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -525,6 +526,7 @@ export function AdminProjectDetailPage() {
   const canManageTasks = Boolean(profile?.permissions.includes('tasks.update'))
   const canAssignTeam = Boolean(profile?.permissions.includes('projects.assign'))
   const { data, error, loading, reload } = useFetch(() => adminApi.projects.get(id), [id])
+  const freelancersFetch = useFetch(() => adminApi.projects.listFreelancers(id), [id])
   const [statusDraft, setStatusDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const [milestoneName, setMilestoneName] = useState('')
@@ -540,6 +542,8 @@ export function AdminProjectDetailPage() {
   const sourceLead = data.sourceLead as Record<string, unknown> | null | undefined
   const milestones = (data.milestones as Array<Record<string, unknown>>) ?? []
   const members = (data.members as Array<Record<string, unknown>>) ?? []
+  const projectFreelancers =
+    (freelancersFetch.data?.items as Array<Record<string, unknown>>) ?? []
   const payment = data.payment as Record<string, unknown> | undefined
   const proposal = data.proposal as Record<string, unknown> | null | undefined
   const progressPercent = data.progressPercent as number | null | undefined
@@ -796,13 +800,33 @@ export function AdminProjectDetailPage() {
           employeeId: String(m.employeeId),
           displayName: String(m.displayName),
         }))}
+        freelancers={projectFreelancers.map((m) => ({
+          freelancerId: String(m.freelancerId),
+          displayName: String(m.displayName),
+        }))}
       />
 
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }} aria-labelledby="admin-project-team-heading">
+        <h2 id="admin-project-team-heading" className="text-h3">
+          Team
+        </h2>
       <AdminProjectTeamSection
         projectId={id}
         canAssign={canAssignTeam}
-        onMembersChange={() => void reload()}
+        onMembersChange={() => {
+          void reload()
+          void freelancersFetch.reload()
+        }}
       />
+      <AdminProjectFreelancersSection
+        projectId={id}
+        canAssign={canAssignTeam}
+        onFreelancersChange={() => {
+          void reload()
+          void freelancersFetch.reload()
+        }}
+      />
+      </section>
 
       {canUpdate ? (
         <section className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>

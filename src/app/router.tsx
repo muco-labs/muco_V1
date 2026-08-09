@@ -155,6 +155,9 @@ function lazyFreelancerPage(exportName: string) {
 }
 
 const FreelancerDashboardPage = lazyFreelancerPage('FreelancerDashboardPage')
+const FreelancerProjectsPage = lazyFreelancerPage('FreelancerProjectsPage')
+const FreelancerProjectDetailPage = lazyFreelancerPage('FreelancerProjectDetailPage')
+const FreelancerTasksPage = lazyFreelancerPage('FreelancerTasksPage')
 const FreelancerProfilePage = lazyFreelancerPage('FreelancerProfilePage')
 const FreelancerAvailabilityPage = lazyFreelancerPage('FreelancerAvailabilityPage')
 
@@ -364,6 +367,9 @@ export const router = createBrowserRouter([
         ),
         children: [
           { index: true, element: <FreelancerDashboardPage /> },
+          { path: 'projects', element: <FreelancerProjectsPage /> },
+          { path: 'projects/:id', element: <FreelancerProjectDetailPage /> },
+          { path: 'tasks', element: <FreelancerTasksPage /> },
           { path: 'profile', element: <FreelancerProfilePage /> },
           { path: 'availability', element: <FreelancerAvailabilityPage /> },
         ],

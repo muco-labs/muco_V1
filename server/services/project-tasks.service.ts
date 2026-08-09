@@ -3,6 +3,7 @@ import { getDb } from '../db/client.js'
 import {
   auditLogs,
   employeeProfiles,
+  freelancerProfiles,
   milestones,
   notifications,
   projectMembers,
@@ -25,6 +26,16 @@ import {
   TASK_PRIORITIES,
 } from '../lib/projects/task-delivery.js'
 import { computeMilestoneProgressPercent } from '../lib/projects/milestone-delivery.js'
+import {
+  assertFreelancerOnProject,
+  notifyFreelancerTaskAssigned,
+} from './project-freelancer-assignment.service.js'
+
+function assertSingleTaskAssignee(employeeId?: string | null, freelancerId?: string | null) {
+  if (employeeId && freelancerId) {
+    throw new AppError('VALIDATION_ERROR', 'A task can only be assigned to one person.', 400)
+  }
+}
 
 function assertTasksPermission(auth: AuthContext, permission: 'tasks.view' | 'tasks.create' | 'tasks.update') {
   if (!hasPermission(auth.permissions, permission)) {
@@ -86,6 +97,7 @@ async function loadTaskEnrichment(rows: Array<typeof tasks.$inferSelect>) {
 
   const milestoneIds = [...new Set(rows.map((r) => r.milestoneId).filter(Boolean))] as string[]
   const employeeIds = [...new Set(rows.map((r) => r.assignedEmployeeId).filter(Boolean))] as string[]
+  const freelancerIds = [...new Set(rows.map((r) => r.assignedFreelancerId).filter(Boolean))] as string[]
 
   const milestoneMap = new Map<string, string>()
   if (milestoneIds.length) {
@@ -103,13 +115,30 @@ async function loadTaskEnrichment(rows: Array<typeof tasks.$inferSelect>) {
       .from(employeeProfiles)
       .innerJoin(users, eq(employeeProfiles.userId, users.id))
       .where(inArray(employeeProfiles.id, employeeIds))
-    for (const e of emps) assigneeMap.set(e.id, e.fullName ?? 'Team member')
+    for (const e of emps) assigneeMap.set(`e:${e.id}`, e.fullName ?? 'Team member')
+  }
+
+  if (freelancerIds.length) {
+    const fls = await db
+      .select({ id: freelancerProfiles.id, fullName: freelancerProfiles.fullName })
+      .from(freelancerProfiles)
+      .where(inArray(freelancerProfiles.id, freelancerIds))
+    for (const f of fls) assigneeMap.set(`f:${f.id}`, f.fullName)
   }
 
   return rows.map((row) =>
     serializeAdminProjectTask(row, {
       milestoneName: row.milestoneId ? milestoneMap.get(row.milestoneId) ?? null : null,
-      assigneeName: row.assignedEmployeeId ? assigneeMap.get(row.assignedEmployeeId) ?? null : null,
+      assigneeName: row.assignedEmployeeId
+        ? assigneeMap.get(`e:${row.assignedEmployeeId}`) ?? null
+        : row.assignedFreelancerId
+          ? assigneeMap.get(`f:${row.assignedFreelancerId}`) ?? null
+          : null,
+      assigneeType: row.assignedEmployeeId
+        ? 'employee'
+        : row.assignedFreelancerId
+          ? 'freelancer'
+          : null,
       overdue: isTaskOverdue(row),
     }),
   )
@@ -197,6 +226,7 @@ export async function createProjectTaskAdmin(
     description?: string
     milestoneId?: string
     assignedEmployeeId?: string
+    assignedFreelancerId?: string
     priority?: string
     dueDate?: string
   },
@@ -211,7 +241,9 @@ export async function createProjectTaskAdmin(
   if (title.length < 2) throw new AppError('VALIDATION_ERROR', 'Task title is required.', 400)
 
   if (input.milestoneId) await assertMilestoneOnProject(projectId, input.milestoneId)
+  assertSingleTaskAssignee(input.assignedEmployeeId, input.assignedFreelancerId)
   if (input.assignedEmployeeId) await assertAssigneeIsMember(projectId, input.assignedEmployeeId)
+  if (input.assignedFreelancerId) await assertFreelancerOnProject(projectId, input.assignedFreelancerId)
 
   const priority = input.priority ?? 'medium'
   if (!(TASK_PRIORITIES as readonly string[]).includes(priority)) {
@@ -227,6 +259,7 @@ export async function createProjectTaskAdmin(
       projectId,
       milestoneId: input.milestoneId ?? null,
       assignedEmployeeId: input.assignedEmployeeId ?? null,
+      assignedFreelancerId: input.assignedFreelancerId ?? null,
       title,
       description: input.description?.trim() || null,
       priority: priority as typeof tasks.priority.enumValues[number],
@@ -257,6 +290,20 @@ export async function createProjectTaskAdmin(
     })
   }
 
+  if (input.assignedFreelancerId) {
+    await notifyFreelancerTaskAssigned(input.assignedFreelancerId, {
+      title: 'Task assigned',
+      message: `You were assigned: ${title}`,
+    })
+    await db.insert(auditLogs).values({
+      actorUserId: auth.userId,
+      action: 'freelancer.task_assigned',
+      entity: 'tasks',
+      entityId: row.id,
+      metadata: JSON.stringify({ freelancerId: input.assignedFreelancerId }),
+    })
+  }
+
   const [item] = await loadTaskEnrichment([row])
   return item
 }
@@ -270,6 +317,7 @@ export async function updateProjectTaskAdmin(
     description: string | null
     milestoneId: string | null
     assignedEmployeeId: string | null
+    assignedFreelancerId: string | null
     status: string
     priority: string
     dueDate: string | null
@@ -288,7 +336,20 @@ export async function updateProjectTaskAdmin(
   }
 
   if (input.milestoneId) await assertMilestoneOnProject(projectId, input.milestoneId)
-  if (input.assignedEmployeeId) await assertAssigneeIsMember(projectId, input.assignedEmployeeId)
+
+  let nextEmployeeId = existing.assignedEmployeeId
+  let nextFreelancerId = existing.assignedFreelancerId
+  if (input.assignedEmployeeId !== undefined) {
+    nextEmployeeId = input.assignedEmployeeId
+    if (input.assignedEmployeeId) nextFreelancerId = null
+  }
+  if (input.assignedFreelancerId !== undefined) {
+    nextFreelancerId = input.assignedFreelancerId
+    if (input.assignedFreelancerId) nextEmployeeId = null
+  }
+  assertSingleTaskAssignee(nextEmployeeId, nextFreelancerId)
+  if (nextEmployeeId) await assertAssigneeIsMember(projectId, nextEmployeeId)
+  if (nextFreelancerId) await assertFreelancerOnProject(projectId, nextFreelancerId)
 
   if (input.priority && !(TASK_PRIORITIES as readonly string[]).includes(input.priority)) {
     throw new AppError('VALIDATION_ERROR', 'Invalid priority.', 400)
@@ -297,14 +358,22 @@ export async function updateProjectTaskAdmin(
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
 
+  const assigneePatch: {
+    assignedEmployeeId?: string | null
+    assignedFreelancerId?: string | null
+  } = {}
+  if (input.assignedEmployeeId !== undefined || input.assignedFreelancerId !== undefined) {
+    assigneePatch.assignedEmployeeId = nextEmployeeId
+    assigneePatch.assignedFreelancerId = nextFreelancerId
+  }
+
   const [updated] = await db
     .update(tasks)
     .set({
       title: input.title?.trim(),
       description: input.description === undefined ? undefined : input.description,
       milestoneId: input.milestoneId === undefined ? undefined : input.milestoneId,
-      assignedEmployeeId:
-        input.assignedEmployeeId === undefined ? undefined : input.assignedEmployeeId,
+      ...assigneePatch,
       status: input.status as typeof tasks.status.enumValues[number] | undefined,
       priority: input.priority as typeof tasks.priority.enumValues[number] | undefined,
       dueDate:
@@ -329,11 +398,25 @@ export async function updateProjectTaskAdmin(
     }),
   })
 
-  if (input.assignedEmployeeId && input.assignedEmployeeId !== existing.assignedEmployeeId) {
-    await notifyEmployeeTaskEvent(input.assignedEmployeeId, {
+  if (nextEmployeeId && nextEmployeeId !== existing.assignedEmployeeId) {
+    await notifyEmployeeTaskEvent(nextEmployeeId, {
       type: 'task.assigned',
       title: 'Task assigned',
       message: `You were assigned: ${updated.title}`,
+    })
+  }
+
+  if (nextFreelancerId && nextFreelancerId !== existing.assignedFreelancerId) {
+    await notifyFreelancerTaskAssigned(nextFreelancerId, {
+      title: 'Task assigned',
+      message: `You were assigned: ${updated.title}`,
+    })
+    await db.insert(auditLogs).values({
+      actorUserId: auth.userId,
+      action: 'freelancer.task_assigned',
+      entity: 'tasks',
+      entityId: taskId,
+      metadata: JSON.stringify({ freelancerId: nextFreelancerId }),
     })
   }
 

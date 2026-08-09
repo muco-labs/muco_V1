@@ -250,6 +250,25 @@ export const adminApi = {
       }),
     removeMember: (projectId: string, memberId: string) =>
       apiRequest(`${base}/projects/${projectId}/members/${memberId}`, { method: 'DELETE' }),
+    listFreelancers: (projectId: string) =>
+      apiRequest<{ items: unknown[] }>(`${base}/projects/${projectId}/freelancers`),
+    listFreelancerCandidates: (projectId: string, q?: string) => {
+      const search = new URLSearchParams()
+      if (q) search.set('q', q)
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[] }>(
+        `${base}/projects/${projectId}/freelancer-candidates${qs ? `?${qs}` : ''}`,
+      )
+    },
+    addFreelancer: (projectId: string, body: { freelancerId: string; role: string }) =>
+      apiRequest(`${base}/projects/${projectId}/freelancers`, { method: 'POST', json: body }),
+    updateFreelancerRole: (projectId: string, freelancerId: string, body: { role: string }) =>
+      apiRequest(`${base}/projects/${projectId}/freelancers/${freelancerId}`, {
+        method: 'PATCH',
+        json: body,
+      }),
+    removeFreelancer: (projectId: string, freelancerId: string) =>
+      apiRequest(`${base}/projects/${projectId}/freelancers/${freelancerId}`, { method: 'DELETE' }),
     applyTemplate: (projectId: string, templateId: string) =>
       apiRequest(`${base}/projects/${projectId}/apply-template`, {
         method: 'POST',

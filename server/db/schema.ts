@@ -326,6 +326,9 @@ export const tasks = pgTable(
     assignedEmployeeId: uuid('assigned_employee_id').references(() => employeeProfiles.id, {
       onDelete: 'set null',
     }),
+    assignedFreelancerId: uuid('assigned_freelancer_id').references(() => freelancerProfiles.id, {
+      onDelete: 'set null',
+    }),
     title: text('title').notNull(),
     description: text('description'),
     status: taskStatusEnum('status').notNull().default('todo'),
@@ -337,6 +340,7 @@ export const tasks = pgTable(
   (table) => [
     index('tasks_project_id_idx').on(table.projectId),
     index('tasks_assigned_employee_id_idx').on(table.assignedEmployeeId),
+    index('tasks_assigned_freelancer_id_idx').on(table.assignedFreelancerId),
     index('tasks_status_idx').on(table.status),
   ],
 )
@@ -1139,6 +1143,23 @@ export const freelancerInternalNotes = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('freelancer_internal_notes_freelancer_id_idx').on(table.freelancerId)],
+)
+
+export const projectFreelancers = pgTable(
+  'project_freelancers',
+  {
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    freelancerId: uuid('freelancer_id')
+      .notNull()
+      .references(() => freelancerProfiles.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.projectId, table.freelancerId] }),
+    index('project_freelancers_freelancer_id_idx').on(table.freelancerId),
+  ],
 )
 
 export const usersRelations = relations(users, ({ many }) => ({

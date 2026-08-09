@@ -54,6 +54,13 @@ import {
   updateProjectMemberRoleAdmin,
 } from '../../services/project-team.service.js'
 import {
+  addProjectFreelancerAdmin,
+  listProjectFreelancerCandidatesAdmin,
+  listProjectFreelancersDetailedAdmin,
+  removeProjectFreelancerAdmin,
+  updateProjectFreelancerRoleAdmin,
+} from '../../services/project-freelancer-assignment.service.js'
+import {
   getAdminConversation,
   listAdminConversations,
   markAdminConversationRead,
@@ -932,6 +939,7 @@ const projectTaskCreateSchema = z.object({
   description: z.string().max(8000).optional(),
   milestoneId: z.string().uuid().optional(),
   assignedEmployeeId: z.string().uuid().optional(),
+  assignedFreelancerId: z.string().uuid().optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
   dueDate: z.string().optional(),
 })
@@ -941,6 +949,7 @@ const projectTaskUpdateSchema = z.object({
   description: z.string().max(8000).nullable().optional(),
   milestoneId: z.string().uuid().nullable().optional(),
   assignedEmployeeId: z.string().uuid().nullable().optional(),
+  assignedFreelancerId: z.string().uuid().nullable().optional(),
   status: z.enum(['todo', 'in_progress', 'blocked', 'done', 'cancelled']).optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
   dueDate: z.string().nullable().optional(),
@@ -1331,6 +1340,104 @@ adminRoutes.delete(
       return jsonSuccess(
         c,
         await removeProjectMemberAdmin(auth, paramId(c), paramId(c, 'memberId')),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+const assignFreelancerSchema = z.object({
+  freelancerId: z.string().uuid(),
+  role: z.string().min(1).max(80),
+})
+
+const freelancerRoleSchema = z.object({
+  role: z.string().min(1).max(80),
+})
+
+adminRoutes.get('/projects/:id/freelancers', requirePermission('projects.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listProjectFreelancersDetailedAdmin(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get(
+  '/projects/:id/freelancer-candidates',
+  requirePermission('projects.assign'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(c, {
+        items: await listProjectFreelancerCandidatesAdmin(
+          auth,
+          paramId(c),
+          c.req.query('q') ?? undefined,
+        ),
+      })
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+adminRoutes.post('/projects/:id/freelancers', requirePermission('projects.assign'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = assignFreelancerSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid assignment.', 400)
+    return jsonSuccess(
+      c,
+      await addProjectFreelancerAdmin(
+        auth,
+        paramId(c),
+        parsed.data.freelancerId,
+        parsed.data.role,
+      ),
+      201,
+    )
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch(
+  '/projects/:id/freelancers/:freelancerId',
+  requirePermission('projects.assign'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const body = await c.req.json().catch(() => null)
+      const parsed = freelancerRoleSchema.safeParse(body)
+      if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid role.', 400)
+      return jsonSuccess(
+        c,
+        await updateProjectFreelancerRoleAdmin(
+          auth,
+          paramId(c),
+          paramId(c, 'freelancerId'),
+          parsed.data.role,
+        ),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+adminRoutes.delete(
+  '/projects/:id/freelancers/:freelancerId',
+  requirePermission('projects.assign'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(
+        c,
+        await removeProjectFreelancerAdmin(auth, paramId(c), paramId(c, 'freelancerId')),
       )
     } catch (error) {
       return handleRouteError(c, error)

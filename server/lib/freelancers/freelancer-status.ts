@@ -10,6 +10,25 @@ export function canFreelancerSetAvailability(input: {
   return input.verificationStatus === 'verified' && input.approvalStatus === 'approved'
 }
 
+const ELIGIBLE_FREELANCER_USER_STATUSES = new Set(['active', 'invited'])
+
+/** Phase 4.16/4.17: admin may assign only verified, approved, linked freelancers open to work. */
+export function isFreelancerEligibleForProjectAssignment(input: {
+  approvalStatus: string
+  verificationStatus: string
+  userId: string | null
+  userStatus: string
+  availabilityStatus: string
+  openToProjects: boolean
+}): boolean {
+  if (!canFreelancerSetAvailability(input)) return false
+  if (!input.userId) return false
+  if (!ELIGIBLE_FREELANCER_USER_STATUSES.has(input.userStatus)) return false
+  if (!input.openToProjects) return false
+  if (input.availabilityStatus !== 'available') return false
+  return true
+}
+
 export function canTransitionVerification(from: string, to: string): boolean {
   if (from === to) return true
   if (from === 'verified' && to === 'pending') return false

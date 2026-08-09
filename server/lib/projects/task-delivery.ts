@@ -60,6 +60,7 @@ export function serializeAdminProjectTask(row: {
   projectId: string
   milestoneId: string | null
   assignedEmployeeId: string | null
+  assignedFreelancerId?: string | null
   title: string
   description: string | null
   status: string
@@ -70,8 +71,13 @@ export function serializeAdminProjectTask(row: {
 }, extras?: {
   milestoneName?: string | null
   assigneeName?: string | null
+  assigneeType?: 'employee' | 'freelancer' | null
   overdue?: boolean
 }) {
+  const assigneeType =
+    extras?.assigneeType ??
+    (row.assignedEmployeeId ? 'employee' : row.assignedFreelancerId ? 'freelancer' : null)
+
   return {
     reference: formatTaskReference(row.id),
     id: row.id,
@@ -84,6 +90,8 @@ export function serializeAdminProjectTask(row: {
     statusLabel: presentTaskStatusLabel(row.status),
     priority: row.priority,
     assigneeEmployeeId: row.assignedEmployeeId,
+    assigneeFreelancerId: row.assignedFreelancerId ?? null,
+    assigneeType,
     assigneeName: extras?.assigneeName ?? null,
     dueDate: row.dueDate?.toISOString() ?? null,
     overdue: extras?.overdue ?? false,
