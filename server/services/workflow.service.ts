@@ -27,6 +27,15 @@ import {
   type ProjectTemplateId,
 } from '../lib/workflow/project-templates.js'
 import { recordLeadActivity } from './crm.service.js'
+import {
+  resolvePaymentReadinessForProposal,
+} from './project-delivery.service.js'
+import {
+  canTransitionProjectStatus,
+  initialProjectStatusFromPaymentReadiness,
+  isTerminalProjectStatus,
+  shouldNotifyProjectStartedOnProposalCreate,
+} from '../lib/projects/project-delivery.js'
 import { syncOverdueInvoices } from './payment.service.js'
 import { sendTransactionalEmail } from '../lib/email/send.js'
 
@@ -87,17 +96,21 @@ export async function createProjectFromProposal(
     throw new AppError('VALIDATION_ERROR', 'Invalid project phase.', 400)
   }
 
+  const paymentReadiness = await resolvePaymentReadinessForProposal(proposal)
+  const initialStatus = initialProjectStatusFromPaymentReadiness(paymentReadiness)
+
   const [project] = await db
     .insert(projects)
     .values({
       customerId: proposal.customerId,
       name: input?.name?.trim() || proposal.title || 'New project',
       description: proposal.scope ?? proposal.deliverables ?? null,
-      status: 'active',
+      status: initialStatus,
       service: proposal.title ?? null,
       operationalPhase: phase,
       leadId: proposal.leadId,
       proposalId: proposal.id,
+      startDate: initialStatus === 'active' ? new Date() : null,
     })
     .returning()
 
@@ -132,10 +145,13 @@ export async function createProjectFromProposal(
     await db.insert(notifications).values({
       userId: customerUser.userId,
       type: 'project.created',
-      title: 'Project started',
-      message: `Your project "${project.name}" has been created.`,
+      title: initialStatus === 'active' ? 'Project started' : 'Project created',
+      message:
+        initialStatus === 'active'
+          ? `Your project "${project.name}" has been created.`
+          : `Your project "${project.name}" has been created and is in planning.`,
     })
-    if (customerUser.email) {
+    if (customerUser.email && shouldNotifyProjectStartedOnProposalCreate(paymentReadiness)) {
       await sendTransactionalEmail('project_started', customerUser.email, { title: project.name })
     }
   }
@@ -158,6 +174,16 @@ export async function completeProjectWorkflow(actorUserId: string, projectId: st
 
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
   if (!project) throw new AppError('NOT_FOUND', 'Project not found.', 404)
+
+  if (project.status === 'completed') {
+    return project
+  }
+  if (isTerminalProjectStatus(project.status)) {
+    throw new AppError('CONFLICT', 'Cancelled projects cannot be completed.', 409)
+  }
+  if (!canTransitionProjectStatus(project.status, 'completed')) {
+    throw new AppError('CONFLICT', 'Project cannot be completed from its current status.', 409)
+  }
 
   const openTasks = await db
     .select({ c: count() })

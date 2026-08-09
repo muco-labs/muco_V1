@@ -15,24 +15,166 @@ import { AppError } from '../lib/errors.js'
 import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
 import { formatProjectReference } from '../lib/projects/project-reference.js'
 import {
-  canTransitionMilestoneStatus,
-  computeMilestoneProgressPercent,
-  milestoneDueHint,
-  presentCustomerMilestoneStatus,
-  type MilestoneDeliveryStatus,
-} from '../lib/projects/milestone-delivery.js'
-import {
   canResumeProjectDelivery,
   canStartProjectDelivery,
   canTransitionProjectStatus,
   CUSTOMER_VISIBLE_PROJECT_AUDIT_ACTIONS,
+  isTerminalProjectStatus,
 } from '../lib/projects/project-delivery.js'
-import { PROJECT_FULFILLMENT_STATUSES, type ProjectFulfillmentStatus } from '../lib/projects/project-fulfillment.js'
+import {
+  canTransitionMilestoneStatus,
+  computeMilestoneProgressPercent,
+  countOverdueMilestones,
+  customerOverdueWording,
+  milestoneDueHint,
+  pickCurrentMilestone,
+  pickNextMilestone,
+  presentCustomerMilestoneStatus,
+  sortMilestonesForDelivery,
+  type MilestoneDeliveryStatus,
+} from '../lib/projects/milestone-delivery.js'
+import { PROJECT_FULFILLMENT_STATUSES, presentCustomerProjectStatus, type ProjectFulfillmentStatus } from '../lib/projects/project-fulfillment.js'
 import { resolveProposalPayableTotal } from '../lib/payments/proposal-payment.js'
 import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission } from '../lib/auth/permissions.js'
 import { recordLeadActivity } from './crm.service.js'
 import { notifyCustomerProjectUpdate, notifyProjectDeliveryEvent } from './project-delivery-notify.js'
+
+export async function resolvePaymentReadinessForProposal(proposal: {
+  id: string
+  customerId: string | null
+}) {
+  if (!proposal.customerId) {
+    return {
+      paymentRequired: false,
+      paymentVerified: true,
+      proposalReference: formatProposalReference(proposal.id),
+      blockedReason: null as string | null,
+    }
+  }
+  return resolveProjectPaymentReadiness({
+    id: '',
+    proposalId: proposal.id,
+    customerId: proposal.customerId,
+  })
+}
+
+function assertProjectAllowsMilestoneMutation(projectStatus: string) {
+  if (isTerminalProjectStatus(projectStatus)) {
+    throw new AppError('CONFLICT', 'Milestones cannot be changed on a completed or cancelled project.', 409)
+  }
+}
+
+export async function enrichCustomerProjectListDelivery(
+  _project: typeof projects.$inferSelect,
+  milestoneRows: Array<typeof milestones.$inferSelect>,
+) {
+  const sorted = sortMilestonesForDelivery(milestoneRows)
+  const current = pickCurrentMilestone(sorted)
+  const next = pickNextMilestone(sorted, current)
+  const progressPercent = computeMilestoneProgressPercent(sorted)
+  const overdueCount = countOverdueMilestones(sorted)
+
+  return {
+    progressPercent,
+    overdueCount,
+    currentMilestone: current
+      ? {
+          name: current.name,
+          statusLabel: presentCustomerMilestoneStatus(current.status),
+          dueDate: current.dueDate?.toISOString() ?? null,
+          dueHint: milestoneDueHint(current.dueDate, current.status),
+          overdueNote: customerOverdueWording(milestoneDueHint(current.dueDate, current.status)),
+        }
+      : null,
+    nextMilestone: next
+      ? {
+          name: next.name,
+          statusLabel: presentCustomerMilestoneStatus(next.status),
+          dueDate: next.dueDate?.toISOString() ?? null,
+        }
+      : null,
+    milestonesSummary:
+      sorted.length === 0 ? ('none' as const) : progressPercent === 100 ? ('complete' as const) : ('in_progress' as const),
+  }
+}
+
+export function deriveAdminNextDeliveryAction(input: {
+  projectStatus: string
+  canStart: boolean
+  paymentVerified: boolean
+  paymentRequired: boolean
+  overdueCount: number
+  milestoneCount: number
+}): string {
+  if (isTerminalProjectStatus(input.projectStatus)) {
+    return 'No delivery actions — project is closed.'
+  }
+  if (input.canStart) {
+    return input.paymentRequired && !input.paymentVerified
+      ? 'Waiting for verified customer payment before start.'
+      : 'Start delivery when the team is ready.'
+  }
+  if (input.projectStatus === 'on_hold') {
+    return 'Resume the project when work can continue.'
+  }
+  if (input.milestoneCount === 0) {
+    return 'Add milestones to plan delivery.'
+  }
+  if (input.overdueCount > 0) {
+    return `${input.overdueCount} milestone(s) overdue — review and update status.`
+  }
+  return 'Advance milestones and keep the customer updated.'
+}
+
+export async function reorderProjectMilestoneAdmin(
+  auth: AuthContext,
+  projectId: string,
+  milestoneId: string,
+  direction: 'up' | 'down',
+) {
+  assertProjectsPermission(auth, 'projects.update')
+  const db = getDb()
+  if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+  if (!project) throw new AppError('NOT_FOUND', 'Project not found.', 404)
+  assertProjectAllowsMilestoneMutation(project.status)
+
+  const rows = await db
+    .select()
+    .from(milestones)
+    .where(eq(milestones.projectId, projectId))
+    .orderBy(asc(milestones.sortOrder))
+
+  const index = rows.findIndex((m) => m.id === milestoneId)
+  if (index < 0) throw new AppError('NOT_FOUND', 'Milestone not found on this project.', 404)
+
+  const swapIndex = direction === 'up' ? index - 1 : index + 1
+  if (swapIndex < 0 || swapIndex >= rows.length) {
+    return rows.map(serializeMilestoneAdmin)
+  }
+
+  const a = rows[index]
+  const b = rows[swapIndex]
+  await db.transaction(async (tx) => {
+    await tx.update(milestones).set({ sortOrder: b.sortOrder, updatedAt: new Date() }).where(eq(milestones.id, a.id))
+    await tx.update(milestones).set({ sortOrder: a.sortOrder, updatedAt: new Date() }).where(eq(milestones.id, b.id))
+  })
+
+  await recordProjectAudit(auth.userId, projectId, 'milestone.reordered', {
+    milestoneId,
+    direction,
+  })
+
+  const refreshed = await db
+    .select()
+    .from(milestones)
+    .where(eq(milestones.projectId, projectId))
+    .orderBy(asc(milestones.sortOrder))
+
+  return refreshed.map(serializeMilestoneAdmin)
+}
 
 function assertProjectsPermission(auth: AuthContext, permission: 'projects.view' | 'projects.update') {
   if (!hasPermission(auth.permissions, permission)) {
@@ -195,6 +337,19 @@ export async function getProjectDeliveryAdminExtras(auth: AuthContext, projectId
   }
 
   const timeline = await listProjectAuditTimeline(projectId, false)
+  const overdueCount = countOverdueMilestones(
+    milestoneRows.map((m) => ({ status: String(m.status), dueDate: m.dueDate ? new Date(m.dueDate) : null })),
+  )
+  const current = pickCurrentMilestone(
+    milestoneRows.map((m) => ({
+      status: String(m.status),
+      sortOrder: Number(m.sortOrder),
+      dueDate: m.dueDate ? new Date(m.dueDate) : null,
+      name: String(m.name),
+    })),
+  )
+  const canStart =
+    canStartProjectDelivery(project.status) && (!payment.paymentRequired || payment.paymentVerified)
 
   return {
     payment,
@@ -202,7 +357,17 @@ export async function getProjectDeliveryAdminExtras(auth: AuthContext, projectId
     milestones: milestoneRows,
     members,
     progressPercent,
-    canStart: canStartProjectDelivery(project.status) && (!payment.paymentRequired || payment.paymentVerified),
+    overdueCount,
+    currentMilestone: current ? { name: current.name, status: current.status } : null,
+    nextDeliveryAction: deriveAdminNextDeliveryAction({
+      projectStatus: project.status,
+      canStart,
+      paymentVerified: payment.paymentVerified,
+      paymentRequired: payment.paymentRequired,
+      overdueCount,
+      milestoneCount: milestoneRows.length,
+    }),
+    canStart,
     canResume: canResumeProjectDelivery(project.status),
     timeline,
   }
@@ -327,9 +492,12 @@ export async function createProjectMilestoneAdmin(
   input: { name: string; description?: string; dueDate?: string; sortOrder?: number },
 ) {
   assertProjectsPermission(auth, 'projects.update')
-  await loadProjectDeliveryContext(projectId)
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+  if (!project) throw new AppError('NOT_FOUND', 'Project not found.', 404)
+  assertProjectAllowsMilestoneMutation(project.status)
 
   const name = input.name.trim()
   if (name.length < 2) throw new AppError('VALIDATION_ERROR', 'Milestone name is required.', 400)
@@ -386,6 +554,10 @@ export async function updateProjectMilestoneAdmin(
   const [existing] = await db.select().from(milestones).where(eq(milestones.id, milestoneId)).limit(1)
   if (!existing) throw new AppError('NOT_FOUND', 'Milestone not found.', 404)
 
+  const [project] = await db.select().from(projects).where(eq(projects.id, existing.projectId)).limit(1)
+  if (!project) throw new AppError('NOT_FOUND', 'Project not found.', 404)
+  assertProjectAllowsMilestoneMutation(project.status)
+
   const patch: Partial<typeof milestones.$inferInsert> = { updatedAt: new Date() }
   if (input.name?.trim()) patch.name = input.name.trim()
   if (input.description !== undefined) patch.description = input.description?.trim() || null
@@ -427,12 +599,19 @@ export async function updateProjectMilestoneAdmin(
       name: updated.name,
     })
 
-    const [project] = await db.select().from(projects).where(eq(projects.id, existing.projectId)).limit(1)
-    if (project && input.status === 'completed') {
-      await notifyCustomerProjectUpdate(project.customerId, {
+    const [projectRow] = await db.select().from(projects).where(eq(projects.id, existing.projectId)).limit(1)
+    if (projectRow && input.status === 'completed') {
+      await notifyCustomerProjectUpdate(projectRow.customerId, {
         title: 'Milestone completed',
-        message: `Milestone "${updated.name}" is complete on ${project.name}.`,
+        message: `Milestone "${updated.name}" is complete on ${projectRow.name}.`,
         type: 'milestone.completed',
+      })
+    }
+    if (projectRow && input.status === 'in_progress') {
+      await notifyCustomerProjectUpdate(projectRow.customerId, {
+        title: 'Milestone in progress',
+        message: `Work has started on milestone "${updated.name}" for ${projectRow.name}.`,
+        type: 'milestone.started',
       })
     }
   }
@@ -457,6 +636,7 @@ function serializeMilestoneAdmin(row: typeof milestones.$inferSelect) {
 }
 
 export function serializeCustomerMilestone(row: typeof milestones.$inferSelect) {
+  const dueHint = milestoneDueHint(row.dueDate, row.status)
   return {
     key: `${row.sortOrder}-${row.name}`,
     name: row.name,
@@ -465,7 +645,8 @@ export function serializeCustomerMilestone(row: typeof milestones.$inferSelect) 
     statusLabel: presentCustomerMilestoneStatus(row.status),
     dueDate: row.dueDate?.toISOString() ?? null,
     completedAt: row.completedAt?.toISOString() ?? null,
-    dueHint: milestoneDueHint(row.dueDate, row.status),
+    dueHint,
+    overdueNote: customerOverdueWording(dueHint),
     sortOrder: row.sortOrder,
   }
 }
@@ -522,12 +703,11 @@ export async function enrichCustomerProjectDetail(
   milestoneRows: Array<typeof milestones.$inferSelect>,
 ) {
   const payment = await resolveProjectPaymentReadiness(project)
-  const progressPercent = computeMilestoneProgressPercent(milestoneRows)
-  const sorted = [...milestoneRows].sort((a, b) => a.sortOrder - b.sortOrder || (a.dueDate?.getTime() ?? 0) - (b.dueDate?.getTime() ?? 0))
-  const current =
-    sorted.find((m) => m.status === 'in_progress') ??
-    sorted.find((m) => m.status === 'planned') ??
-    null
+  const sorted = sortMilestonesForDelivery(milestoneRows)
+  const current = pickCurrentMilestone(sorted)
+  const next = pickNextMilestone(sorted, current)
+  const progressPercent = computeMilestoneProgressPercent(sorted)
+  const overdueCount = countOverdueMilestones(sorted)
 
   let proposalReference: string | null = null
   if (project.proposalId) {
@@ -535,12 +715,33 @@ export async function enrichCustomerProjectDetail(
   }
 
   const activities = await listProjectAuditTimeline(project.id, true)
+  const lastUpdate = activities[0] ?? null
+
+  let customerNextAction: string | null = null
+  if (isTerminalProjectStatus(project.status)) {
+    customerNextAction = presentCustomerProjectStatus(project.status).nextStep
+  } else if (project.status === 'draft') {
+    customerNextAction = payment.paymentRequired && !payment.paymentVerified
+      ? 'Complete payment for your accepted proposal to unlock delivery.'
+      : 'Your project is being prepared for delivery.'
+  } else if (current) {
+    customerNextAction =
+      milestoneDueHint(current.dueDate, current.status) === 'overdue'
+        ? `Current milestone: ${current.name}. Your team is working through the updated timeline.`
+        : `Current milestone: ${current.name}.`
+  } else if (sorted.length === 0) {
+    customerNextAction = 'Milestones will appear as your project progresses.'
+  }
 
   return {
     paymentReadiness: payment,
     proposalReference,
     progressPercent,
+    overdueCount,
     currentMilestone: current ? serializeCustomerMilestone(current) : null,
+    nextMilestone: next ? serializeCustomerMilestone(next) : null,
+    lastUpdate,
+    customerNextAction,
     activities,
   }
 }

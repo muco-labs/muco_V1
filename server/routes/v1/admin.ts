@@ -105,6 +105,7 @@ import {
 } from '../../services/project-fulfillment.service.js'
 import {
   createProjectMilestoneAdmin,
+  reorderProjectMilestoneAdmin,
   startProjectDeliveryAdmin,
   updateProjectMilestoneAdmin,
 } from '../../services/project-delivery.service.js'
@@ -910,6 +911,36 @@ adminRoutes.patch('/milestones/:id', requirePermission('projects.update'), async
     return handleRouteError(c, error)
   }
 })
+
+const milestoneReorderSchema = z.object({
+  direction: z.enum(['up', 'down']),
+})
+
+adminRoutes.post(
+  '/projects/:id/milestones/:milestoneId/reorder',
+  requirePermission('projects.update'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const body = await c.req.json().catch(() => null)
+      const parsed = milestoneReorderSchema.safeParse(body)
+      if (!parsed.success) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid reorder request.', 400, formatZodErrors(parsed.error))
+      }
+      const projectId = paramId(c)
+      const milestoneId = c.req.param('milestoneId')
+      if (!milestoneId) {
+        throw new AppError('VALIDATION_ERROR', 'Milestone id is required.', 400)
+      }
+      return jsonSuccess(
+        c,
+        await reorderProjectMilestoneAdmin(auth, projectId, milestoneId, parsed.data.direction),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
 
 adminRoutes.post('/leads/:id/create-project', requirePermission('projects.create'), async (c) => {
   try {

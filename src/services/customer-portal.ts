@@ -10,6 +10,15 @@ export type CustomerDashboard = {
     status: string
     statusLabel?: string
     updatedAt: string
+    progressPercent?: number | null
+    currentMilestone?: {
+      name: string
+      statusLabel: string
+      dueDate: string | null
+      dueHint?: string | null
+      overdueNote?: string | null
+    } | null
+    milestonesSummary?: 'none' | 'in_progress' | 'complete'
   }>
   planningProjects?: Array<{
     id: string
@@ -18,6 +27,12 @@ export type CustomerDashboard = {
     status: string
     statusLabel?: string
     updatedAt: string
+    progressPercent?: number | null
+    currentMilestone?: {
+      name: string
+      statusLabel: string
+      dueDate: string | null
+    } | null
   }>
   recentProjects: Array<{
     id: string

@@ -537,6 +537,8 @@ export function AdminProjectDetailPage() {
   const proposal = data.proposal as Record<string, unknown> | null | undefined
   const progressPercent = data.progressPercent as number | null | undefined
   const canStart = Boolean(data.canStart)
+  const overdueCount = Number(data.overdueCount ?? 0)
+  const nextDeliveryAction = data.nextDeliveryAction ? String(data.nextDeliveryAction) : null
   const currentStatus = String(project.status ?? 'draft')
   const displayStatus = statusDraft || currentStatus
 
@@ -609,6 +611,16 @@ export function AdminProjectDetailPage() {
     }
   }
 
+  async function reorderMilestone(milestoneId: string, direction: 'up' | 'down') {
+    if (!canUpdate) return
+    try {
+      await adminApi.projects.reorderMilestone(id, milestoneId, direction)
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not reorder milestone')
+    }
+  }
+
   return (
     <>
       <PageIntro
@@ -638,6 +650,16 @@ export function AdminProjectDetailPage() {
           <Link className="link-underline" to={adminPortalPaths.proposalDetail(String(proposal.id))}>
             Proposal {String(proposal.reference)}
           </Link>
+        </p>
+      ) : null}
+      {overdueCount > 0 ? (
+        <p className={ui.meta} role="status">
+          {overdueCount} overdue milestone{overdueCount === 1 ? '' : 's'}
+        </p>
+      ) : null}
+      {nextDeliveryAction ? (
+        <p className={ui.meta}>
+          <strong>Next delivery action:</strong> {nextDeliveryAction}
         </p>
       ) : null}
       <dl className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
@@ -699,6 +721,12 @@ export function AdminProjectDetailPage() {
                 ) : null}
                 {canUpdate ? (
                   <div className={ui.actionsRow}>
+                    <Button type="button" variant="ghost" onClick={() => void reorderMilestone(String(m.id), 'up')}>
+                      Move up
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => void reorderMilestone(String(m.id), 'down')}>
+                      Move down
+                    </Button>
                     {m.status === 'planned' ? (
                       <Button type="button" variant="secondary" onClick={() => void setMilestoneStatus(String(m.id), 'in_progress')}>
                         Start

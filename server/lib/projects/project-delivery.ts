@@ -27,3 +27,24 @@ export const CUSTOMER_VISIBLE_PROJECT_AUDIT_ACTIONS = new Set([
   'milestone.started',
   'milestone.completed',
 ])
+
+export const TERMINAL_PROJECT_STATUSES = new Set(['completed', 'cancelled'])
+
+export function isTerminalProjectStatus(status: string): boolean {
+  return TERMINAL_PROJECT_STATUSES.has(status)
+}
+
+export function initialProjectStatusFromPaymentReadiness(readiness: {
+  paymentRequired: boolean
+  paymentVerified: boolean
+}): 'draft' | 'active' {
+  if (readiness.paymentRequired) return 'draft'
+  return 'active'
+}
+
+export function shouldNotifyProjectStartedOnProposalCreate(readiness: {
+  paymentRequired: boolean
+  paymentVerified: boolean
+}): boolean {
+  return !readiness.paymentRequired
+}

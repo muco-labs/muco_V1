@@ -210,6 +210,11 @@ export const adminApi = {
       apiRequest(`${base}/projects/${projectId}/milestones`, { method: 'POST', json: body }),
     updateMilestone: (milestoneId: string, body: Record<string, unknown>) =>
       apiRequest(`${base}/milestones/${milestoneId}`, { method: 'PATCH', json: body }),
+    reorderMilestone: (projectId: string, milestoneId: string, direction: 'up' | 'down') =>
+      apiRequest(`${base}/projects/${projectId}/milestones/${milestoneId}/reorder`, {
+        method: 'POST',
+        json: { direction },
+      }),
   },
   tasks: {
     list: (projectId?: string) =>

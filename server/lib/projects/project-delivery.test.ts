@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canStartProjectDelivery, canTransitionProjectStatus } from './project-delivery.js'
+import { canStartProjectDelivery, canTransitionProjectStatus, initialProjectStatusFromPaymentReadiness, isTerminalProjectStatus } from './project-delivery.js'
 
 describe('canTransitionProjectStatus', () => {
   it('allows draft to active', () => {
@@ -19,5 +19,29 @@ describe('canStartProjectDelivery', () => {
   it('only allows draft', () => {
     expect(canStartProjectDelivery('draft')).toBe(true)
     expect(canStartProjectDelivery('active')).toBe(false)
+  })
+})
+
+describe('initialProjectStatusFromPaymentReadiness', () => {
+  it('keeps payment-required projects in planning', () => {
+    expect(initialProjectStatusFromPaymentReadiness({ paymentRequired: true, paymentVerified: true })).toBe(
+      'draft',
+    )
+    expect(initialProjectStatusFromPaymentReadiness({ paymentRequired: true, paymentVerified: false })).toBe(
+      'draft',
+    )
+  })
+
+  it('allows active creation when no payment is required', () => {
+    expect(initialProjectStatusFromPaymentReadiness({ paymentRequired: false, paymentVerified: true })).toBe(
+      'active',
+    )
+  })
+})
+
+describe('isTerminalProjectStatus', () => {
+  it('detects completed and cancelled', () => {
+    expect(isTerminalProjectStatus('completed')).toBe(true)
+    expect(isTerminalProjectStatus('active')).toBe(false)
   })
 })

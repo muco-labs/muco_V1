@@ -3,6 +3,8 @@ import {
   canTransitionMilestoneStatus,
   computeMilestoneProgressPercent,
   milestoneDueHint,
+  pickCurrentMilestone,
+  pickNextMilestone,
 } from './milestone-delivery.js'
 
 describe('canTransitionMilestoneStatus', () => {
@@ -40,5 +42,28 @@ describe('milestoneDueHint', () => {
 
   it('marks past due dates as overdue', () => {
     expect(milestoneDueHint(new Date('2026-06-01'), 'planned', now)).toBe('overdue')
+  })
+})
+
+describe('pickCurrentMilestone', () => {
+  it('prefers in_progress over planned', () => {
+    const current = pickCurrentMilestone([
+      { status: 'planned', sortOrder: 0 },
+      { status: 'in_progress', sortOrder: 1 },
+    ])
+    expect(current?.sortOrder).toBe(1)
+  })
+})
+
+describe('pickNextMilestone', () => {
+  it('returns the next open milestone', () => {
+    const rows = [
+      { status: 'completed', sortOrder: 0 },
+      { status: 'in_progress', sortOrder: 1 },
+      { status: 'planned', sortOrder: 2 },
+    ]
+    const current = pickCurrentMilestone(rows)
+    const next = pickNextMilestone(rows, current)
+    expect(next?.sortOrder).toBe(2)
   })
 })

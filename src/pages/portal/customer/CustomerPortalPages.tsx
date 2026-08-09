@@ -118,6 +118,9 @@ export function CustomerProjectDetailPage() {
   const nextStep = project.nextStep ? String(project.nextStep) : null
   const proposalReference = data.proposalReference ? String(data.proposalReference) : null
   const currentMilestone = data.currentMilestone as Record<string, unknown> | null | undefined
+  const nextMilestone = data.nextMilestone as Record<string, unknown> | null | undefined
+  const customerNextAction = data.customerNextAction ? String(data.customerNextAction) : null
+  const lastUpdate = data.lastUpdate as Record<string, unknown> | null | undefined
   const activities = (data.activities as Array<Record<string, unknown>>) ?? []
 
   return (
@@ -147,6 +150,16 @@ export function CustomerProjectDetailPage() {
       {nextStep ? (
         <p className={ui.meta}>
           <strong>Next step:</strong> {nextStep}
+        </p>
+      ) : null}
+      {customerNextAction ? (
+        <p className={ui.meta} role="status">
+          <strong>Your next action:</strong> {customerNextAction}
+        </p>
+      ) : null}
+      {lastUpdate ? (
+        <p className={ui.meta}>
+          Last update: {new Date(String(lastUpdate.createdAt)).toLocaleString()}
         </p>
       ) : null}
       {project.description ? <p style={{ marginTop: 'var(--space-4)' }}>{String(project.description)}</p> : null}
@@ -189,6 +202,14 @@ export function CustomerProjectDetailPage() {
         <p className={ui.meta} role="status" style={{ marginTop: 'var(--space-4)' }}>
           <strong>Current milestone:</strong> {String(currentMilestone.name)} (
           {String(currentMilestone.statusLabel ?? currentMilestone.status)})
+          {currentMilestone.overdueNote ? (
+            <span> · {String(currentMilestone.overdueNote)}</span>
+          ) : null}
+        </p>
+      ) : null}
+      {nextMilestone ? (
+        <p className={ui.meta}>
+          <strong>Up next:</strong> {String(nextMilestone.name)}
         </p>
       ) : null}
 

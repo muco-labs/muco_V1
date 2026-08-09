@@ -35,6 +35,7 @@ import { serializeCustomerProjectSummary } from './project-fulfillment.service.j
 import { recordCustomerProposalView, serializeCustomerProposal } from './proposal-fulfillment.service.js'
 import {
   enrichCustomerProjectDetail,
+  enrichCustomerProjectListDelivery,
   serializeCustomerMilestone,
 } from './project-delivery.service.js'
 import { computeMilestoneProgressPercent } from '../lib/projects/milestone-delivery.js'
@@ -222,16 +223,27 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
     .from(notifications)
     .where(and(eq(notifications.userId, ctx.userId), eq(notifications.read, false)))
 
+  async function withDelivery(project: typeof projects.$inferSelect) {
+    if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service is temporarily unavailable.', 503)
+    const ms = await db
+      .select()
+      .from(milestones)
+      .where(eq(milestones.projectId, project.id))
+    const delivery = await enrichCustomerProjectListDelivery(project, ms)
+    return {
+      ...serializeCustomerProjectSummary(project),
+      ...delivery,
+    }
+  }
+
+  const enrichedRecent = await Promise.all(projectRows.map((p) => withDelivery(p)))
+
   return {
     welcomeName: ctx.fullName ?? ctx.email,
     companyName: profile?.companyName ?? null,
-    activeProjects: projectRows
-      .filter((p) => p.status === 'active')
-      .map(serializeCustomerProjectSummary),
-    planningProjects: projectRows
-      .filter((p) => p.status === 'draft')
-      .map(serializeCustomerProjectSummary),
-    recentProjects: projectRows.map(serializeCustomerProjectSummary),
+    activeProjects: enrichedRecent.filter((p) => p.status === 'active'),
+    planningProjects: enrichedRecent.filter((p) => p.status === 'draft'),
+    recentProjects: enrichedRecent,
     pendingApprovals: pendingProposalsMapped,
     outstandingInvoices,
     recentPayments,
@@ -349,9 +361,13 @@ export async function getCustomerProjectDetail(ctx: CustomerContext, projectId: 
     milestones: milestoneRows.map((m) => serializeCustomerMilestone(m)),
     progressPercent: delivery.progressPercent,
     currentMilestone: delivery.currentMilestone,
+    nextMilestone: delivery.nextMilestone,
     proposalReference: delivery.proposalReference,
     paymentReadiness: delivery.paymentReadiness,
     activities: delivery.activities,
+    lastUpdate: delivery.lastUpdate,
+    customerNextAction: delivery.customerNextAction,
+    overdueCount: delivery.overdueCount,
   }
 }
 

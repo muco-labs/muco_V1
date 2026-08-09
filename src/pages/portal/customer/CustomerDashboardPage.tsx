@@ -109,6 +109,13 @@ export function CustomerDashboardPage() {
                   </Link>
                   <StatusPill status={p.statusLabel ?? p.status} />
                   <span className={ui.meta}>Planning</span>
+                  {p.currentMilestone ? (
+                    <span className={ui.meta}>
+                      Current: {p.currentMilestone.name} ({p.currentMilestone.statusLabel})
+                    </span>
+                  ) : (
+                    <span className={ui.meta}>Milestones will appear as your project progresses.</span>
+                  )}
                 </li>
               ))}
               {data.activeProjects.map((p) => (
@@ -118,6 +125,19 @@ export function CustomerDashboardPage() {
                     {p.name}
                   </Link>
                   <StatusPill status={p.statusLabel ?? p.status} />
+                  {p.progressPercent != null ? (
+                    <span className={ui.meta} aria-label={`Progress ${p.progressPercent} percent`}>
+                      Progress {p.progressPercent}%
+                    </span>
+                  ) : null}
+                  {p.currentMilestone ? (
+                    <span className={ui.meta}>
+                      Current: {p.currentMilestone.name} ({p.currentMilestone.statusLabel})
+                      {p.currentMilestone.overdueNote ? ` · ${p.currentMilestone.overdueNote}` : ''}
+                    </span>
+                  ) : p.milestonesSummary === 'none' ? (
+                    <span className={ui.meta}>Milestones will appear as your project progresses.</span>
+                  ) : null}
                 </li>
               ))}
             </ul>
