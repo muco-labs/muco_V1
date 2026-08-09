@@ -1,4 +1,5 @@
 import { env } from '@/config/env'
+import { buildAuthRedirectUrl } from '@/lib/auth/auth-redirect-url'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
 import type { User } from '@supabase/supabase-js'
@@ -6,13 +7,11 @@ import type { User } from '@supabase/supabase-js'
 export type OAuthProvider = 'google' | 'github'
 
 function redirectUrl(path: string): string | undefined {
-  if (env.authRedirectUrl) {
-    return `${env.authRedirectUrl.replace(/\/$/, '')}${path}`
-  }
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}${path}`
-  }
-  return undefined
+  return buildAuthRedirectUrl(
+    path,
+    env.authRedirectUrl,
+    typeof window !== 'undefined' ? window.location.origin : undefined,
+  )
 }
 
 export async function signUpCustomer(input: {

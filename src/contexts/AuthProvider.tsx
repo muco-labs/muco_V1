@@ -87,13 +87,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: subscription } = client.auth.onAuthStateChange(onAuthEvent)
 
-    void client.auth.initialize().then((init) => {
+    void client.auth.initialize().then(async (init) => {
+      const { data: sessionData } = await client.auth.getSession()
       logAuthDiag('supabase_initialize', {
         initializeSucceeded: !init.error,
         initializeErrorName: init.error?.name ?? null,
         initializeErrorMessage: init.error?.message ?? null,
-        sessionExists: Boolean(init.data.session),
-        sessionUserIdExists: Boolean(init.data.session?.user?.id),
+        sessionExists: Boolean(sessionData.session),
+        sessionUserIdExists: Boolean(sessionData.session?.user?.id),
         urlHasOAuthCode:
           typeof window !== 'undefined' &&
           new URLSearchParams(window.location.search).has('code'),
