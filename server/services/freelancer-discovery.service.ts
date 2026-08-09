@@ -90,6 +90,7 @@ export async function discoverFreelancersAdmin(auth: AuthContext, input: Discove
     id: string
     title: string
     assignedFreelancerId: string | null
+    assignedEmployeeId: string | null
     status: string
   } | null = null
 
@@ -100,6 +101,7 @@ export async function discoverFreelancersAdmin(auth: AuthContext, input: Discove
         projectId: tasks.projectId,
         title: tasks.title,
         assignedFreelancerId: tasks.assignedFreelancerId,
+        assignedEmployeeId: tasks.assignedEmployeeId,
         status: tasks.status,
       })
       .from(tasks)
@@ -334,10 +336,11 @@ export async function discoverFreelancersAdmin(auth: AuthContext, input: Discove
     const onProject = projectMembership.has(profile.freelancerId)
     const currentTaskAssignee =
       taskContext?.assignedFreelancerId === profile.freelancerId
-    const taskHasOtherAssignee = Boolean(
+    const taskHasOtherFreelancer = Boolean(
       taskContext?.assignedFreelancerId &&
         taskContext.assignedFreelancerId !== profile.freelancerId,
     )
+    const taskHasEmployeeAssignee = Boolean(taskContext?.assignedEmployeeId)
 
     const matchTier = resolveDiscoveryMatchTier({
       serviceMatch,
@@ -355,7 +358,7 @@ export async function discoverFreelancersAdmin(auth: AuthContext, input: Discove
       blockedTaskCount: workload.blockedTaskCount,
       onProject,
       currentTaskAssignee,
-      taskHasOtherAssignee,
+      taskHasOtherAssignee: taskHasOtherFreelancer,
     })
 
     return {
@@ -393,7 +396,10 @@ export async function discoverFreelancersAdmin(auth: AuthContext, input: Discove
         currentTaskAssignee,
         canAssignToProject: !onProject,
         canAssignToTask:
-          onProject && !currentTaskAssignee && !taskHasOtherAssignee,
+          onProject &&
+          !currentTaskAssignee &&
+          !taskHasOtherFreelancer &&
+          !taskHasEmployeeAssignee,
       },
       _sort: {
         matchTier,
@@ -421,7 +427,13 @@ export async function discoverFreelancersAdmin(auth: AuthContext, input: Discove
 
 function buildResponseContext(
   project: { id: string; name: string; service: string | null; status: string } | null,
-  task: { id: string; title: string; status: string } | null,
+  task: {
+    id: string
+    title: string
+    status: string
+    assignedFreelancerId: string | null
+    assignedEmployeeId: string | null
+  } | null,
   serviceSlug: string | null,
   skillSlug: string | null,
 ) {
@@ -435,6 +447,8 @@ function buildResponseContext(
     taskId: task?.id ?? null,
     taskTitle: task?.title ?? null,
     taskStatus: task?.status ?? null,
+    taskAssigneeFreelancerId: task?.assignedFreelancerId ?? null,
+    taskAssigneeEmployeeId: task?.assignedEmployeeId ?? null,
     skillSlug,
     skillLabel:
       serviceSlug && skillSlug ? resolveSkillSlug(serviceSlug, skillSlug)?.label ?? null : null,

@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { EmptyState, ListSkeleton, PortalError } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
+import { ApiError } from '@/services/api'
 import { adminPortalPaths } from '@/config/admin-portal'
 import {
   PROJECT_MEMBER_ROLES,
@@ -50,6 +52,8 @@ type DiscoveryCandidate = {
   }
 }
 
+type PendingAction = 'project' | 'task'
+
 type Props = {
   projectId?: string
   taskId?: string
@@ -57,6 +61,11 @@ type Props = {
   canAssignProject: boolean
   canAssignTask: boolean
   onAssigned?: () => void
+}
+
+function formatApiError(error: unknown, fallback: string): string {
+  if (error instanceof ApiError && error.message) return error.message
+  return fallback
 }
 
 export function AdminFreelancerDiscoveryPanel({
@@ -74,6 +83,8 @@ export function AdminFreelancerDiscoveryPanel({
   const [projectRole, setProjectRole] = useState('developer')
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [selectedCandidate, setSelectedCandidate] = useState<DiscoveryCandidate | null>(null)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
 
   const catalogFetch = useFetch(() => adminApi.freelancers.serviceCatalog(), [])
   const catalog = (catalogFetch.data?.items as CatalogService[]) ?? []
@@ -101,38 +112,49 @@ export function AdminFreelancerDiscoveryPanel({
   const context = data?.context as Record<string, unknown> | undefined
   const hint = data?.hint as string | undefined
 
-  async function assignProject(candidate: DiscoveryCandidate) {
-    if (!projectId || !canAssignProject) return
-    setBusy(true)
+  function openConfirm(candidate: DiscoveryCandidate, action: PendingAction) {
+    setSelectedCandidate(candidate)
+    setPendingAction(action)
     setMessage(null)
-    try {
-      await adminApi.projects.addFreelancer(projectId, {
-        freelancerId: candidate.freelancerId,
-        role: projectRole,
-      })
-      setMessage(`${candidate.displayName} assigned to project.`)
-      onAssigned?.()
-      await reload()
-    } catch {
-      setMessage('Could not assign to project. Check eligibility and availability.')
-    } finally {
-      setBusy(false)
-    }
   }
 
-  async function assignTask(candidate: DiscoveryCandidate) {
-    if (!projectId || !taskId || !canAssignTask) return
+  function closeConfirm() {
+    if (busy) return
+    setSelectedCandidate(null)
+    setPendingAction(null)
+  }
+
+  async function confirmAssignment() {
+    if (!selectedCandidate || !pendingAction || !projectId) return
     setBusy(true)
     setMessage(null)
     try {
-      await adminApi.projects.updateTask(projectId, taskId, {
-        assignedFreelancerId: candidate.freelancerId,
-      })
-      setMessage(`${candidate.displayName} assigned to task.`)
+      if (pendingAction === 'project') {
+        if (!canAssignProject) return
+        await adminApi.projects.addFreelancer(projectId, {
+          freelancerId: selectedCandidate.freelancerId,
+          role: projectRole,
+        })
+        setMessage(`${selectedCandidate.displayName} assigned to project.`)
+      } else {
+        if (!canAssignTask || !taskId) return
+        await adminApi.projects.updateTask(projectId, taskId, {
+          assignedFreelancerId: selectedCandidate.freelancerId,
+        })
+        setMessage(`${selectedCandidate.displayName} assigned to task.`)
+      }
+      closeConfirm()
       onAssigned?.()
       await reload()
-    } catch {
-      setMessage('Could not assign task. Freelancer must be on the project and available.')
+    } catch (err) {
+      setMessage(
+        formatApiError(
+          err,
+          pendingAction === 'project'
+            ? 'Could not assign to project. Eligibility may have changed.'
+            : 'Could not assign task. Freelancer must be on the project and available.',
+        ),
+      )
     } finally {
       setBusy(false)
     }
@@ -143,6 +165,8 @@ export function AdminFreelancerDiscoveryPanel({
     void reload()
   }
 
+  const confirmOpen = Boolean(selectedCandidate && pendingAction)
+
   if (catalogFetch.loading) return <ListSkeleton rows={2} />
   if (catalogFetch.error) return <PortalError message={catalogFetch.error} onRetry={catalogFetch.reload} />
 
@@ -151,6 +175,10 @@ export function AdminFreelancerDiscoveryPanel({
       <h2 id="fl-discover-heading" className="text-h3">
         Find freelancer
       </h2>
+      <p className={ui.meta}>
+        Candidates are not assigned until you review and confirm. Final checks run on the server
+        when you confirm.
+      </p>
       {context?.projectName ? (
         <p className={ui.meta}>
           Project: {String(context.projectName)}
@@ -243,7 +271,7 @@ export function AdminFreelancerDiscoveryPanel({
           {items.map((c) => (
             <li key={c.freelancerId} className={`surface ${ui.dataCard}`}>
               <strong>{c.displayName}</strong>
-              <span className={ui.meta}> · {c.reference}</span>
+              <span className={ui.meta}> · {c.reference} · Candidate</span>
               <p className={ui.meta}>
                 {c.professionalRole} · {c.availabilityStatusLabel} · {c.matchSummary}
               </p>
@@ -295,32 +323,116 @@ export function AdminFreelancerDiscoveryPanel({
                     <Button
                       type="button"
                       disabled={busy || !c.assignment.canAssignToProject}
-                      onClick={() => void assignProject(c)}
+                      onClick={() => openConfirm(c, 'project')}
                     >
-                      Assign to project
+                      Select for project
                     </Button>
                   </>
                 ) : null}
                 {taskId && c.assignment.currentTaskAssignee ? (
-                  <span className={ui.meta}>Currently assigned</span>
+                  <span className={ui.meta}>Currently assigned to this task</span>
                 ) : taskId && canAssignTask ? (
                   <Button
                     type="button"
                     variant="secondary"
                     disabled={busy || !c.assignment.canAssignToTask}
-                    onClick={() => void assignTask(c)}
+                    onClick={() => openConfirm(c, 'task')}
                   >
-                    Assign to task
+                    Select for task
                   </Button>
                 ) : null}
                 {taskId && !c.assignment.onProject && canAssignTask ? (
                   <span className={ui.meta}>Add to project before task assignment</span>
+                ) : null}
+                {taskId && context?.taskAssigneeEmployeeId ? (
+                  <span className={ui.meta}>
+                    Task has an employee assignee — change assignee from the task row to replace.
+                  </span>
                 ) : null}
               </div>
             </li>
           ))}
         </ul>
       ) : null}
+
+      <Modal
+        open={confirmOpen}
+        onClose={closeConfirm}
+        title={pendingAction === 'task' ? 'Confirm task assignment' : 'Confirm project assignment'}
+      >
+        {selectedCandidate ? (
+          <div className={ui.stack}>
+            <p id="assign-confirm-desc" className={ui.meta}>
+              Review details below. Assignment is not saved until you confirm.
+            </p>
+            <dl className={ui.meta}>
+              <div>
+                <dt>Freelancer</dt>
+                <dd>
+                  {selectedCandidate.displayName} ({selectedCandidate.reference})
+                </dd>
+              </div>
+              {context?.projectName ? (
+                <div>
+                  <dt>Project</dt>
+                  <dd>{String(context.projectName)}</dd>
+                </div>
+              ) : null}
+              {pendingAction === 'task' && context?.taskTitle ? (
+                <div>
+                  <dt>Task</dt>
+                  <dd>{String(context.taskTitle)}</dd>
+                </div>
+              ) : null}
+              {pendingAction === 'project' ? (
+                <div>
+                  <dt>Project role</dt>
+                  <dd>{presentProjectMemberRoleLabel(projectRole)}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>Availability</dt>
+                <dd>{selectedCandidate.availabilityStatusLabel}</dd>
+              </div>
+              <div>
+                <dt>Service match</dt>
+                <dd>{selectedCandidate.serviceMatch ? 'Yes' : 'No'}</dd>
+              </div>
+              <div>
+                <dt>Skill match</dt>
+                <dd>
+                  {selectedCandidate.skillMatch === null
+                    ? 'Not required'
+                    : selectedCandidate.skillMatch
+                      ? 'Yes'
+                      : 'No'}
+                </dd>
+              </div>
+              <div>
+                <dt>Active tasks</dt>
+                <dd>{selectedCandidate.workload.activeTaskCount}</dd>
+              </div>
+              <div>
+                <dt>Overdue tasks</dt>
+                <dd>{selectedCandidate.workload.overdueTaskCount}</dd>
+              </div>
+            </dl>
+            <div className={ui.actionsRow}>
+              <Button type="button" variant="ghost" disabled={busy} onClick={closeConfirm}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={busy}
+                aria-describedby="assign-confirm-desc"
+                onClick={() => void confirmAssignment()}
+              >
+                {busy ? 'Assigning…' : 'Confirm assignment'}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
     </section>
   )
 }
