@@ -4,6 +4,7 @@ import { portalOrigins } from '@/config/hosts'
 export const authRoutes = {
   signIn: '/auth/sign-in',
   signUp: '/auth/sign-up',
+  callback: '/auth/callback',
   forgotPassword: '/auth/forgot-password',
   resetPassword: '/auth/reset-password',
   verifyEmail: '/auth/verify-email',
@@ -19,7 +20,8 @@ export const portalRoutes = {
 } as const
 
 export const authCopy = {
-  signInTitle: 'Customer sign in',
+  brandLabel: 'MUCO LABS',
+  signInTitle: 'Welcome back',
   signUpTitle: 'Create your account',
   teamSignInTitle: 'Team sign in',
   adminSignInTitle: 'Admin sign in',

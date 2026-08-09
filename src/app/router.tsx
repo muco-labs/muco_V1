@@ -63,6 +63,7 @@ const ErodeLocalServicePage = lazyPage(
 )
 const AuthSignInPage = lazyPage(() => import('@/pages/AuthSignInPage'), 'AuthSignInPage')
 const AuthSignUpPage = lazyPage(() => import('@/pages/AuthSignUpPage'), 'AuthSignUpPage')
+const AuthCallbackPage = lazyPage(() => import('@/pages/AuthCallbackPage'), 'AuthCallbackPage')
 const AuthForgotPasswordPage = lazyPage(
   () => import('@/pages/AuthForgotPasswordPage'),
   'AuthForgotPasswordPage',
@@ -307,6 +308,7 @@ export const router = createBrowserRouter([
       { path: 'products/client-hub', element: <ClientHubProductPage /> },
       { path: 'auth/sign-in', element: <AuthSignInPage /> },
       { path: 'auth/sign-up', element: <AuthSignUpPage /> },
+      { path: 'auth/callback', element: <AuthCallbackPage /> },
       { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },
       { path: 'auth/reset-password', element: <AuthResetPasswordPage /> },
       { path: 'auth/verify-email', element: <AuthVerifyEmailPage /> },

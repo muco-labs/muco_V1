@@ -1,6 +1,9 @@
 import { env } from '@/config/env'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
+import type { User } from '@supabase/supabase-js'
+
+export type OAuthProvider = 'google' | 'github'
 
 function redirectUrl(path: string): string | undefined {
   if (env.authRedirectUrl) {
@@ -69,6 +72,36 @@ export async function signInWithPassword(email: string, password: string) {
     password,
   })
   if (error) throw error
+}
+
+export async function signInWithOAuth(provider: OAuthProvider) {
+  const client = getSupabaseClient()
+  if (!client) {
+    throw new Error('Authentication is not configured.')
+  }
+
+  const { error } = await client.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: redirectUrl('/auth/callback'),
+    },
+  })
+  if (error) throw error
+}
+
+/** Provisions CUSTOMER profile for first-time OAuth users (server assigns role). */
+export async function ensureCustomerRegistrationFromOAuthUser(user: User) {
+  const meta = user.user_metadata ?? {}
+  const fullName =
+    (typeof meta.full_name === 'string' && meta.full_name.trim()) ||
+    (typeof meta.name === 'string' && meta.name.trim()) ||
+    user.email?.split('@')[0]?.trim() ||
+    'MUCO Labs user'
+
+  await apiRequest('/api/v1/auth/register', {
+    method: 'POST',
+    json: { fullName },
+  })
 }
 
 export async function requestPasswordReset(email: string) {
