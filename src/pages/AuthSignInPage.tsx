@@ -9,6 +9,7 @@ import { AuthOAuthButtons } from '@/components/auth/AuthOAuthButtons'
 import { PasswordField } from '@/components/auth/PasswordField'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
 import { resolvePostAuthDestination } from '@/lib/auth/post-auth-destination'
+import { completeAuthNavigation } from '@/lib/auth/complete-auth-navigation'
 import { ensureAppProfileAfterSignIn } from '@/lib/auth/ensure-app-profile-after-sign-in'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { signInWithPassword } from '@/services/auth'
@@ -37,7 +38,7 @@ export function AuthSignInPage() {
     try {
       await signInWithPassword(loginId, password)
       const me = await ensureAppProfileAfterSignIn()
-      navigate(resolvePostAuthDestination(me, from), { replace: true })
+      completeAuthNavigation(navigate, resolvePostAuthDestination(me, from))
     } catch (err) {
       setError(friendlyAuthError(err, 'Sign in failed. Check your email and password.'))
     } finally {

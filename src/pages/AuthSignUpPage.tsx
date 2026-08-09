@@ -9,6 +9,7 @@ import { AuthOAuthButtons } from '@/components/auth/AuthOAuthButtons'
 import { PasswordField } from '@/components/auth/PasswordField'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
 import { resolvePostAuthDestination } from '@/lib/auth/post-auth-destination'
+import { completeAuthNavigation } from '@/lib/auth/complete-auth-navigation'
 import { apiRequest } from '@/services/api'
 import type { MeResponse } from '@/contexts/auth-context'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
@@ -60,7 +61,7 @@ export function AuthSignUpPage() {
         return
       }
       const me = await apiRequest<MeResponse>('/api/v1/auth/me')
-      navigate(resolvePostAuthDestination(me, from), { replace: true })
+      completeAuthNavigation(navigate, resolvePostAuthDestination(me, from))
     } catch (err) {
       setError(friendlyAuthError(err, 'Sign up failed. Try again or use a different email.'))
     } finally {

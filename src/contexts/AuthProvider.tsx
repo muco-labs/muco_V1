@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import type { AuthChangeEvent } from '@supabase/supabase-js'
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
 import { roleCanAccessPortal } from '@/config/access'
@@ -47,13 +48,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    client.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    let initialSettled = false
+    const finishInitialLoad = () => {
+      if (initialSettled) return
+      initialSettled = true
       setLoading(false)
-    })
+    }
 
-    const { data: subscription } = client.auth.onAuthStateChange((_event, nextSession) => {
+    const onAuthEvent = (event: AuthChangeEvent, nextSession: typeof session) => {
       setSession(nextSession)
+      if (event === 'SIGNED_OUT') {
+        setProfile(null)
+      }
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+        finishInitialLoad()
+      }
+    }
+
+    const { data: subscription } = client.auth.onAuthStateChange(onAuthEvent)
+
+    void client.auth.initialize().finally(() => {
+      finishInitialLoad()
     })
 
     return () => subscription.subscription.unsubscribe()

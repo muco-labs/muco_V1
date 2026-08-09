@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { env } from '@/config/env'
+import { createSupabaseAuthStorage } from '@/lib/supabase/cross-subdomain-auth-storage'
 
 let browserClient: SupabaseClient | null = null
 
@@ -17,6 +18,8 @@ export function getSupabaseClient(): SupabaseClient | null {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        flowType: 'pkce',
+        storage: createSupabaseAuthStorage(),
       },
     })
   }

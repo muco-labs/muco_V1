@@ -4,12 +4,13 @@ import { PageMeta } from '@/components/seo/PageMeta'
 import { authRoutes } from '@/config/auth'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { useAuth } from '@/contexts/auth-context'
-import { apiRequest } from '@/services/api'
 import type { MeResponse } from '@/contexts/auth-context'
+import { completeAuthNavigation } from '@/lib/auth/complete-auth-navigation'
+import { ensureAppProfileAfterSignIn } from '@/lib/auth/ensure-app-profile-after-sign-in'
 import { resolvePostAuthDestination } from '@/lib/auth/post-auth-destination'
 import { consumeOAuthReturnPath } from '@/lib/auth/oauth-return-path'
-import { ensureCustomerRegistrationFromOAuthUser } from '@/services/auth'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { waitForAuthSession } from '@/lib/supabase/wait-for-auth-session'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
 import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
@@ -30,42 +31,31 @@ export function AuthCallbackPage() {
         return
       }
 
-      const { data, error: sessionError } = await client.auth.getSession()
-      if (sessionError || !data.session?.user) {
+      const { session, error: sessionError } = await waitForAuthSession(client)
+      if (sessionError || !session?.user) {
         if (!cancelled) {
           setError(friendlyAuthError(sessionError, 'Sign-in could not be completed. Try again.'))
         }
         return
       }
 
-      const authUser = data.session.user
-      let me: MeResponse | null = null
+      let me: MeResponse
       try {
-        me = await apiRequest<MeResponse>('/api/v1/auth/me')
+        me = await ensureAppProfileAfterSignIn()
       } catch {
-        me = null
-      }
-
-      if (!me?.registered) {
-        try {
-          await ensureCustomerRegistrationFromOAuthUser(authUser)
-        } catch {
-          /* may already exist */
+        if (!cancelled) {
+          setError('Sign-in could not be completed. Try again.')
         }
+        return
       }
 
       await refreshProfile()
-      try {
-        me = await apiRequest<MeResponse>('/api/v1/auth/me')
-      } catch {
-        me = null
-      }
 
       const fromState = (location.state as { from?: string } | null)?.from
       const from = fromState ?? consumeOAuthReturnPath()
       const destination = resolvePostAuthDestination(me, from)
       if (!cancelled) {
-        navigate(destination, { replace: true })
+        completeAuthNavigation(navigate, destination)
       }
     }
 
