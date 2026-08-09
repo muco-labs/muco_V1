@@ -71,7 +71,7 @@ describe('projectIntakeSchema', () => {
 })
 
 describe('shapeCustomerProjectRequest', () => {
-  it('does not expose internal lead notes to customers', () => {
+  it('does not expose internal CRM follow-up or notes fields', () => {
     const dto = shapeCustomerProjectRequest({
       id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
       status: 'new',
@@ -88,6 +88,9 @@ describe('shapeCustomerProjectRequest', () => {
       updatedAt: new Date('2026-01-02T00:00:00.000Z'),
     })
     expect(dto).not.toHaveProperty('notes')
+    expect(dto).not.toHaveProperty('followUpAt')
+    expect(dto).not.toHaveProperty('assignedEmployeeId')
+    expect(dto).not.toHaveProperty('salesNextAction')
     expect(Object.keys(dto).sort()).toEqual(
       [
         'budget',

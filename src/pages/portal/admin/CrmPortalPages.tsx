@@ -1,5 +1,4 @@
-import type { FormEvent } from 'react'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   EmptyState,
@@ -11,11 +10,12 @@ import {
 import ui from '@/components/portal/CustomerPortalUi.module.css'
 import layout from '@/layouts/EmployeeAppLayout.module.css'
 import { CrmEntryChannelBadge, CrmStartProjectLeadPanel, type StartProjectIntakeView } from '@/components/portal/crm/CrmStartProjectLeadPanel'
-import { adminPortalPaths, CRM_PIPELINE_STATUSES, leadStatusOptions } from '@/config/admin-portal'
+import { CrmSalesActionPanel } from '@/components/portal/crm/CrmSalesActionPanel'
+import { CrmActivityTimeline } from '@/components/portal/crm/CrmActivityTimeline'
+import { adminPortalPaths, CRM_PIPELINE_STATUSES } from '@/config/admin-portal'
+import { useAuth } from '@/contexts/AuthProvider'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
-import { Button } from '@/components/ui/Button'
-import { ApiError } from '@/services/api'
 import styles from './Crm.module.css'
 
 export function CrmHomePage() {
@@ -50,12 +50,51 @@ export function CrmHomePage() {
           <p className="text-h2">{byStatus.find((r) => r.status === 'new')?.c ?? 0}</p>
         </article>
         <article className={`surface ${ui.dataCard}`}>
-          <h2 className="text-h3">Qualified</h2>
-          <p className="text-h2">{byStatus.find((r) => r.status === 'qualified')?.c ?? 0}</p>
+          <h2 className="text-h3">Follow up today</h2>
+          <p className="text-h2">{Number(metrics?.todayFollowUps ?? 0)}</p>
         </article>
         <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">Overdue follow-ups</h2>
           <p className="text-h2">{Number(metrics?.overdueFollowUps ?? 0)}</p>
+        </article>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Unassigned (open)</h2>
+          <p className="text-h2">{Number(metrics?.unassignedOpenLeads ?? 0)}</p>
+        </article>
+      </div>
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }} aria-labelledby="crm-followup-queue">
+        <h2 id="crm-followup-queue" className="text-h3">
+          Follow-up queue
+        </h2>
+        <ul className={layout.filterRow} style={{ listStyle: 'none', padding: 0, flexWrap: 'wrap' }}>
+          <li>
+            <Link className="link-underline" to={`${adminPortalPaths.crmLeadsList}?followUp=today`}>
+              Due today ({Number(metrics?.todayFollowUps ?? 0)})
+            </Link>
+          </li>
+          <li>
+            <Link className="link-underline" to={`${adminPortalPaths.crmLeadsList}?followUp=overdue`}>
+              Overdue ({Number(metrics?.overdueFollowUps ?? 0)})
+            </Link>
+          </li>
+          <li>
+            <Link className="link-underline" to={`${adminPortalPaths.crmLeadsList}?followUp=upcoming`}>
+              Upcoming ({Number(metrics?.upcomingFollowUps ?? 0)})
+            </Link>
+          </li>
+          <li>
+            <Link className="link-underline" to={`${adminPortalPaths.crmLeadsList}?followUp=none`}>
+              No follow-up ({Number(metrics?.leadsWithoutFollowUp ?? 0)})
+            </Link>
+          </li>
+        </ul>
+      </section>
+
+      <div className={ui.cardGrid} style={{ marginTop: 'var(--space-4)' }}>
+        <article className={`surface ${ui.dataCard}`}>
+          <h2 className="text-h3">Qualified</h2>
+          <p className="text-h2">{byStatus.find((r) => r.status === 'qualified')?.c ?? 0}</p>
         </article>
         <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">Conversion</h2>
@@ -123,6 +162,9 @@ export function CrmHomePage() {
                         <span className={ui.meta}>Ref. {String(lead.customerRequestReference)}</span>
                       ) : null}
                       <StatusPill status={String(lead.priority)} />
+                      {lead.followUpLabel ? (
+                        <span className={ui.meta}>{String(lead.followUpLabel)}</span>
+                      ) : null}
                       {lead.followUpAt ? (
                         <time className={ui.meta} dateTime={String(lead.followUpAt)}>
                           Follow-up {new Date(String(lead.followUpAt)).toLocaleDateString()}
@@ -142,16 +184,29 @@ export function CrmHomePage() {
 
 export function CrmLeadDetailPage() {
   const { id = '' } = useParams()
+  const { profile } = useAuth()
+  const canAssign = Boolean(profile?.permissions.includes('leads.assign'))
   const { data, error, loading, reload } = useFetch(() => adminApi.leads.get(id), [id])
-  const [note, setNote] = useState('')
-  const [interactionSummary, setInteractionSummary] = useState('')
-  const [statusDraft, setStatusDraft] = useState('')
+  const employeesQuery = useFetch(
+    () => (canAssign ? adminApi.employees.list() : Promise.resolve({ items: [] })),
+    [canAssign],
+  )
 
   const lead = data?.lead as Record<string, unknown> | undefined
 
-  useEffect(() => {
-    if (lead?.status) setStatusDraft(String(lead.status))
-  }, [lead?.status])
+  const employees = useMemo(() => {
+    const rows = (employeesQuery.data?.items as Array<Record<string, unknown>>) ?? []
+    return rows
+      .map((row) => {
+        const emp = row.profile as Record<string, unknown>
+        const user = row.user as Record<string, unknown>
+        return {
+          id: String(emp.id),
+          label: String(user.fullName ?? user.email),
+        }
+      })
+      .filter((e) => e.id)
+  }, [employeesQuery.data])
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
@@ -159,45 +214,13 @@ export function CrmLeadDetailPage() {
 
   const notes = (data.notes as Array<Record<string, unknown>>) ?? []
   const activities = (data.activities as Array<Record<string, unknown>>) ?? []
+  const interactions = (data.interactions as Array<Record<string, unknown>>) ?? []
   const proposals = (data.proposals as Array<Record<string, unknown>>) ?? []
   const duplicateHints = data.duplicateHints as Record<string, unknown> | undefined
   const isStartProject = lead.entryChannel === 'start_project'
   const intake = (lead.startProjectIntake as StartProjectIntakeView | null) ?? null
   const channelLabel = lead.entryChannelLabel ? String(lead.entryChannelLabel) : ''
   const introDesc = `${String(lead.company ?? lead.email)}${channelLabel ? ` · ${channelLabel}` : ''}`
-
-  async function addNote(e: FormEvent) {
-    e.preventDefault()
-    try {
-      await adminApi.leads.addNote(id, note)
-      setNote('')
-      reload()
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Failed to save note')
-    }
-  }
-
-  async function logCall() {
-    try {
-      await adminApi.leads.logInteraction(id, {
-        interactionType: 'call',
-        summary: interactionSummary,
-      })
-      setInteractionSummary('')
-      reload()
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Failed to log interaction')
-    }
-  }
-
-  async function saveStatus() {
-    try {
-      await adminApi.leads.update(id, { status: statusDraft })
-      reload()
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'Failed to update status')
-    }
-  }
 
   return (
     <>
@@ -211,6 +234,15 @@ export function CrmLeadDetailPage() {
       {duplicateHints?.leadMatchId || duplicateHints?.customerMatchId ? (
         <p className={styles.duplicateBanner}>Possible duplicate — review before converting.</p>
       ) : null}
+
+      <CrmSalesActionPanel
+        key={String(lead.updatedAt ?? lead.id)}
+        leadId={id}
+        lead={lead}
+        canAssign={canAssign}
+        employees={employees}
+        onUpdated={reload}
+      />
 
       {isStartProject ? (
         <CrmStartProjectLeadPanel lead={lead} intake={intake} />
@@ -230,29 +262,6 @@ export function CrmLeadDetailPage() {
           </section>
         </>
       )}
-
-      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }} aria-labelledby="crm-status">
-        <h2 id="crm-status" className="text-h3">
-          Status
-        </h2>
-        <div className={layout.filterRow}>
-          <select
-            id="crm-lead-status"
-            aria-label="Lead status"
-            value={statusDraft}
-            onChange={(e) => setStatusDraft(e.target.value)}
-          >
-            {leadStatusOptions.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, ' ')}
-              </option>
-            ))}
-          </select>
-          <Button type="button" onClick={() => void saveStatus()}>
-            Update status
-          </Button>
-        </div>
-      </section>
 
       {!isStartProject &&
       (lead.landingPath ||
@@ -293,32 +302,12 @@ export function CrmLeadDetailPage() {
       ) : null}
 
       <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
-        <h2 className="text-h3">Activity</h2>
-        {activities.length === 0 ? (
-          <p className={ui.meta}>No activity logged yet.</p>
-        ) : (
-          <ul className={ui.stack}>
-            {activities.map((a) => (
-              <li key={String(a.id)} className={`surface ${ui.dataCard}`}>
-                <span className={ui.meta}>{String(a.action)}</span>
-                <time className={ui.meta} dateTime={String(a.createdAt)}>
-                  {new Date(String(a.createdAt)).toLocaleString()}
-                </time>
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2 className="text-h3">Activity timeline</h2>
+        <CrmActivityTimeline activities={activities} interactions={interactions} />
       </section>
 
       <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
-        <h2 className="text-h3">Internal notes</h2>
-        <form className={ui.form} onSubmit={(e) => void addNote(e)}>
-          <div className={ui.field}>
-            <label htmlFor="crm-note">Add note</label>
-            <textarea id="crm-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
-          </div>
-          <Button type="submit">Save note</Button>
-        </form>
+        <h2 className="text-h3">Internal notes history</h2>
         {notes.length === 0 ? (
           <EmptyState title="No notes yet" description="Internal notes are not visible to customers." />
         ) : (
@@ -333,21 +322,6 @@ export function CrmLeadDetailPage() {
             ))}
           </ul>
         )}
-      </section>
-
-      <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
-        <h2 className="text-h3">Contact history</h2>
-        <div className={layout.filterRow}>
-          <input
-            placeholder="Log call/meeting summary"
-            value={interactionSummary}
-            onChange={(e) => setInteractionSummary(e.target.value)}
-            aria-label="Interaction summary"
-          />
-          <Button type="button" onClick={() => void logCall()}>
-            Log interaction
-          </Button>
-        </div>
       </section>
 
       <section className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>

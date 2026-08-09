@@ -68,6 +68,9 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'audit_logs.view',
     'website_intelligence.view',
     'website_intelligence.run',
+    'careers.view',
+    'careers.manage',
+    'careers.notes',
   ],
   SUPER_ADMIN: [
     'users.view',
@@ -113,6 +116,9 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'audit_logs.view',
     'website_intelligence.view',
     'website_intelligence.run',
+    'careers.view',
+    'careers.manage',
+    'careers.notes',
   ],
   FOUNDER: [
     'users.view',
@@ -158,5 +164,8 @@ export const defaultRolePermissions: Record<RoleName, PermissionName[]> = {
     'audit_logs.view',
     'website_intelligence.view',
     'website_intelligence.run',
+    'careers.view',
+    'careers.manage',
+    'careers.notes',
   ],
 }

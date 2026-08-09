@@ -83,6 +83,16 @@ import { getInternationalMarketDashboard } from '../../services/international.se
 import { listProductWaitlistForAdmin } from '../../services/product-waitlist.service.js'
 import { websiteIntelligenceRoutes } from './website-intelligence.js'
 import {
+  addCareerApplicationNoteAdmin,
+  getCareerApplicationAdmin,
+  getCareerResumeDownloadUrlAdmin,
+  listCareerApplicationsAdmin,
+  updateCareerApplicationStatusAdmin,
+} from '../../services/careers.service.js'
+import {
+  updateCareerApplicationStatusSchema,
+} from '../../lib/validation/careers.js'
+import {
   getEmployeeAccessReview,
   getExecutiveOverview,
   syncEmploymentStateForUserStatus,
@@ -336,6 +346,79 @@ adminRoutes.get('/product/waitlist', requirePermission('settings.manage'), async
   }
 })
 
+const careerNoteSchema = z.object({
+  content: z.string().trim().min(1).max(8000),
+})
+
+adminRoutes.get('/careers/applications', requirePermission('careers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const items = await listCareerApplicationsAdmin(auth, {
+      status: c.req.query('status'),
+      q: c.req.query('q'),
+    })
+    return jsonSuccess(c, { items, count: items.length })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/careers/applications/:id', requirePermission('careers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getCareerApplicationAdmin(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/careers/applications/:id', requirePermission('careers.manage'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = updateCareerApplicationStatusSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid status.', 400, formatZodErrors(parsed.error))
+    }
+    const updated = await updateCareerApplicationStatusAdmin(
+      auth,
+      paramId(c),
+      parsed.data.status,
+    )
+    return jsonSuccess(c, { application: updated })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/careers/applications/:id/notes', requirePermission('careers.notes'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = careerNoteSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid note.', 400, formatZodErrors(parsed.error))
+    }
+    const note = await addCareerApplicationNoteAdmin(auth, paramId(c), parsed.data.content)
+    return jsonSuccess(c, { note }, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get(
+  '/careers/applications/:id/resume',
+  requirePermission('careers.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(c, await getCareerResumeDownloadUrlAdmin(auth, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
 adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
   try {
     const auth = c.get('auth')
@@ -353,7 +436,7 @@ adminRoutes.get('/leads', requirePermission('leads.view'), async (c) => {
         | 'international'
         | undefined,
       market: c.req.query('market') as 'us' | 'uk' | 'ca' | 'au' | 'ae' | 'sg' | undefined,
-      followUp: c.req.query('followUp') as 'overdue' | undefined,
+      followUp: c.req.query('followUp') as 'overdue' | 'today' | 'upcoming' | 'none' | undefined,
       sort: (c.req.query('sort') as 'newest') ?? 'newest',
       limit: Number(c.req.query('limit') || 50),
       offset: Number(c.req.query('offset') || 0),
@@ -500,6 +583,7 @@ const leadUpdateSchema = z.object({
   qualificationUrgency: z.string().optional(),
   qualificationDecisionMaker: z.string().optional(),
   source: z.string().optional(),
+  salesNextAction: z.string().max(500).optional(),
 })
 
 adminRoutes.patch('/leads/:id', requirePermission('leads.update'), async (c) => {

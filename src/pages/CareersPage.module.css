@@ -1,0 +1,74 @@
+.page {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.lead {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--color-text-muted);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.actions {
+  margin-top: var(--space-2);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.openingList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.openingCard {
+  display: block;
+  padding: var(--space-5);
+  text-decoration: none;
+  color: inherit;
+}
+
+.openingCard:hover {
+  border-color: var(--color-accent-muted, var(--color-border));
+}
+
+.meta {
+  margin: var(--space-2) 0;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.deptGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .deptGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.deptCard {
+  padding: var(--space-5);
+}
+
+.deptCard ul {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}

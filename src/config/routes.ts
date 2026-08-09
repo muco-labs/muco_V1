@@ -8,6 +8,8 @@ export const routePaths = {
   about: '/about',
   insights: '/insights',
   contact: '/contact',
+  careers: '/careers',
+  careersApply: '/careers/apply',
   pricing: '/pricing',
   authSignIn: '/auth/sign-in',
   authSignUp: '/auth/sign-up',
@@ -49,6 +51,10 @@ export function servicePath(slug: ServiceSlug): string {
   return `/services/${slug}`
 }
 
+export function careersOpeningPath(slug: string): string {
+  return `/careers/openings/${slug}`
+}
+
 export const staticRoutes = [
   routePaths.home,
   routePaths.services,
@@ -58,6 +64,8 @@ export const staticRoutes = [
   routePaths.about,
   routePaths.insights,
   routePaths.contact,
+  routePaths.careers,
+  routePaths.careersApply,
   routePaths.pricing,
   routePaths.erode,
   routePaths.tamilNadu,

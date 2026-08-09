@@ -6,6 +6,7 @@ import {
   eq,
   ilike,
   inArray,
+  isNull,
   lt,
   notInArray,
   or,
@@ -50,6 +51,15 @@ import {
   leadEntryChannel,
   leadEntryChannelLabel,
 } from '../lib/intake/lead-channel.js'
+import {
+  OPEN_LEAD_STATUSES,
+  presentFollowUp,
+  parseFollowUpAtInput,
+} from '../lib/crm/follow-up-presentation.js'
+import {
+  followUpListFilterCondition,
+  type FollowUpListFilter,
+} from '../lib/crm/follow-up-filters.js'
 import { parseStartProjectLeadNotes } from '../lib/intake/lead-intake-notes.js'
 import { PROJECT_INTAKE_PAGE_SOURCE } from '../lib/intake/project-intake-constants.js'
 import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
@@ -212,17 +222,43 @@ export async function getCrmMetrics(auth: AuthContext) {
     .groupBy(leads.status)
 
   const now = new Date()
+  const startToday = new Date(now)
+  startToday.setHours(0, 0, 0, 0)
+  const endToday = new Date(now)
+  endToday.setHours(23, 59, 59, 999)
+
+  const openScope = and(scope ?? sql`true`, inArray(leads.status, [...OPEN_LEAD_STATUSES]))
+
   const [overdue] = await db
     .select({ c: count() })
     .from(leads)
     .where(
       and(
-        scope ?? sql`true`,
-        lt(leads.followUpAt, now),
+        openScope,
         inArray(leads.followUpStatus, ['pending', 'due']),
-        inArray(leads.status, ['new', 'contacted', 'qualified', 'discovery', 'proposal', 'negotiation']),
+        lt(leads.followUpAt, startToday),
       ),
     )
+
+  const [todayFollowUps] = await db
+    .select({ c: count() })
+    .from(leads)
+    .where(and(scope ?? sql`true`, followUpListFilterCondition('today', now)))
+
+  const [upcomingFollowUps] = await db
+    .select({ c: count() })
+    .from(leads)
+    .where(and(scope ?? sql`true`, followUpListFilterCondition('upcoming', now)))
+
+  const [noFollowUp] = await db
+    .select({ c: count() })
+    .from(leads)
+    .where(and(scope ?? sql`true`, followUpListFilterCondition('none', now)))
+
+  const [unassigned] = await db
+    .select({ c: count() })
+    .from(leads)
+    .where(and(openScope, isNull(leads.assignedEmployeeId)))
 
   const won = statusRows.find((r) => r.status === 'won')?.c ?? 0
   const lost = statusRows.find((r) => r.status === 'lost')?.c ?? 0
@@ -262,6 +298,10 @@ export async function getCrmMetrics(auth: AuthContext) {
       count: Number(r.c),
     })),
     overdueFollowUps: overdue?.c ?? 0,
+    todayFollowUps: todayFollowUps?.c ?? 0,
+    upcomingFollowUps: upcomingFollowUps?.c ?? 0,
+    leadsWithoutFollowUp: noFollowUp?.c ?? 0,
+    unassignedOpenLeads: unassigned?.c ?? 0,
     conversionRate,
     openProposalValue: proposalValue?.total ?? null,
     pipelineStatuses: CRM_PIPELINE_STATUSES,
@@ -286,7 +326,7 @@ export async function listLeadsForCrm(
     assignedEmployeeId?: string
     q?: string
     channel?: LeadEntryChannel
-    followUp?: 'overdue' | 'upcoming'
+    followUp?: FollowUpListFilter
     locality?: 'erode' | 'tamil_nadu' | 'india' | 'international'
     market?: Tier1MarketId
     limit?: number
@@ -331,13 +371,8 @@ export async function listLeadsForCrm(
       )!,
     )
   }
-  if (query.followUp === 'overdue') {
-    conditions.push(
-      and(
-        lt(leads.followUpAt, new Date()),
-        inArray(leads.followUpStatus, ['pending', 'due']),
-      )!,
-    )
+  if (query.followUp) {
+    conditions.push(followUpListFilterCondition(query.followUp))
   }
   if (query.locality === 'erode') {
     conditions.push(erodeLeadCondition())
@@ -380,17 +415,22 @@ export async function listLeadsForCrm(
     .limit(limit)
     .offset(offset)
 
-  return rows.map((r) => ({
-    ...r.lead,
-    assignedName: r.assigneeName,
-    sourceLabel: normalizeLeadSource(r.lead.source),
-    entryChannel: leadEntryChannel(r.lead.pageSource),
-    entryChannelLabel: leadEntryChannelLabel(leadEntryChannel(r.lead.pageSource)),
-    customerRequestReference:
-      r.lead.pageSource === PROJECT_INTAKE_PAGE_SOURCE
-        ? formatProjectRequestReference(r.lead.id)
-        : null,
-  }))
+  return rows.map((r) => {
+    const followUp = presentFollowUp(r.lead.followUpAt, r.lead.followUpStatus)
+    return {
+      ...r.lead,
+      assignedName: r.assigneeName,
+      sourceLabel: normalizeLeadSource(r.lead.source),
+      entryChannel: leadEntryChannel(r.lead.pageSource),
+      entryChannelLabel: leadEntryChannelLabel(leadEntryChannel(r.lead.pageSource)),
+      customerRequestReference:
+        r.lead.pageSource === PROJECT_INTAKE_PAGE_SOURCE
+          ? formatProjectRequestReference(r.lead.id)
+          : null,
+      followUpLabel: followUp.label,
+      followUpBucket: followUp.bucket,
+    }
+  })
 }
 
 export async function getCrmPipeline(auth: AuthContext) {
@@ -407,8 +447,20 @@ export async function getLeadDetailCrm(auth: AuthContext, leadId: string) {
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
 
-  const [lead] = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1)
+  const [leadRow] = await db
+    .select({
+      lead: leads,
+      assigneeName: users.fullName,
+    })
+    .from(leads)
+    .leftJoin(employeeProfiles, eq(leads.assignedEmployeeId, employeeProfiles.id))
+    .leftJoin(users, eq(employeeProfiles.userId, users.id))
+    .where(eq(leads.id, leadId))
+    .limit(1)
+
+  const lead = leadRow?.lead
   if (!lead) throw new AppError('NOT_FOUND', 'Lead not found.', 404)
+  const assigneeName = leadRow.assigneeName
 
   const notes = await db
     .select({
@@ -460,15 +512,25 @@ export async function getLeadDetailCrm(auth: AuthContext, leadId: string) {
 
   const intake = parseStartProjectLeadNotes(lead.notes)
   const isStartProject = lead.pageSource === PROJECT_INTAKE_PAGE_SOURCE
+  const followUpPresentation = presentFollowUp(lead.followUpAt, lead.followUpStatus)
+  const lastActivityAt =
+    activities[0]?.createdAt ??
+    interactions[0]?.occurredAt ??
+    lead.lastContactedAt ??
+    lead.updatedAt
 
   return {
     lead: {
       ...lead,
+      assignedName: assigneeName,
       sourceLabel: normalizeLeadSource(lead.source),
       entryChannel: leadEntryChannel(lead.pageSource),
       entryChannelLabel: leadEntryChannelLabel(leadEntryChannel(lead.pageSource)),
       customerRequestReference: isStartProject ? formatProjectRequestReference(lead.id) : null,
       startProjectIntake: intake,
+      followUpLabel: followUpPresentation.label,
+      followUpBucket: followUpPresentation.bucket,
+      lastActivityAt: lastActivityAt ? new Date(lastActivityAt).toISOString() : null,
     },
     notes: notes.map((n) => ({
       id: n.note.id,
@@ -679,14 +741,20 @@ export async function scheduleLeadFollowUpCrm(
     throw new AppError('FORBIDDEN', 'You cannot schedule follow-ups.', 403)
   }
 
+  let followUpDate: Date
+  try {
+    followUpDate = parseFollowUpAtInput(input.followUpAt)
+  } catch {
+    throw new AppError('VALIDATION_ERROR', 'Invalid follow-up date.', 400)
+  }
+
   const db = getDb()
   if (!db) throw new AppError('SERVICE_UNAVAILABLE', 'Service unavailable.', 503)
 
-  const at = new Date(input.followUpAt)
   const [updated] = await db
     .update(leads)
     .set({
-      followUpAt: at,
+      followUpAt: followUpDate,
       followUpStatus: (input.followUpStatus as typeof leads.followUpStatus.enumValues[number]) ?? 'pending',
       updatedAt: new Date(),
     })

@@ -27,6 +27,7 @@ export const footerNav = {
     { label: 'International', href: routePaths.international },
     { label: 'Insights', href: routePaths.insights },
     { label: 'Contact', href: routePaths.contact },
+    { label: 'Careers', href: routePaths.careers },
     { label: 'Pricing', href: routePaths.pricing },
   ],
   customer: [

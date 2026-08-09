@@ -257,3 +257,48 @@ export function ArticleSchema({
     />
   )
 }
+
+const jobPostingEmploymentMap: Record<string, string> = {
+  full_time: 'FULL_TIME',
+  part_time: 'PART_TIME',
+  internship: 'INTERN',
+  contract: 'CONTRACTOR',
+}
+
+/** Use only for real published job openings from the database. */
+export function JobPostingSchema({
+  title,
+  description,
+  url,
+  employmentType,
+  datePosted,
+  validThrough,
+  hiringOrganization,
+}: {
+  title: string
+  description: string
+  url: string
+  employmentType: string
+  datePosted?: string
+  validThrough?: string
+  hiringOrganization: { name: string; sameAs: string }
+}) {
+  const data: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title,
+    description,
+    url,
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: hiringOrganization.name,
+      sameAs: hiringOrganization.sameAs,
+    },
+    employmentType: jobPostingEmploymentMap[employmentType] ?? employmentType,
+  }
+
+  if (datePosted) data.datePosted = datePosted
+  if (validThrough) data.validThrough = validThrough
+
+  return <StructuredData data={data} />
+}

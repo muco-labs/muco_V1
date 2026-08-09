@@ -46,6 +46,28 @@ export const adminApi = {
         `${base}/product/waitlist${productSlug ? `?productSlug=${encodeURIComponent(productSlug)}` : ''}`,
       ),
   },
+  careers: {
+    listApplications: (params?: { status?: string; q?: string }) => {
+      const search = new URLSearchParams()
+      if (params?.status) search.set('status', params.status)
+      if (params?.q) search.set('q', params.q)
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[]; count: number }>(
+        `${base}/careers/applications${qs ? `?${qs}` : ''}`,
+      )
+    },
+    getApplication: (id: string) =>
+      apiRequest<Record<string, unknown>>(`${base}/careers/applications/${id}`),
+    updateApplicationStatus: (id: string, status: string) =>
+      apiRequest(`${base}/careers/applications/${id}`, { method: 'PATCH', json: { status } }),
+    addApplicationNote: (id: string, content: string) =>
+      apiRequest(`${base}/careers/applications/${id}/notes`, {
+        method: 'POST',
+        json: { content },
+      }),
+    resumeDownloadUrl: (id: string) =>
+      apiRequest<{ url: string; fileName?: string }>(`${base}/careers/applications/${id}/resume`),
+  },
   executive: {
     overview: () => apiRequest<Record<string, unknown>>(`${base}/executive/overview`),
   },
@@ -78,6 +100,7 @@ export const adminApi = {
       status?: string
       q?: string
       channel?: 'start_project' | 'contact' | 'other'
+      followUp?: 'overdue' | 'today' | 'upcoming' | 'none'
       locality?: 'erode' | 'tamil_nadu' | 'india' | 'international'
       market?: 'us' | 'uk' | 'ca' | 'au' | 'ae' | 'sg'
     }) => {
@@ -85,6 +108,7 @@ export const adminApi = {
       if (params?.status) search.set('status', params.status)
       if (params?.q) search.set('q', params.q)
       if (params?.channel) search.set('channel', params.channel)
+      if (params?.followUp) search.set('followUp', params.followUp)
       if (params?.locality) search.set('locality', params.locality)
       if (params?.market) search.set('market', params.market)
       const qs = search.toString()

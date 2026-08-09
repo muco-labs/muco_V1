@@ -36,6 +36,12 @@ const WorkProjectPage = lazyPage(() => import('@/pages/WorkProjectPage'), 'WorkP
 const AboutPage = lazyPage(() => import('@/pages/AboutPage'), 'AboutPage')
 const InsightsPage = lazyPage(() => import('@/pages/InsightsPage'), 'InsightsPage')
 const ContactPage = lazyPage(() => import('@/pages/ContactPage'), 'ContactPage')
+const CareersPage = lazyPage(() => import('@/pages/CareersPage'), 'CareersPage')
+const CareersApplyPage = lazyPage(() => import('@/pages/CareersApplyPage'), 'CareersApplyPage')
+const CareersOpeningPage = lazyPage(
+  () => import('@/pages/CareersOpeningPage'),
+  'CareersOpeningPage',
+)
 const PricingPage = lazyPage(() => import('@/pages/PricingPage'), 'PricingPage')
 const ErodePage = lazyPage(() => import('@/pages/ErodePage'), 'ErodePage')
 const TamilNaduPage = lazyPage(() => import('@/pages/TamilNaduPage'), 'TamilNaduPage')
@@ -176,6 +182,14 @@ const AdminProductWaitlistPage = lazyPage(
   () => import('@/pages/portal/admin/AdminProductWaitlistPage'),
   'AdminProductWaitlistPage',
 )
+const AdminCareersApplicationsPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminCareersPages'),
+  'AdminCareersApplicationsPage',
+)
+const AdminCareerApplicationDetailPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminCareersPages'),
+  'AdminCareerApplicationDetailPage',
+)
 const AdminExecutivePage = lazyPage(
   () => import('@/pages/portal/admin/AdminExecutivePage'),
   'AdminExecutivePage',
@@ -233,6 +247,9 @@ export const router = createBrowserRouter([
       { path: 'about', element: <AboutPage /> },
       { path: 'insights', element: <InsightsPage /> },
       { path: 'contact', element: <ContactPage /> },
+      { path: 'careers', element: <CareersPage /> },
+      { path: 'careers/apply', element: <CareersApplyPage /> },
+      { path: 'careers/openings/:slug', element: <CareersOpeningPage /> },
       { path: 'start-project', element: <StartProjectEntryPage /> },
       { path: 'pricing', element: <PricingPage /> },
       { path: 'erode', element: <ErodePage /> },
@@ -315,6 +332,8 @@ export const router = createBrowserRouter([
           { path: 'local/india', element: <AdminNationalMarketPage /> },
           { path: 'local/international', element: <AdminInternationalMarketPage /> },
           { path: 'product/waitlist', element: <AdminProductWaitlistPage /> },
+          { path: 'careers', element: <AdminCareersApplicationsPage /> },
+          { path: 'careers/applications/:id', element: <AdminCareerApplicationDetailPage /> },
           { path: 'executive', element: <AdminExecutivePage /> },
           { path: 'team/access', element: <AdminTeamAccessPage /> },
           { path: 'website-intelligence', element: <WebsiteIntelligenceDashboardPage /> },

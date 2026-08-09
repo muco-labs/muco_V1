@@ -23,6 +23,10 @@ export const serverEnv = {
   storageBucket: trim(process.env.SUPABASE_STORAGE_BUCKET) || 'customer-files',
 } as const
 
+export function isDatabaseConfigured(): boolean {
+  return Boolean(serverEnv.databaseUrl)
+}
+
 export function isRazorpayConfigured(): boolean {
   return Boolean(serverEnv.razorpayKeyId && serverEnv.razorpayKeySecret)
 }
@@ -35,6 +39,6 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(serverEnv.supabaseUrl && serverEnv.supabaseServiceRoleKey)
 }
 
-export function isDatabaseConfigured(): boolean {
-  return Boolean(serverEnv.databaseUrl)
+export function isSupabaseStorageConfigured(): boolean {
+  return isSupabaseConfigured()
 }

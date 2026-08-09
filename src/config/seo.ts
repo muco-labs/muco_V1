@@ -93,6 +93,18 @@ export const pageSeo = {
     description:
       'Tell MUCO LABS what you are building. Share your goals for website development, software, mobile, AI or growth—and we will suggest a practical next step.',
   },
+  careers: {
+    path: '/careers',
+    documentTitle: `Careers | ${brand}`,
+    description:
+      'Explore careers at MUCO LABS—engineering, design, growth and operations. Apply for open roles or submit a general application for consideration.',
+  },
+  careersApply: {
+    path: '/careers/apply',
+    documentTitle: `Apply | Careers | ${brand}`,
+    description:
+      'Submit your application to MUCO LABS. Information is used for recruitment consideration only.',
+  },
   pricing: {
     path: '/pricing',
     documentTitle: `Pricing & Engagement | ${brand}`,

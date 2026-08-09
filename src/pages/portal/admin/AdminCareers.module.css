@@ -1,0 +1,95 @@
+.filter {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 14rem;
+  margin-bottom: var(--space-4);
+}
+
+.select {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: inherit;
+}
+
+.rowLink {
+  display: grid;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: inherit;
+}
+
+.rowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.statusRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.dl {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.dl div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.dl dt {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.dl dd {
+  margin: 0;
+}
+
+.pre {
+  white-space: pre-wrap;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.linkList {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.panel {
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.statusForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 5rem;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.error {
+  color: var(--color-danger, #e85d5d);
+}

@@ -42,16 +42,21 @@ export function AdminLeadsPage() {
     return v === 'us' || v === 'uk' || v === 'ca' || v === 'au' || v === 'ae' || v === 'sg' ? v : ''
   })
   const [channel, setChannel] = useState<'' | 'start_project' | 'contact' | 'other'>('')
+  const [followUp, setFollowUp] = useState<'' | 'overdue' | 'today' | 'upcoming' | 'none'>(() => {
+    const v = searchParams.get('followUp')
+    return v === 'overdue' || v === 'today' || v === 'upcoming' || v === 'none' ? v : ''
+  })
   const { data, error, loading, reload } = useFetch(
     () =>
       adminApi.leads.list({
         status: status || undefined,
         q: q || undefined,
         channel: channel || undefined,
+        followUp: followUp || undefined,
         locality: locality || undefined,
         market: market || undefined,
       }),
-    [status, q, channel, locality, market],
+    [status, q, channel, followUp, locality, market],
   )
   const items = asRecords(data)
 
@@ -69,6 +74,19 @@ export function AdminLeadsPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
+        <select
+          aria-label="Filter by follow-up"
+          value={followUp}
+          onChange={(e) =>
+            setFollowUp(e.target.value as '' | 'overdue' | 'today' | 'upcoming' | 'none')
+          }
+        >
+          <option value="">All follow-ups</option>
+          <option value="today">Due today</option>
+          <option value="overdue">Overdue</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="none">No follow-up</option>
+        </select>
         <select
           aria-label="Filter by entry channel"
           value={channel}
@@ -131,6 +149,14 @@ export function AdminLeadsPage() {
               ) : null}
               {lead.serviceInterest ? (
                 <span className={ui.meta}>{String(lead.serviceInterest)}</span>
+              ) : null}
+              {lead.assignedName ? (
+                <span className={ui.meta}>Owner: {String(lead.assignedName)}</span>
+              ) : (
+                <span className={ui.meta}>Unassigned</span>
+              )}
+              {lead.followUpLabel ? (
+                <span className={ui.meta}>{String(lead.followUpLabel)}</span>
               ) : null}
               {lead.businessCity ? (
                 <span className={ui.meta}>{String(lead.businessCity)}</span>

@@ -6,6 +6,8 @@ export const adminPortalPaths = {
   localIndia: '/admin/local/india',
   localInternational: '/admin/local/international',
   productWaitlist: '/admin/product/waitlist',
+  careers: '/admin/careers',
+  careersApplicationDetail: (id: string) => `/admin/careers/applications/${id}`,
   executive: '/admin/executive',
   teamAccess: '/admin/team/access',
   websiteIntelligence: '/admin/website-intelligence',
@@ -49,6 +51,7 @@ export const adminNav: AdminNavItem[] = [
   { label: 'India market', path: adminPortalPaths.localIndia, permission: 'leads.view' },
   { label: 'International', path: adminPortalPaths.localInternational, permission: 'leads.view' },
   { label: 'Product waitlist', path: adminPortalPaths.productWaitlist, permission: 'settings.manage' },
+  { label: 'Careers', path: adminPortalPaths.careers, permission: 'careers.view' },
   { label: 'Executive', path: adminPortalPaths.executive, permission: 'analytics.view' },
   { label: 'Team access', path: adminPortalPaths.teamAccess, permission: 'employees.view' },
   { label: 'Website Intelligence', path: adminPortalPaths.websiteIntelligence, permission: 'website_intelligence.view' },
@@ -86,6 +89,16 @@ export const leadStatusOptions = [
   'negotiation',
   'won',
   'lost',
+  'archived',
+] as const
+
+export const careerApplicationStatusOptions = [
+  'new',
+  'reviewing',
+  'shortlisted',
+  'interview',
+  'selected',
+  'rejected',
   'archived',
 ] as const
 

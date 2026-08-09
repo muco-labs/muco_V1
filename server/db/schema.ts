@@ -901,6 +901,112 @@ export const wiAuditEvents = pgTable(
   (table) => [index('wi_audit_events_audit_id_idx').on(table.auditId)],
 )
 
+export const careerJobStatusEnum = pgEnum('career_job_status', ['draft', 'published', 'closed'])
+export const careerEmploymentTypeEnum = pgEnum('career_employment_type', [
+  'full_time',
+  'part_time',
+  'internship',
+  'contract',
+])
+export const careerApplicationTypeEnum = pgEnum('career_application_type', [
+  'full_time',
+  'part_time',
+  'internship',
+  'contract',
+  'general',
+])
+export const careerApplicationStatusEnum = pgEnum('career_application_status', [
+  'new',
+  'reviewing',
+  'shortlisted',
+  'interview',
+  'selected',
+  'rejected',
+  'archived',
+])
+
+export const careerJobOpenings = pgTable(
+  'career_job_openings',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: text('slug').notNull(),
+    title: text('title').notNull(),
+    department: text('department').notNull(),
+    employmentType: careerEmploymentTypeEnum('employment_type').notNull(),
+    experienceLevel: text('experience_level'),
+    locationLabel: text('location_label'),
+    remoteStatus: text('remote_status'),
+    shortDescription: text('short_description').notNull(),
+    responsibilities: text('responsibilities').notNull(),
+    requiredSkills: text('required_skills').notNull(),
+    preferredSkills: text('preferred_skills'),
+    status: careerJobStatusEnum('status').notNull().default('draft'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    closesAt: timestamp('closes_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('career_job_openings_slug_idx').on(table.slug),
+    index('career_job_openings_status_idx').on(table.status),
+  ],
+)
+
+export const careerApplications = pgTable(
+  'career_applications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    jobOpeningId: uuid('job_opening_id').references(() => careerJobOpenings.id, {
+      onDelete: 'set null',
+    }),
+    fullName: text('full_name').notNull(),
+    email: text('email').notNull(),
+    phone: text('phone'),
+    city: text('city'),
+    country: text('country'),
+    roleInterest: text('role_interest').notNull(),
+    applicationType: careerApplicationTypeEnum('application_type').notNull(),
+    experienceLevel: text('experience_level'),
+    skills: text('skills').notNull(),
+    portfolioUrl: text('portfolio_url'),
+    linkedinUrl: text('linkedin_url'),
+    githubUrl: text('github_url'),
+    introduction: text('introduction').notNull(),
+    availability: text('availability').notNull(),
+    preferredEngagement: text('preferred_engagement'),
+    additionalInfo: text('additional_info'),
+    resumeStorageKey: text('resume_storage_key'),
+    resumeFileName: text('resume_file_name'),
+    resumeMimeType: text('resume_mime_type'),
+    resumeFileSizeBytes: integer('resume_file_size_bytes'),
+    status: careerApplicationStatusEnum('status').notNull().default('new'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('career_applications_status_idx').on(table.status),
+    index('career_applications_email_idx').on(table.email),
+    index('career_applications_created_at_idx').on(table.createdAt),
+    index('career_applications_job_opening_id_idx').on(table.jobOpeningId),
+  ],
+)
+
+export const careerApplicationNotes = pgTable(
+  'career_application_notes',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => careerApplications.id, { onDelete: 'cascade' }),
+    authorUserId: uuid('author_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('career_application_notes_application_id_idx').on(table.applicationId)],
+)
+
 export const usersRelations = relations(users, ({ many }) => ({
   userRoles: many(userRoles),
 }))
