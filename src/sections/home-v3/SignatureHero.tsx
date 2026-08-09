@@ -14,13 +14,14 @@ export function SignatureHero() {
       <div className="shell">
         <div className={styles.grid}>
           <Reveal className={styles.copy}>
-            <p className="eyebrow-line">{site.name} · Technology company</p>
+            <p className="eyebrow-line">{site.name} · Web, software & AI</p>
             <h1 id="home-hero-title" className="text-display">
               We build digital products that move businesses forward.
             </h1>
             <p className={styles.lead}>
-              <strong>For founders and growing businesses</strong> who need websites, software, AI and
-              growth systems with clear scope. {company.positioning}
+              <strong>MUCO LABS</strong> is a founder-led technology company in Erode—websites,
+              custom software, mobile apps, AI systems and growth programs for teams who need
+              clarity, craft and accountable delivery. {company.positioning}
             </p>
             <div className={styles.actions}>
               <Button
@@ -29,16 +30,25 @@ export function SignatureHero() {
                 trackEvent={analyticsEvents.heroCtaClick}
                 trackParams={{ source: 'home_hero', cta: 'start_project' }}
               >
-                Start a Project
+                Start a project
+              </Button>
+              <Button
+                to={routePaths.contact}
+                variant="secondary"
+                size="lg"
+                trackEvent={analyticsEvents.contactClick}
+                trackParams={{ source: 'home_hero', cta: 'contact' }}
+              >
+                Talk to us
               </Button>
               <Button
                 to={routePaths.work}
-                variant="secondary"
+                variant="ghost"
                 size="lg"
                 trackEvent={analyticsEvents.heroCtaClick}
                 trackParams={{ source: 'home_hero', cta: 'view_work' }}
               >
-                View Our Work
+                View work
               </Button>
             </div>
           </Reveal>

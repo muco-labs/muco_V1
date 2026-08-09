@@ -1,18 +1,39 @@
-import { routePaths } from '@/config/routes'
+import { routePaths, servicePath } from '@/config/routes'
 import { authRoutes } from '@/config/auth'
 
-export type NavItem = {
+export type NavChild = {
   label: string
   href: string
+  description?: string
 }
 
+export type NavItem =
+  | { label: string; href: string; children?: undefined }
+  | { label: string; href?: string; children: NavChild[] }
+
 export const primaryNav: NavItem[] = [
-  { label: 'Services', href: routePaths.services },
-  { label: 'Solutions', href: routePaths.solutions },
+  {
+    label: 'Services',
+    children: [
+      { label: 'All services', href: routePaths.services, description: 'Overview' },
+      { label: 'Web development', href: servicePath('web-development') },
+      { label: 'Software development', href: servicePath('software-development') },
+      { label: 'Mobile apps', href: servicePath('mobile-app-development') },
+      { label: 'AI solutions', href: servicePath('ai-solutions') },
+      { label: 'UI/UX design', href: servicePath('ui-ux-design') },
+      { label: 'SEO & growth', href: servicePath('seo') },
+    ],
+  },
+  {
+    label: 'Publish apps',
+    children: [
+      { label: 'Products', href: '/products', description: 'SaaS & platforms' },
+      { label: 'Client Hub', href: '/products/client-hub' },
+    ],
+  },
   { label: 'Work', href: routePaths.work },
   { label: 'About', href: routePaths.about },
   { label: 'Pricing', href: routePaths.pricing },
-  { label: 'Contact', href: routePaths.contact },
 ]
 
 export const footerNav = {

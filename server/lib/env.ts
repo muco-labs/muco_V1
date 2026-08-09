@@ -2,7 +2,10 @@ const trim = (value: string | undefined) => value?.trim() || undefined
 
 export const serverEnv = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  databaseUrl: trim(process.env.DATABASE_URL),
+  databaseUrl:
+    trim(process.env.DATABASE_URL) ??
+    trim(process.env.POSTGRES_PRISMA_URL) ??
+    trim(process.env.POSTGRES_URL),
   authSecret: trim(process.env.AUTH_SECRET),
   corsOrigins: (process.env.CORS_ORIGINS ?? '')
     .split(',')

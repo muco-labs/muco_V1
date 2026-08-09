@@ -9,8 +9,9 @@ type PageTransitionProps = {
 
 export function PageTransition({ children, routeKey }: PageTransitionProps) {
   const reducedMotion = useReducedMotion()
+  const isHome = routeKey === '/'
 
-  if (reducedMotion) {
+  if (reducedMotion || isHome) {
     return <div key={routeKey}>{children}</div>
   }
 

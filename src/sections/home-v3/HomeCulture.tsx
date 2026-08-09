@@ -1,10 +1,5 @@
-import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
-import { FounderPortrait } from '@/components/content/FounderPortrait'
-import { founder } from '@/content/founder'
-import { company } from '@/content/company'
 import { trustPillars } from '@/data/testimonials'
-import { routePaths } from '@/config/routes'
 import styles from './HomeCulture.module.css'
 
 const principles = [
@@ -14,50 +9,9 @@ const principles = [
   'Architectures that survive real users and real data.',
 ]
 
-const deliveryFocus = [
-  { label: 'Engineering discipline', value: 92 },
-  { label: 'Design clarity', value: 88 },
-  { label: 'Delivery transparency', value: 95 },
-  { label: 'Post-launch support', value: 86 },
-]
-
 export function HomeCultureSections() {
   return (
     <>
-      <section className={`section ${styles.signature}`} aria-labelledby="sig-title">
-        <div className="shell">
-          <div className={styles.signatureGrid}>
-            <Reveal>
-              <p className="text-label">Signature</p>
-              <h2 id="sig-title" className="text-h1">
-                Clarity at speed.
-              </h2>
-              <p className={styles.sigBody}>
-                We compress the distance between strategy, design and production code—so your
-                team ships with confidence. Based in {company.location.city}, serving clients
-                across India and abroad.
-              </p>
-            </Reveal>
-            <Reveal variant="slide-left" delayMs={100}>
-              <div className={styles.meter} aria-label="Delivery focus areas">
-                {deliveryFocus.map((item) => (
-                  <div key={item.label} className={styles.meterRow}>
-                    <div className={styles.meterLabel}>
-                      <span>{item.label}</span>
-                      <span className={styles.meterValue}>{item.value}%</span>
-                    </div>
-                    <div className={styles.meterTrack}>
-                      <span style={{ width: `${item.value}%` }} />
-                    </div>
-                  </div>
-                ))}
-                <p className={styles.meterNote}>Illustrative focus weighting—not client metrics.</p>
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
       <section className="section section--tight" aria-labelledby="why-title">
         <div className="shell">
           <Reveal>
@@ -74,38 +28,6 @@ export function HomeCultureSections() {
               </Reveal>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section className="section" aria-labelledby="founder-title">
-        <div className="shell">
-          <div className={styles.founderGrid}>
-            <Reveal>
-              <p className="text-label">Leadership</p>
-              <h2 id="founder-title" className="text-h2">
-                {founder.name}
-              </h2>
-              <p className={styles.founderRole}>{founder.title}</p>
-              <p className={styles.founderIntro}>{founder.introduction}</p>
-              <p className={styles.founderVision}>{founder.vision}</p>
-              <ul className={styles.interests}>
-                {founder.interests.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <Link className="link-underline" to={`${routePaths.about}#founder`}>
-                Read our story
-              </Link>
-            </Reveal>
-            <Reveal variant="slide-left" delayMs={120}>
-              <FounderPortrait
-                name={founder.name}
-                imageSrc={founder.imageSrc}
-                size="hero"
-                placeholderLabel="Founder photo"
-              />
-            </Reveal>
-          </div>
         </div>
       </section>
 

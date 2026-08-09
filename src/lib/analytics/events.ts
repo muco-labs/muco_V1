@@ -22,6 +22,7 @@ export const analyticsEvents = {
   pricingView: 'pricing_view',
   signInClick: 'sign_in_click',
   signUpClick: 'sign_up_click',
+  contactClick: 'contact_click',
   phoneClick: 'phone_click',
   emailClick: 'email_click',
   customerSignup: 'customer_signup',

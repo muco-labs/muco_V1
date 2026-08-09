@@ -18,6 +18,33 @@ const techGroups = [
 export function HomeSystemsSections() {
   return (
     <>
+      <section className="section section--tight" aria-labelledby="tech-title">
+        <div className="shell">
+          <Reveal className={styles.techHead}>
+            <div>
+              <p className="text-label">Technology & capabilities</p>
+              <h2 id="tech-title" className="text-h2">
+                Modern stack. Applied with restraint.
+              </h2>
+            </div>
+          </Reveal>
+          <div className={styles.techGrid}>
+            {techGroups.map((group, index) => (
+              <Reveal key={group.title} delayMs={index * 60}>
+                <article className={`surface ${styles.techCard}`}>
+                  <h3 className="text-label">{group.title}</h3>
+                  <ul>
+                    {group.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="section" aria-labelledby="work-title">
         <div className="shell">
           <Reveal className={styles.workHead}>
@@ -62,33 +89,6 @@ export function HomeSystemsSections() {
               </Reveal>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section className="section section--tight" aria-labelledby="tech-title">
-        <div className="shell">
-          <Reveal className={styles.techHead}>
-            <div>
-              <p className="text-label">Technology</p>
-              <h2 id="tech-title" className="text-h2">
-                Modern stack. Applied with restraint.
-              </h2>
-            </div>
-          </Reveal>
-          <div className={styles.techGrid}>
-            {techGroups.map((group, index) => (
-              <Reveal key={group.title} delayMs={index * 60}>
-                <article className={`surface ${styles.techCard}`}>
-                  <h3 className="text-label">{group.title}</h3>
-                  <ul>
-                    {group.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </article>
-              </Reveal>
-            ))}
-          </div>
         </div>
       </section>
 

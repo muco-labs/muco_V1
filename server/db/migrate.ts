@@ -4,12 +4,14 @@ import postgres from 'postgres'
 import { serverEnv } from '../lib/env.js'
 
 async function main() {
-  if (!serverEnv.databaseUrl) {
+  const databaseUrl = serverEnv.databaseUrl
+
+  if (!databaseUrl) {
     console.error('DATABASE_URL is not set. Cannot run migrations.')
     process.exit(1)
   }
 
-  const migrationClient = postgres(serverEnv.databaseUrl, { max: 1 })
+  const migrationClient = postgres(databaseUrl, { max: 1 })
   const db = drizzle(migrationClient)
 
   await migrate(db, { migrationsFolder: './server/db/migrations' })

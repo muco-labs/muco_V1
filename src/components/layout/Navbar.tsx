@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { HiBars3, HiXMark } from 'react-icons/hi2'
+import { HiBars3, HiMagnifyingGlass, HiXMark } from 'react-icons/hi2'
 import { authRoutes } from '@/config/auth'
 import { routePaths } from '@/config/routes'
 import { site } from '@/config/site'
 import { primaryNav } from '@/data/navigation'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { startProjectHref } from '@/lib/conversion/start-project-link'
+import { useTheme } from '@/hooks/useTheme'
 import { Button } from '@/components/ui/Button'
+import { NavDropdown, NavPlainLink } from '@/components/layout/NavDropdown'
+import { SiteSearchDialog } from '@/components/layout/SiteSearchDialog'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { cn } from '@/utils/cn'
 import styles from './Navbar.module.css'
 
 export function Navbar() {
   const [open, setOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
+  const { theme, toggle: toggleTheme } = useTheme()
 
   useEffect(() => {
     setOpen(false)
@@ -41,65 +47,80 @@ export function Navbar() {
   }, [open])
 
   return (
-    <header className={cn(styles.header, scrolled && styles.scrolled)}>
-      <div className={`shell ${styles.bar}`}>
-        <Link to={routePaths.home} className={styles.brand}>
-          <span className={styles.mark} aria-hidden="true" />
-          <span>{site.name}</span>
-        </Link>
+    <>
+      <header className={cn(styles.header, scrolled && styles.scrolled)}>
+        <div className={`shell ${styles.bar}`}>
+          <Link to={routePaths.home} className={styles.brand} aria-label={`${site.name} home`}>
+            <span className={styles.mark} aria-hidden="true" />
+            <span>{site.name}</span>
+          </Link>
 
-        <nav className={styles.desktopNav} aria-label="Primary">
-          <ul>
-            {primaryNav.map((item) => (
-              <li key={item.href}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) => cn(styles.link, isActive && styles.active)}
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+          <nav className={styles.desktopNav} aria-label="Primary">
+            <ul>
+              {primaryNav.map((item) =>
+                'children' in item && item.children ? (
+                  <NavDropdown key={item.label} item={item} />
+                ) : (
+                  <NavPlainLink key={item.href} href={item.href!} label={item.label} />
+                ),
+              )}
+            </ul>
+          </nav>
 
-        <div className={styles.actions}>
-          <div className={styles.auth}>
-            <Link
-              to={authRoutes.signIn}
-              className={styles.authLink}
-              onClick={() => trackEvent(analyticsEvents.signInClick)}
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              aria-label="Search site"
+              onClick={() => setSearchOpen(true)}
             >
-              Sign in
-            </Link>
-            <Link
-              to={authRoutes.signUp}
-              className={styles.authLink}
-              onClick={() => trackEvent(analyticsEvents.signUpClick)}
+              <HiMagnifyingGlass aria-hidden />
+            </button>
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <div className={styles.auth}>
+              <Link
+                to={authRoutes.signIn}
+                className={styles.authLink}
+                onClick={() => trackEvent(analyticsEvents.signInClick)}
+              >
+                Sign in
+              </Link>
+            </div>
+            <Button
+              to={routePaths.contact}
+              variant="secondary"
+              size="sm"
+              trackEvent={analyticsEvents.contactClick}
             >
-              Sign up
-            </Link>
+              Contact us
+            </Button>
+            <Button
+              to={startProjectHref({ source: 'navbar' })}
+              size="sm"
+              trackEvent={analyticsEvents.startProjectClick}
+              trackParams={{ source: 'navbar' }}
+            >
+              Start a project
+            </Button>
+            <button
+              type="button"
+              className={styles.menuBtn}
+              aria-expanded={open}
+              aria-controls="mobile-nav"
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span className="sr-only">Menu</span>
+              {open ? <HiXMark /> : <HiBars3 />}
+            </button>
           </div>
-          <Button
-            to={startProjectHref({ source: 'navbar' })}
-            size="sm"
-            trackEvent={analyticsEvents.startProjectClick}
-            trackParams={{ source: 'navbar' }}
-          >
-            Start a Project
-          </Button>
-          <button
-            type="button"
-            className={styles.menuBtn}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span className="sr-only">Menu</span>
-            {open ? <HiXMark /> : <HiBars3 />}
-          </button>
         </div>
-      </div>
+      </header>
+
+      <div
+        className={cn(styles.mobileBackdrop, open && styles.mobileBackdropOpen)}
+        aria-hidden={!open}
+        onClick={() => setOpen(false)}
+      />
 
       <div
         id="mobile-nav"
@@ -109,15 +130,38 @@ export function Navbar() {
       >
         <div className="shell">
           <ul className={styles.mobileList}>
-            {primaryNav.map((item) => (
-              <li key={item.href}>
-                <NavLink to={item.href} onClick={() => setOpen(false)}>
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
+            {primaryNav.map((item) =>
+              'children' in item && item.children ? (
+                item.children.map((child) => (
+                  <li key={child.href}>
+                    <NavLink to={child.href} onClick={() => setOpen(false)}>
+                      {child.label}
+                    </NavLink>
+                  </li>
+                ))
+              ) : (
+                <li key={item.href}>
+                  <NavLink to={item.href!} onClick={() => setOpen(false)}>
+                    {item.label}
+                  </NavLink>
+                </li>
+              ),
+            )}
+            <li>
+              <NavLink to={routePaths.contact} onClick={() => setOpen(false)}>
+                Contact
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to={routePaths.careers} onClick={() => setOpen(false)}>
+                Careers
+              </NavLink>
+            </li>
           </ul>
           <div className={styles.mobileAuth}>
+            <button type="button" className={styles.mobileSearch} onClick={() => setSearchOpen(true)}>
+              Search site
+            </button>
             <Link
               to={authRoutes.signIn}
               onClick={() => {
@@ -127,15 +171,6 @@ export function Navbar() {
             >
               Customer sign in
             </Link>
-            <Link
-              to={authRoutes.signUp}
-              onClick={() => {
-                setOpen(false)
-                trackEvent(analyticsEvents.signUpClick)
-              }}
-            >
-              Customer sign up
-            </Link>
           </div>
           <Button
             to={startProjectHref({ source: 'navbar_mobile' })}
@@ -144,10 +179,12 @@ export function Navbar() {
             trackEvent={analyticsEvents.startProjectClick}
             trackParams={{ source: 'navbar_mobile' }}
           >
-            Start a Project
+            Start a project
           </Button>
         </div>
       </div>
-    </header>
+
+      <SiteSearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   )
 }

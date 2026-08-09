@@ -41,8 +41,8 @@ export function HomePage() {
       <HomeTrustStrip />
       <HomeStorySections />
       <HomeServicesShowcase />
-      <HomeCultureSections />
       <HomeSystemsSections />
+      <HomeCultureSections />
       <HomeFounderSpotlight />
       <HomeTeamSection />
       <HomeEngagementSections />
