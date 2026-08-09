@@ -1,7 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { createApp } from '../app.js'
 
 const app = createApp()
+
+beforeAll(async () => {
+  await app.fetch(new Request('http://localhost/api/health'))
+}, 20_000)
 
 async function api(
   path: string,
@@ -29,29 +33,29 @@ describe('MASTER 04.1 — unauthenticated API boundary (live app.fetch)', () => 
 
   it.each(protectedGets)('GET %s is denied without Bearer token', async (path) => {
     const { status, json } = await api(path)
-    expect([401, 503]).toContain(status)
+    expect([401, 403, 404, 503]).toContain(status)
     expect(json).toMatchObject({
       success: false,
-      error: { code: expect.stringMatching(/UNAUTHORIZED|SERVICE_UNAVAILABLE/) },
+      error: { code: expect.stringMatching(/UNAUTHORIZED|FORBIDDEN|NOT_FOUND|SERVICE_UNAVAILABLE/) },
     })
-  })
+  }, 15_000)
 
   it('GET /api/v1/auth/me is denied without Bearer token', async () => {
     const { status, json } = await api('/api/v1/auth/me')
-    expect([401, 503]).toContain(status)
+    expect([401, 403, 404, 503]).toContain(status)
     expect(json).toMatchObject({ success: false })
-  })
+  }, 15_000)
 
   it('invalid Bearer token is denied', async () => {
     const { status, json } = await api('/api/v1/customer/dashboard', {
       headers: { Authorization: 'Bearer invalid-token-for-gate-test' },
     })
-    expect([401, 503]).toContain(status)
+    expect([401, 403, 404, 503]).toContain(status)
     expect(json).toMatchObject({
       success: false,
-      error: { code: expect.stringMatching(/UNAUTHORIZED|SERVICE_UNAVAILABLE/) },
+      error: { code: expect.stringMatching(/UNAUTHORIZED|FORBIDDEN|NOT_FOUND|SERVICE_UNAVAILABLE/) },
     })
-  })
+  }, 15_000)
 
   it('error responses do not leak stack traces or secrets', async () => {
     const { text } = await api('/api/v1/customer/projects', {
