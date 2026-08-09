@@ -14,6 +14,7 @@ export const customerPortalPaths = {
   payments: '/app/payments',
   files: '/app/files',
   messages: '/app/messages',
+  conversationDetail: (id: string) => `/app/messages/${id}`,
   support: '/app/support',
   supportDetail: (id: string) => `/app/support/${id}`,
   notifications: '/app/notifications',
@@ -25,17 +26,17 @@ export const customerNavPrimary = [
   { label: 'Dashboard', path: customerPortalPaths.root, end: true },
   { label: 'Project requests', path: customerPortalPaths.requests },
   { label: 'Projects', path: customerPortalPaths.projects },
-  { label: 'Start a project', path: customerPortalPaths.startProject },
+  { label: 'Proposals', path: customerPortalPaths.proposals },
+  { label: 'Payments', path: customerPortalPaths.payments },
+  { label: 'Messages', path: customerPortalPaths.messages },
   { label: 'Profile', path: customerPortalPaths.profile },
 ] as const
 
 /** Existing portal areas with working routes — grouped under “More”. */
 export const customerNavMore = [
-  { label: 'Proposals', path: customerPortalPaths.proposals },
+  { label: 'Start a project', path: customerPortalPaths.startProject },
   { label: 'Invoices', path: customerPortalPaths.invoices },
-  { label: 'Payments', path: customerPortalPaths.payments },
   { label: 'Files', path: customerPortalPaths.files },
-  { label: 'Messages', path: customerPortalPaths.messages },
   { label: 'Support', path: customerPortalPaths.support },
   { label: 'Notifications', path: customerPortalPaths.notifications },
   { label: 'Settings', path: customerPortalPaths.settings },

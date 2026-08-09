@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   EmptyState,
   ListSkeleton,
@@ -23,6 +23,8 @@ import { formatProjectRequestReference, projectRequestNextAction } from '@/lib/c
 
 import { ProjectDeliveryLifecycle } from '@/components/portal/ProjectDeliveryLifecycle'
 import { startRazorpayCheckout, type RazorpayCheckoutConfig } from '@/lib/payments/razorpay-checkout'
+import { CustomerMessageMucoButton } from '@/components/portal/CustomerMessageMucoButton'
+import type { CustomerConversationListItem, CustomerConversationMessage } from '@/services/customer-portal'
 
 function formatMoney(amount: string, currency: string) {
   if (currency === 'INR') return `₹${amount}`
@@ -252,6 +254,10 @@ export function CustomerProjectDetailPage() {
           </ul>
         </section>
       ) : null}
+
+      <div style={{ marginTop: 'var(--space-8)' }}>
+        <CustomerMessageMucoButton heading="Need help with this project?" projectId={id} />
+      </div>
 
       <p style={{ marginTop: 'var(--space-6)' }}>
         <Link className="link-underline" to={customerPortalPaths.projects}>
@@ -532,6 +538,9 @@ export function CustomerProposalDetailPage() {
           </div>
         </form>
       ) : null}
+      <div style={{ marginTop: 'var(--space-8)' }}>
+        <CustomerMessageMucoButton heading="Questions about this proposal?" proposalId={id} />
+      </div>
     </>
   )
 }
@@ -721,15 +730,19 @@ export function CustomerFilesPage() {
 }
 
 export function CustomerMessagesPage() {
-  const [body, setBody] = useState('')
-  const { data, error, loading, reload } = useFetch(() => customerApi.messages.list(), [])
-  const items = (data?.items as Array<Record<string, unknown>>) ?? []
+  const navigate = useNavigate()
+  const [starting, setStarting] = useState(false)
+  const { data, error, loading, reload } = useFetch(() => customerApi.conversations.list(), [])
+  const items = data?.items ?? []
 
-  async function sendMessage(e: FormEvent) {
-    e.preventDefault()
-    await customerApi.messages.send({ body })
-    setBody('')
-    reload()
+  async function startGeneral() {
+    setStarting(true)
+    try {
+      const row = await customerApi.conversations.create({ subject: 'General enquiry' })
+      navigate(customerPortalPaths.conversationDetail(row.id))
+    } finally {
+      setStarting(false)
+    }
   }
 
   if (loading) return <ListSkeleton />
@@ -737,25 +750,146 @@ export function CustomerMessagesPage() {
 
   return (
     <>
-      <PageIntro title="Messages" description="Communicate with MUCO LABS about your work." />
-      <form className={ui.form} onSubmit={(e) => void sendMessage(e)}>
-        <div className={ui.field}>
-          <label htmlFor="message-body">New message</label>
-          <textarea id="message-body" value={body} onChange={(e) => setBody(e.target.value)} required />
-        </div>
-        <Button type="submit">Send</Button>
-      </form>
+      <PageIntro
+        title="Messages"
+        description="Conversation history with MUCO Labs about your projects, requests, and proposals."
+      />
+      <p style={{ marginBottom: 'var(--space-4)' }}>
+        <Button type="button" variant="secondary" disabled={starting} onClick={() => void startGeneral()}>
+          {starting ? 'Opening…' : 'New general message'}
+        </Button>
+      </p>
       {items.length === 0 ? (
         <EmptyState title="No messages yet" description="No messages yet." />
       ) : (
-        <div className={ui.messageList} style={{ marginTop: 'var(--space-6)' }}>
-          {items.map((m) => (
-            <article key={String(m.id)} className={ui.messageItem}>
-              <p>{String(m.body)}</p>
-              <time dateTime={String(m.createdAt)}>{new Date(String(m.createdAt)).toLocaleString()}</time>
-            </article>
+        <ul className={ui.stack}>
+          {items.map((row: CustomerConversationListItem) => (
+            <li key={row.id} className={`surface ${ui.dataCard}`}>
+              <Link className="link-underline" to={customerPortalPaths.conversationDetail(row.id)}>
+                {row.subject}
+                {row.unreadCount > 0 ? (
+                  <span className={ui.meta} aria-label={`${row.unreadCount} unread`}>
+                    {' '}
+                    · Unread ({row.unreadCount})
+                  </span>
+                ) : null}
+              </Link>
+              <p className={ui.meta}>{row.contextLabel}</p>
+              {row.latestMessage ? (
+                <p className={ui.meta}>
+                  {row.latestMessage.body.slice(0, 120)}
+                  {row.latestMessage.body.length > 120 ? '…' : ''}
+                </p>
+              ) : null}
+              <time className={ui.meta} dateTime={row.updatedAt}>
+                {new Date(row.updatedAt).toLocaleString()}
+              </time>
+            </li>
           ))}
-        </div>
+        </ul>
+      )}
+    </>
+  )
+}
+
+export function CustomerConversationDetailPage() {
+  const { conversationId = '' } = useParams()
+  const [body, setBody] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+  const { data, error, loading, reload } = useFetch(
+    () => customerApi.conversations.get(conversationId),
+    [conversationId],
+  )
+
+  useEffect(() => {
+    if (!conversationId) return
+    void customerApi.conversations.markRead(conversationId)
+  }, [conversationId])
+
+  const conversation = data?.conversation
+  const messages = data?.messages ?? []
+  const closed = conversation?.status === 'closed'
+
+  async function sendMessage(e: FormEvent) {
+    e.preventDefault()
+    if (!body.trim() || sending || closed) return
+    setSending(true)
+    setSendError(null)
+    try {
+      await customerApi.conversations.sendMessage(conversationId, body)
+      setBody('')
+      reload()
+    } catch (err) {
+      setSendError(err instanceof ApiError ? err.message : 'Could not send message.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!conversation) return null
+
+  return (
+    <>
+      <PageIntro
+        title={conversation.subject}
+        description={`${conversation.contextLabel} · ${conversation.statusLabel}`}
+      />
+      <p className={ui.meta}>
+        <Link className="link-underline" to={customerPortalPaths.messages}>
+          All messages
+        </Link>
+      </p>
+      <div
+        className={ui.messageList}
+        style={{ marginTop: 'var(--space-6)' }}
+        aria-live="polite"
+        aria-relevant="additions"
+      >
+        {messages.length === 0 ? (
+          <EmptyState title="No messages yet" description="Send the first message below." />
+        ) : (
+          messages.map((m: CustomerConversationMessage) => (
+            <article key={m.id} className={ui.messageItem}>
+              <p className={ui.meta}>
+                <strong>{m.senderLabel}</strong>
+                {!m.read && m.senderType === 'team' ? (
+                  <span aria-label="Unread"> · Unread</span>
+                ) : null}
+              </p>
+              <p>{m.body}</p>
+              <time dateTime={m.createdAt}>{new Date(m.createdAt).toLocaleString()}</time>
+            </article>
+          ))
+        )}
+      </div>
+      {closed ? (
+        <p className={ui.meta} role="status" style={{ marginTop: 'var(--space-4)' }}>
+          This conversation is closed. Contact support if you need further help.
+        </p>
+      ) : (
+        <form className={ui.form} onSubmit={(e) => void sendMessage(e)} style={{ marginTop: 'var(--space-6)' }}>
+          <div className={ui.field}>
+            <label htmlFor="conversation-body">Your message</label>
+            <textarea
+              id="conversation-body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              required
+              disabled={sending}
+            />
+          </div>
+          {sendError ? (
+            <p role="alert" className={ui.meta}>
+              {sendError}
+            </p>
+          ) : null}
+          <Button type="submit" disabled={sending} aria-busy={sending}>
+            {sending ? 'Sending…' : 'Send'}
+          </Button>
+        </form>
       )}
     </>
   )
@@ -1109,10 +1243,14 @@ export function CustomerProjectRequestDetailPage() {
         </h2>
         <p>{projectRequestNextAction(status)}</p>
         <p className={ui.meta}>
-          Quotes, messaging, and payments will appear in the portal when those features are available
-          for your account.
+          Quotes and payments appear here when available for your account. Use Messages to ask
+          questions about this request.
         </p>
       </section>
+
+      <div style={{ marginTop: 'var(--space-6)' }}>
+        <CustomerMessageMucoButton heading="Have a question about this request?" leadId={id} />
+      </div>
 
       <p style={{ marginTop: 'var(--space-4)' }}>
         <Link className="link-underline" to={customerPortalPaths.requests}>

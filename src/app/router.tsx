@@ -100,6 +100,7 @@ const CustomerInvoiceDetailPage = lazyCustomerPage('CustomerInvoiceDetailPage')
 const CustomerPaymentsPage = lazyCustomerPage('CustomerPaymentsPage')
 const CustomerFilesPage = lazyCustomerPage('CustomerFilesPage')
 const CustomerMessagesPage = lazyCustomerPage('CustomerMessagesPage')
+const CustomerConversationDetailPage = lazyCustomerPage('CustomerConversationDetailPage')
 const CustomerSupportPage = lazyCustomerPage('CustomerSupportPage')
 const CustomerSupportDetailPage = lazyCustomerPage('CustomerSupportDetailPage')
 const CustomerNotificationsPage = lazyCustomerPage('CustomerNotificationsPage')
@@ -169,6 +170,7 @@ const AdminPaymentsPage = lazyAdminPage('AdminPaymentsPage')
 const AdminPaymentDetailPage = lazyAdminPage('AdminPaymentDetailPage')
 const AdminFilesPage = lazyAdminPage('AdminFilesPage')
 const AdminMessagesPage = lazyAdminPage('AdminMessagesPage')
+const AdminConversationDetailPage = lazyAdminPage('AdminConversationDetailPage')
 const AdminSupportPage = lazyAdminPage('AdminSupportPage')
 const AdminAnalyticsPage = lazyAdminPage('AdminAnalyticsPage')
 const AdminSalesPage = lazyAdminPage('AdminSalesPage')
@@ -301,6 +303,7 @@ export const router = createBrowserRouter([
           { path: 'payments', element: <CustomerPaymentsPage /> },
           { path: 'files', element: <CustomerFilesPage /> },
           { path: 'messages', element: <CustomerMessagesPage /> },
+          { path: 'messages/:conversationId', element: <CustomerConversationDetailPage /> },
           { path: 'support', element: <CustomerSupportPage /> },
           { path: 'support/:id', element: <CustomerSupportDetailPage /> },
           { path: 'notifications', element: <CustomerNotificationsPage /> },
@@ -374,6 +377,7 @@ export const router = createBrowserRouter([
           { path: 'payments/:id', element: <AdminPaymentDetailPage /> },
           { path: 'files', element: <AdminFilesPage /> },
           { path: 'messages', element: <AdminMessagesPage /> },
+          { path: 'messages/:conversationId', element: <AdminConversationDetailPage /> },
           { path: 'support', element: <AdminSupportPage /> },
           { path: 'analytics', element: <AdminAnalyticsPage /> },
           { path: 'notifications', element: <AdminNotificationsPage /> },

@@ -1276,7 +1276,11 @@ export function AdminFilesPage() {
 }
 
 export function AdminMessagesPage() {
-  const { data, error, loading, reload } = useFetch(() => adminApi.messages.list(), [])
+  const [unreadOnly, setUnreadOnly] = useState(false)
+  const { data, error, loading, reload } = useFetch(
+    () => adminApi.conversations.list({ unreadOnly }),
+    [unreadOnly],
+  )
   const items = asRecords(data)
 
   if (loading) return <ListSkeleton />
@@ -1284,18 +1288,130 @@ export function AdminMessagesPage() {
 
   return (
     <>
-      <PageIntro title="Messages" description="Project communication (permission-scoped)." />
+      <PageIntro title="Messages" description="Customer conversations with project, request, and proposal context." />
+      <label className={ui.meta} style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+        <input
+          type="checkbox"
+          checked={unreadOnly}
+          onChange={(e) => setUnreadOnly(e.target.checked)}
+        />
+        Unread only
+      </label>
       {items.length === 0 ? (
-        <EmptyState title="No messages" description="Project messages will appear when teams and customers communicate." />
+        <EmptyState title="No conversations" description="Customer messages will appear here." />
       ) : (
-        <ul className={ui.stack}>
+        <ul className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
           {items.map((m) => (
             <li key={String(m.id)} className={`surface ${ui.dataCard}`}>
-              <p>{String(m.body)}</p>
-              <span className={ui.meta}>{new Date(String(m.createdAt)).toLocaleString()}</span>
+              <Link className="link-underline" to={`/admin/messages/${String(m.id)}`}>
+                {String(m.subject ?? 'Conversation')}
+                {Number(m.unreadCount) > 0 ? (
+                  <span aria-label={`${String(m.unreadCount)} unread`}> · Unread ({String(m.unreadCount)})</span>
+                ) : null}
+              </Link>
+              <p className={ui.meta}>
+                {String((m.customer as Record<string, unknown>)?.name ?? 'Customer')} ·{' '}
+                {String(m.contextLabel ?? '')}
+              </p>
+              {m.latestMessage ? (
+                <p className={ui.meta}>{String((m.latestMessage as Record<string, unknown>).body).slice(0, 120)}</p>
+              ) : null}
+              <time className={ui.meta} dateTime={String(m.updatedAt)}>
+                {new Date(String(m.updatedAt)).toLocaleString()}
+              </time>
             </li>
           ))}
         </ul>
+      )}
+    </>
+  )
+}
+
+export function AdminConversationDetailPage() {
+  const { conversationId = '' } = useParams()
+  const [body, setBody] = useState('')
+  const [sending, setSending] = useState(false)
+  const { data, error, loading, reload } = useFetch(
+    () => adminApi.conversations.get(conversationId),
+    [conversationId],
+  )
+
+  useEffect(() => {
+    if (!conversationId) return
+    void adminApi.conversations.markRead(conversationId)
+  }, [conversationId])
+
+  const conversation = data?.conversation
+  const messages = data?.messages ?? []
+  const closed = conversation?.status === 'closed'
+
+  async function sendReply(e: FormEvent) {
+    e.preventDefault()
+    if (!body.trim() || sending || closed) return
+    setSending(true)
+    try {
+      await adminApi.conversations.sendMessage(conversationId, body)
+      setBody('')
+      reload()
+    } finally {
+      setSending(false)
+    }
+  }
+
+  async function toggleStatus() {
+    if (!conversation) return
+    const next = conversation.status === 'closed' ? 'open' : 'closed'
+    await adminApi.conversations.setStatus(conversationId, next)
+    reload()
+  }
+
+  if (loading) return <ListSkeleton />
+  if (error) return <PortalError message={error} onRetry={reload} />
+  if (!conversation) return null
+
+  return (
+    <>
+      <PageIntro
+        title={conversation.subject}
+        description={`${conversation.contextLabel} · ${conversation.customer.name}`}
+      />
+      <p className={ui.meta}>
+        <Link className="link-underline" to="/admin/messages">
+          All conversations
+        </Link>
+      </p>
+      <p className={ui.meta}>
+        Status: {conversation.status}
+        {' · '}
+        <button type="button" className="link-underline" onClick={() => void toggleStatus()}>
+          {conversation.status === 'closed' ? 'Reopen' : 'Close'}
+        </button>
+      </p>
+      <div className={ui.messageList} style={{ marginTop: 'var(--space-6)' }} aria-live="polite">
+        {messages.map((m) => (
+          <article key={m.id} className={ui.messageItem}>
+            <p className={ui.meta}>
+              <strong>{m.senderType === 'customer' ? 'Customer' : 'MUCO team'}</strong>
+            </p>
+            <p>{m.body}</p>
+            <time dateTime={m.createdAt}>{new Date(m.createdAt).toLocaleString()}</time>
+          </article>
+        ))}
+      </div>
+      {closed ? (
+        <p className={ui.meta} role="status">
+          Conversation is closed.
+        </p>
+      ) : (
+        <form className={ui.form} onSubmit={(e) => void sendReply(e)} style={{ marginTop: 'var(--space-6)' }}>
+          <div className={ui.field}>
+            <label htmlFor="admin-reply">Reply</label>
+            <textarea id="admin-reply" value={body} onChange={(e) => setBody(e.target.value)} required />
+          </div>
+          <Button type="submit" disabled={sending}>
+            {sending ? 'Sending…' : 'Send reply'}
+          </Button>
+        </form>
       )}
     </>
   )

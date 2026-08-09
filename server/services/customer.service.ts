@@ -190,15 +190,6 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
     .orderBy(desc(payments.createdAt))
     .limit(5)
 
-  const recentMessages = await db
-    .select()
-    .from(messages)
-    .where(
-      or(eq(messages.senderUserId, ctx.userId), eq(messages.recipientUserId, ctx.userId)),
-    )
-    .orderBy(desc(messages.createdAt))
-    .limit(5)
-
   const openTickets = await db
     .select()
     .from(supportTickets)
@@ -247,7 +238,6 @@ export async function getCustomerDashboard(ctx: CustomerContext) {
     pendingApprovals: pendingProposalsMapped,
     outstandingInvoices,
     recentPayments,
-    recentMessages,
     openSupportTickets: openTickets,
     recentNotifications,
     unreadNotificationCount: unreadCount[0]?.count ?? 0,

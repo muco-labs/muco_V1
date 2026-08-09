@@ -28,7 +28,7 @@ export function CustomerDashboardPage() {
   const recentRequests = (requests.data?.items ?? []).slice(0, 3)
   const hasActivity =
     data.recentNotifications.length > 0 ||
-    data.recentMessages.length > 0 ||
+    (data.messagesUnreadCount ?? 0) > 0 ||
     data.recentPayments.length > 0 ||
     recentRequests.length > 0
 
@@ -176,6 +176,49 @@ export function CustomerDashboardPage() {
         </article>
       </section>
 
+      <section className={ui.stack} style={{ marginTop: 'var(--space-8)' }} aria-labelledby="dash-messages">
+        <h2 id="dash-messages" className="text-h3">
+          Messages
+        </h2>
+        {(data.messagesUnreadCount ?? 0) === 0 && !data.latestConversation ? (
+          <EmptyState title="No messages yet" description="No messages yet." />
+        ) : (
+          <article className={`surface ${ui.dataCard}`}>
+            {(data.messagesUnreadCount ?? 0) > 0 ? (
+              <p className={ui.meta}>
+                <strong>{data.messagesUnreadCount}</strong> unread message
+                {data.messagesUnreadCount === 1 ? '' : 's'}
+              </p>
+            ) : null}
+            {data.latestConversation ? (
+              <>
+                <Link
+                  className="link-underline"
+                  to={customerPortalPaths.conversationDetail(data.latestConversation.id)}
+                >
+                  {data.latestConversation.subject}
+                </Link>
+                <p className={ui.meta}>{data.latestConversation.contextLabel}</p>
+                {data.latestConversation.latestMessage ? (
+                  <p className={ui.meta}>
+                    {data.latestConversation.latestMessage.body.slice(0, 100)}
+                    {data.latestConversation.latestMessage.body.length > 100 ? '…' : ''}
+                  </p>
+                ) : null}
+                <time className={ui.meta} dateTime={data.latestConversation.updatedAt}>
+                  {new Date(data.latestConversation.updatedAt).toLocaleString()}
+                </time>
+              </>
+            ) : null}
+            <p style={{ marginTop: 'var(--space-3)' }}>
+              <Link className="link-underline" to={customerPortalPaths.messages}>
+                View all messages
+              </Link>
+            </p>
+          </article>
+        )}
+      </section>
+
       <section className={ui.stack} style={{ marginTop: 'var(--space-8)' }} aria-labelledby="dash-activity">
         <h2 id="dash-activity" className="text-h3">
           Recent activity
@@ -204,13 +247,6 @@ export function CustomerDashboardPage() {
                 <span className={ui.meta}>
                   ₹{pay.amount} · {new Date(pay.createdAt).toLocaleString()}
                 </span>
-              </li>
-            ))}
-            {data.recentMessages.map((m) => (
-              <li key={m.id}>
-                <strong>Message</strong>
-                <br />
-                <span className={ui.meta}>{m.body.slice(0, 100)}{m.body.length > 100 ? '…' : ''}</span>
               </li>
             ))}
           </ul>

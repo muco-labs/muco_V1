@@ -50,10 +50,40 @@ export type CustomerDashboard = {
     dueDate: string | null
   }>
   recentPayments: Array<{ id: string; amount: string; status: string; createdAt: string }>
-  recentMessages: Array<{ id: string; body: string; createdAt: string }>
   openSupportTickets: Array<{ id: string; subject: string; status: string }>
   recentNotifications: Array<{ id: string; title: string; read: boolean; createdAt: string }>
   unreadNotificationCount: number
+  messagesUnreadCount?: number
+  latestConversation?: {
+    id: string
+    subject: string
+    contextLabel: string
+    unreadCount: number
+    latestMessage?: { body: string; createdAt: string } | null
+    updatedAt: string
+  } | null
+}
+
+export type CustomerConversationListItem = {
+  id: string
+  subject: string
+  status: string
+  statusLabel: string
+  contextLabel: string
+  contextReference: string | null
+  createdAt: string
+  updatedAt: string
+  unreadCount: number
+  latestMessage?: { body: string; createdAt: string; senderLabel: string } | null
+}
+
+export type CustomerConversationMessage = {
+  id: string
+  body: string
+  senderType: 'customer' | 'team'
+  senderLabel: string
+  createdAt: string
+  read: boolean
 }
 
 const base = '/api/v1/customer'
@@ -117,12 +147,35 @@ export const customerApi = {
     download: (id: string) => apiRequest<Record<string, unknown>>(`${base}/files/${id}/download`),
   },
   messages: {
-    list: (projectId?: string) =>
+    listLegacy: (projectId?: string) =>
       apiRequest<{ items: unknown[] }>(
         `${base}/messages${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`,
       ),
-    send: (body: { body: string; projectId?: string }) =>
+    sendLegacy: (body: { body: string; projectId?: string }) =>
       apiRequest(`${base}/messages`, { method: 'POST', json: body }),
+  },
+  conversations: {
+    list: () => apiRequest<{ items: CustomerConversationListItem[] }>(`${base}/conversations`),
+    get: (id: string) =>
+      apiRequest<{ conversation: CustomerConversationListItem; messages: CustomerConversationMessage[] }>(
+        `${base}/conversations/${id}`,
+      ),
+    create: (body: {
+      subject?: string
+      body?: string
+      projectId?: string
+      leadId?: string
+      proposalId?: string
+    }) => apiRequest<CustomerConversationListItem>(`${base}/conversations`, { method: 'POST', json: body }),
+    sendMessage: (id: string, body: string) =>
+      apiRequest<CustomerConversationMessage>(`${base}/conversations/${id}/messages`, {
+        method: 'POST',
+        json: { body },
+      }),
+    markRead: (id: string) =>
+      apiRequest(`${base}/conversations/${id}/read`, { method: 'POST' }),
+    close: (id: string) =>
+      apiRequest(`${base}/conversations/${id}/close`, { method: 'POST' }),
   },
   support: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/support`),

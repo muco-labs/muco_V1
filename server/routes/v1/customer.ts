@@ -49,6 +49,15 @@ import {
   createProposalPaymentIntent,
   getCustomerPaymentDetail,
 } from '../../services/proposal-payment.service.js'
+import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
+import {
+  closeCustomerConversation,
+  createCustomerConversation,
+  getCustomerConversation,
+  listCustomerConversations,
+  markCustomerConversationRead,
+  sendCustomerConversationMessage,
+} from '../../services/customer-conversation.service.js'
 
 export const customerRoutes = new Hono()
 
@@ -67,7 +76,15 @@ customerRoutes.get('/dashboard', ...customerStack, async (c) => {
     const auth = c.get('auth')
     const ctx = await requireCustomerContext(auth)
     const data = await getCustomerDashboard(ctx)
-    return jsonSuccess(c, data)
+    const { getCustomerConversationSummary } = await import(
+      '../../services/customer-conversation.service.js'
+    )
+    const messageSummary = await getCustomerConversationSummary(ctx)
+    return jsonSuccess(c, {
+      ...data,
+      messagesUnreadCount: messageSummary.unreadCount,
+      latestConversation: messageSummary.latestConversation,
+    })
   } catch (error) {
     return handleRouteError(c, error)
   }
@@ -608,3 +625,115 @@ customerRoutes.post('/project-requests', ...customerStack, async (c) => {
     return handleRouteError(c, error)
   }
 })
+
+const conversationCreateSchema = z
+  .object({
+    subject: z.string().min(3).max(200).optional(),
+    body: z.string().max(8000).optional(),
+    projectId: z.string().uuid().optional(),
+    leadId: z.string().uuid().optional(),
+    proposalId: z.string().uuid().optional(),
+  })
+  .refine(
+    (value) => !(value.projectId && value.leadId) && !(value.projectId && value.proposalId) && !(value.leadId && value.proposalId),
+    { message: 'Provide only one context id.' },
+  )
+
+customerRoutes.get('/conversations', ...customerStack, requirePermission('messages.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    return jsonSuccess(c, { items: await listCustomerConversations(ctx) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+customerRoutes.get('/conversations/:id', ...customerStack, requirePermission('messages.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    return jsonSuccess(c, await getCustomerConversation(ctx, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+customerRoutes.post('/conversations', ...customerStack, requirePermission('messages.send'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const ctx = await requireCustomerContext(auth)
+    const body = await c.req.json().catch(() => null)
+    const parsed = conversationCreateSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid conversation.', 400)
+    }
+    const row = await createCustomerConversation(ctx, parsed.data)
+    return jsonSuccess(c, row, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const conversationMessageSchema = z.object({ body: z.string().min(1).max(8000) })
+
+customerRoutes.post(
+  '/conversations/:id/messages',
+  ...customerStack,
+  requirePermission('messages.send'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      const limit = checkRateLimit(
+        rateLimitKeyFromRequest(
+          c.req.header('x-forwarded-for') ?? c.req.header('cf-connecting-ip'),
+          `customer:conversation-message:${ctx.userId}`,
+        ),
+        { max: 40, windowMs: 60_000 },
+      )
+      if (!limit.allowed) {
+        throw new AppError('RATE_LIMITED', 'Too many messages. Please wait a moment.', 429)
+      }
+      const body = await c.req.json().catch(() => null)
+      const parsed = conversationMessageSchema.safeParse(body)
+      if (!parsed.success) {
+        throw new AppError('VALIDATION_ERROR', 'Invalid message.', 400)
+      }
+      const row = await sendCustomerConversationMessage(ctx, paramId(c), parsed.data.body)
+      return jsonSuccess(c, row, 201)
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+customerRoutes.post(
+  '/conversations/:id/read',
+  ...customerStack,
+  requirePermission('messages.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(c, await markCustomerConversationRead(ctx, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+customerRoutes.post(
+  '/conversations/:id/close',
+  ...customerStack,
+  requirePermission('messages.send'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(c, await closeCustomerConversation(ctx, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)

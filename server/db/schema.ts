@@ -103,6 +103,16 @@ export const supportTicketPriorityEnum = pgEnum('support_ticket_priority', [
   'urgent',
 ])
 
+export const customerConversationStatusEnum = pgEnum('customer_conversation_status', [
+  'open',
+  'closed',
+])
+
+export const customerMessageSenderTypeEnum = pgEnum('customer_message_sender_type', [
+  'customer',
+  'team',
+])
+
 export const employeeEmploymentStateEnum = pgEnum('employee_employment_state', [
   'onboarding',
   'active',
@@ -671,6 +681,50 @@ export const supportTicketReplies = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('support_ticket_replies_ticket_id_idx').on(table.ticketId)],
+)
+
+export const customerConversations = pgTable(
+  'customer_conversations',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => customerProfiles.id, { onDelete: 'cascade' }),
+    projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    leadId: uuid('lead_id').references(() => leads.id, { onDelete: 'set null' }),
+    proposalId: uuid('proposal_id').references(() => proposals.id, { onDelete: 'set null' }),
+    subject: text('subject').notNull(),
+    status: customerConversationStatusEnum('status').notNull().default('open'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('customer_conversations_customer_id_idx').on(table.customerId),
+    index('customer_conversations_updated_at_idx').on(table.updatedAt),
+    index('customer_conversations_project_id_idx').on(table.projectId),
+    index('customer_conversations_lead_id_idx').on(table.leadId),
+    index('customer_conversations_proposal_id_idx').on(table.proposalId),
+  ],
+)
+
+export const customerConversationMessages = pgTable(
+  'customer_conversation_messages',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => customerConversations.id, { onDelete: 'cascade' }),
+    senderType: customerMessageSenderTypeEnum('sender_type').notNull(),
+    senderUserId: uuid('sender_user_id').references(() => users.id, { onDelete: 'set null' }),
+    body: text('body').notNull(),
+    customerVisible: boolean('customer_visible').notNull().default(true),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('customer_conversation_messages_conversation_id_idx').on(table.conversationId),
+    index('customer_conversation_messages_created_at_idx').on(table.createdAt),
+  ],
 )
 
 export const proposalApprovals = pgTable(

@@ -48,6 +48,13 @@ import {
   updateTaskAdmin,
 } from '../../services/admin.service.js'
 import {
+  getAdminConversation,
+  listAdminConversations,
+  markAdminConversationRead,
+  sendAdminConversationMessage,
+  setAdminConversationStatus,
+} from '../../services/customer-conversation.service.js'
+import {
   addLeadNoteCrm,
   assignLeadCrm,
   convertLeadCrm,
@@ -1330,6 +1337,69 @@ adminRoutes.get('/files', requirePermission('files.view'), async (c) => {
 adminRoutes.get('/messages', requirePermission('messages.view'), async (c) => {
   try {
     return jsonSuccess(c, { items: await listMessagesAdmin(c.req.query('projectId')) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/conversations', requirePermission('messages.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const status = c.req.query('status')
+    const unreadOnly = c.req.query('unreadOnly') === 'true'
+    return jsonSuccess(c, {
+      items: await listAdminConversations(auth, {
+        status: status === 'open' || status === 'closed' ? status : undefined,
+        unreadOnly,
+      }),
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/conversations/:id', requirePermission('messages.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getAdminConversation(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const adminConversationMessageSchema = z.object({ body: z.string().min(1).max(8000) })
+
+adminRoutes.post('/conversations/:id/messages', requirePermission('messages.send'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = adminConversationMessageSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid message.', 400)
+    const row = await sendAdminConversationMessage(auth, paramId(c), parsed.data.body)
+    return jsonSuccess(c, row, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/conversations/:id/read', requirePermission('messages.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await markAdminConversationRead(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const conversationStatusSchema = z.object({ status: z.enum(['open', 'closed']) })
+
+adminRoutes.post('/conversations/:id/close', requirePermission('messages.send'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => ({}))
+    const parsed = conversationStatusSchema.safeParse(body)
+    const status = parsed.success ? parsed.data.status : 'closed'
+    return jsonSuccess(c, await setAdminConversationStatus(auth, paramId(c), status))
   } catch (error) {
     return handleRouteError(c, error)
   }

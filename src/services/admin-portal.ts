@@ -20,6 +20,31 @@ export type AdminDashboard = {
   recentActivity: Array<Record<string, unknown>>
 }
 
+export type AdminConversationListItem = {
+  id: string
+  subject: string
+  status: string
+  contextLabel: string
+  contextReference: string | null
+  projectId: string | null
+  leadId: string | null
+  proposalId: string | null
+  customer: { id: string; name: string; email: string }
+  createdAt: string
+  updatedAt: string
+  unreadCount: number
+  latestMessage?: { body: string; createdAt: string; senderType: string } | null
+}
+
+export type AdminConversationMessage = {
+  id: string
+  body: string
+  senderType: 'customer' | 'team'
+  customerVisible: boolean
+  createdAt: string
+  read: boolean
+}
+
 export const adminApi = {
   dashboard: () => apiRequest<AdminDashboard>(`${base}/dashboard`),
   crm: {
@@ -277,5 +302,26 @@ export const adminApi = {
       apiRequest<{ items: unknown[] }>(
         `${base}/messages${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`,
       ),
+  },
+  conversations: {
+    list: (query?: { status?: string; unreadOnly?: boolean }) => {
+      const params = new URLSearchParams()
+      if (query?.status) params.set('status', query.status)
+      if (query?.unreadOnly) params.set('unreadOnly', 'true')
+      const qs = params.toString()
+      return apiRequest<{ items: AdminConversationListItem[] }>(
+        `${base}/conversations${qs ? `?${qs}` : ''}`,
+      )
+    },
+    get: (id: string) =>
+      apiRequest<{ conversation: AdminConversationListItem; messages: AdminConversationMessage[] }>(
+        `${base}/conversations/${id}`,
+      ),
+    sendMessage: (id: string, body: string) =>
+      apiRequest(`${base}/conversations/${id}/messages`, { method: 'POST', json: { body } }),
+    markRead: (id: string) =>
+      apiRequest(`${base}/conversations/${id}/read`, { method: 'POST' }),
+    setStatus: (id: string, status: 'open' | 'closed') =>
+      apiRequest(`${base}/conversations/${id}/close`, { method: 'POST', json: { status } }),
   },
 }
