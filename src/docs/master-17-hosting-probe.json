@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T18:41:12.807Z",
+  "generatedAt": "2026-08-09T19:57:21.109Z",
   "master": "MASTER-17",
   "repository": {
     "vercelProjectLink": {
@@ -16,7 +16,7 @@
     "VITE_SUPABASE_PUBLISHABLE_KEY": true,
     "VITE_SUPABASE_ANON_KEY": false,
     "CORS_ORIGINS": false,
-    "VITE_SITE_URL": false,
+    "VITE_SITE_URL": true,
     "VITE_PORTAL_ORIGIN_CUSTOMER": false,
     "VITE_AUTH_REDIRECT_URL": false,
     "RAZORPAY_KEY_ID": false,
@@ -29,21 +29,21 @@
       "status": 308,
       "server": "Vercel",
       "location": "https://www.mucolabs.com/",
-      "vercelId": "bom1::lblzc-1786300873604-7b26bb863596"
+      "vercelId": "bom1::z7cwb-1786305441469-3998f896d683"
     },
     "wwwHome": {
       "url": "https://www.mucolabs.com/",
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::f8hgf-1786300873954-0c53d72c6d1a"
+      "vercelId": "bom1::r8746-1786305442059-e5910a18e201"
     },
     "wwwHealth": {
       "url": "https://www.mucolabs.com/api/health",
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::iad1::j7qkz-1786300874166-faf915ad180f",
+      "vercelId": "bom1::iad1::v9spw-1786305442707-848bb40cd793",
       "healthDatabaseConnected": true,
       "healthOk": true
     },
@@ -52,7 +52,7 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::iad1::t84tc-1786300876641-0672c35865ec",
+      "vercelId": "bom1::iad1::7t5q9-1786305446053-173c109f84f7",
       "healthDatabaseConnected": true,
       "healthOk": true
     },
@@ -61,16 +61,16 @@
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::96lvg-1786300879012-8d71f9feefeb",
-      "robotsSitemapLine": "Sitemap: https://muco-v1.vercel.app/sitemap.xml"
+      "vercelId": "bom1::tlsw7-1786305448947-61d25e363043",
+      "robotsSitemapLine": "Sitemap: https://www.mucolabs.com/sitemap.xml"
     },
     "stagingRobots": {
       "url": "https://muco-v1.vercel.app/robots.txt",
       "status": 200,
       "server": "Vercel",
       "location": null,
-      "vercelId": "bom1::dl62k-1786300879091-e8acdc1ea2ff",
-      "robotsSitemapLine": "Sitemap: https://muco-v1.vercel.app/sitemap.xml"
+      "vercelId": "bom1::5btwp-1786305449339-42c70fe80671",
+      "robotsSitemapLine": "Sitemap: https://www.mucolabs.com/sitemap.xml"
     },
     "publicPathSmoke": [
       {
@@ -112,19 +112,31 @@
     "portalHosts": [
       {
         "url": "https://app.mucolabs.com/",
-        "error": "fetch failed"
+        "status": 200,
+        "server": "Vercel",
+        "location": null,
+        "vercelId": "bom1::b2gql-1786305452167-e16ef7575b47"
       },
       {
         "url": "https://team.mucolabs.com/",
-        "error": "fetch failed"
+        "status": 200,
+        "server": "Vercel",
+        "location": null,
+        "vercelId": "bom1::wz42d-1786305452597-5393075d9f04"
       },
       {
         "url": "https://freelancers.mucolabs.com/",
-        "error": "fetch failed"
+        "status": 200,
+        "server": "Vercel",
+        "location": null,
+        "vercelId": "bom1::f2vpn-1786305453077-65f70d15c22a"
       },
       {
         "url": "https://admin.mucolabs.com/",
-        "error": "fetch failed"
+        "status": 200,
+        "server": "Vercel",
+        "location": null,
+        "vercelId": "bom1::djn7c-1786305453478-066a1d034f11"
       }
     ]
   },
@@ -132,7 +144,7 @@
     "publicWwwReachable": true,
     "publicApiHealthy": true,
     "apexRedirectsToWww": true,
-    "portalDnsConfigured": false,
+    "portalDnsConfigured": true,
     "portalDnsConfiguredNote": "false when subdomains do not resolve or return errors — expected until DNS + Vercel domain attach"
   }
 }

@@ -1,0 +1,159 @@
+{
+  "generatedAt": "2026-08-09T20:01:44.118Z",
+  "master": "MASTER-19",
+  "vercelProjectLink": {
+    "projectName": "muco-v1",
+    "projectId": "prj_pHjdu8E8zF8EN3HjAzoT3nJcjmT4"
+  },
+  "envMatrixLocal": {
+    "DATABASE_URL": "PRESENT",
+    "SUPABASE_URL": "PRESENT",
+    "SUPABASE_SERVICE_ROLE_KEY": "PRESENT",
+    "SUPABASE_ANON_KEY": "MISSING",
+    "SUPABASE_PUBLISHABLE_KEY": "PRESENT",
+    "VITE_SUPABASE_URL": "PRESENT",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "PRESENT",
+    "VITE_SUPABASE_ANON_KEY": "MISSING",
+    "VITE_SITE_URL": "PRESENT",
+    "VITE_AUTH_REDIRECT_URL": "MISSING",
+    "CORS_ORIGINS": "MISSING",
+    "FOUNDER_BOOTSTRAP_SECRET": "MISSING",
+    "AUTH_REDIRECT_URL": "MISSING",
+    "AUTH_INVITE_REDIRECT_URL": "MISSING",
+    "GOOGLE_CLIENT_ID": "MISSING",
+    "GOOGLE_CLIENT_SECRET": "MISSING",
+    "GITHUB_CLIENT_ID": "MISSING",
+    "GITHUB_CLIENT_SECRET": "MISSING"
+  },
+  "migrations": {
+    "sqlMigrationCount": 30,
+    "journalEntryCount": 30,
+    "has0029_muco_login_id": true,
+    "migration0029AddsColumn": true,
+    "drizzleJournalTags": [
+      "0000_initial_platform",
+      "0001_auth_supabase",
+      "0002_row_level_security",
+      "0003_customer_portal",
+      "0004_employee_portal",
+      "0005_admin_lead_followup",
+      "0006_crm_pipeline",
+      "0007_business_workflow",
+      "0008_lead_attribution",
+      "0009_sales_revenue",
+      "0010_lead_business_city",
+      "0011_lead_business_state",
+      "0012_lead_international_geo",
+      "0013_proposal_currency",
+      "0014_product_waitlist",
+      "0015_product_saas_tenant_foundation",
+      "0016_employee_org_operating",
+      "0017_website_intelligence",
+      "0018_website_intelligence_coverage",
+      "0019_careers_talent",
+      "0020_proposal_status_cancelled",
+      "0021_payments_proposal",
+      "0022_customer_conversations",
+      "0023_project_files_metadata",
+      "0024_task_status_cancelled",
+      "0025_freelancer_network",
+      "0026_project_freelancers",
+      "0027_freelancer_services_skills",
+      "0028_freelancer_availability_capacity",
+      "0029_muco_login_id"
+    ],
+    "productionSchemaCheck": "BLOCKED — requires read-only SQL against production (not run in MASTER 19)",
+    "safeDbMigrate": "DO NOT RUN npm run db:migrate without reconciling __drizzle_migrations"
+  },
+  "dnsAndHttps": {
+    "apex": {
+      "url": "https://mucolabs.com",
+      "status": 308,
+      "server": "Vercel",
+      "location": "https://www.mucolabs.com/",
+      "vercelId": "bom1::rdzkf-1786305704424-ebc146408039",
+      "tls": "HTTPS"
+    },
+    "www": {
+      "url": "https://www.mucolabs.com/",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::d644f-1786305704681-44b7b0a17197",
+      "tls": "HTTPS",
+      "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
+      "hasSignInRoute": false,
+      "isSpaShell": true
+    },
+    "customer": {
+      "url": "https://app.mucolabs.com/",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::w7q9z-1786305705049-d25e8151ff09",
+      "tls": "HTTPS",
+      "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
+      "hasSignInRoute": false,
+      "isSpaShell": true
+    },
+    "employee": {
+      "url": "https://team.mucolabs.com/",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::2v7jf-1786305705364-915e09d0a076",
+      "tls": "HTTPS",
+      "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
+      "hasSignInRoute": false,
+      "isSpaShell": true
+    },
+    "freelancer": {
+      "url": "https://freelancers.mucolabs.com/",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::czzbb-1786305705679-c68bbb059259",
+      "tls": "HTTPS",
+      "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
+      "hasSignInRoute": false,
+      "isSpaShell": true
+    },
+    "admin": {
+      "url": "https://admin.mucolabs.com/",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::cl5gn-1786305706019-6c9d57d93bb6",
+      "tls": "HTTPS",
+      "title": "MUCO LABS | Web &amp; Software Development in Erode, Tamil Nadu",
+      "hasSignInRoute": false,
+      "isSpaShell": true
+    },
+    "wwwHealth": {
+      "url": "https://www.mucolabs.com/api/health",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::iad1::v99gj-1786305706107-85a337ccfe43",
+      "tls": "HTTPS"
+    }
+  },
+  "seo": {
+    "robots": {
+      "url": "https://www.mucolabs.com/robots.txt",
+      "status": 200,
+      "server": "Vercel",
+      "location": null,
+      "vercelId": "bom1::k4mg9-1786305709879-b984de82a04a",
+      "tls": "HTTPS"
+    },
+    "sitemapHasVercelApp": false,
+    "sitemapHasWww": true
+  },
+  "oauth": {
+    "google": "BLOCKED",
+    "github": "BLOCKED",
+    "supabaseDashboard": "BLOCKED — requires Supabase project dashboard access"
+  },
+  "browserQa": "BLOCKED — no dedicated test credentials supplied for MASTER 19"
+}

@@ -5,7 +5,8 @@ const app = createApp()
 
 beforeAll(async () => {
   await app.fetch(new Request('http://localhost/api/health'))
-}, 20_000)
+  await app.fetch(new Request('http://localhost/api/v1/customer/dashboard'))
+}, 45_000)
 
 async function api(
   path: string,
