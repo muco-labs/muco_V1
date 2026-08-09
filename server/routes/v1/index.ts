@@ -73,6 +73,8 @@ v1.route('/employee', employeeRoutes)
 export function createV1App() {
   const app = new Hono().basePath('/api')
 
+  app.onError((error, c) => handleRouteError(c, error))
+
   if (serverEnv.corsOrigins.length > 0) {
     app.use(
       '*',
