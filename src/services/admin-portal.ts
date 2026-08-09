@@ -47,10 +47,37 @@ export const adminApi = {
       ),
   },
   careers: {
-    listApplications: (params?: { status?: string; q?: string }) => {
+    listJobs: (params?: { status?: string; q?: string }) => {
       const search = new URLSearchParams()
       if (params?.status) search.set('status', params.status)
       if (params?.q) search.set('q', params.q)
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[]; count: number }>(
+        `${base}/careers/jobs${qs ? `?${qs}` : ''}`,
+      )
+    },
+    getJob: (id: string) => apiRequest<Record<string, unknown>>(`${base}/careers/jobs/${id}`),
+    createJob: (body: Record<string, unknown>) =>
+      apiRequest(`${base}/careers/jobs`, { method: 'POST', json: body }),
+    updateJob: (id: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/careers/jobs/${id}`, { method: 'PATCH', json: body }),
+    updateJobStatus: (id: string, status: string) =>
+      apiRequest(`${base}/careers/jobs/${id}/status`, { method: 'PATCH', json: { status } }),
+    listApplications: (params?: {
+      status?: string
+      q?: string
+      jobOpeningId?: string
+      applicationType?: string
+      from?: string
+      to?: string
+    }) => {
+      const search = new URLSearchParams()
+      if (params?.status) search.set('status', params.status)
+      if (params?.q) search.set('q', params.q)
+      if (params?.jobOpeningId) search.set('jobOpeningId', params.jobOpeningId)
+      if (params?.applicationType) search.set('applicationType', params.applicationType)
+      if (params?.from) search.set('from', params.from)
+      if (params?.to) search.set('to', params.to)
       const qs = search.toString()
       return apiRequest<{ items: unknown[]; count: number }>(
         `${base}/careers/applications${qs ? `?${qs}` : ''}`,

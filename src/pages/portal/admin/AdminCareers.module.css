@@ -1,3 +1,68 @@
+.subNav {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.subNavActive {
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+  margin-bottom: var(--space-4);
+}
+
+.createLink {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent, #0a0a0a);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.searchInput {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: inherit;
+  min-width: 12rem;
+}
+
+.jobForm {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 42rem;
+  margin-top: var(--space-4);
+}
+
+.formGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+
 .filter {
   display: grid;
   gap: var(--space-2);

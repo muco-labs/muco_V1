@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   ListSkeleton,
   PageIntro,
@@ -7,7 +7,8 @@ import {
   StatusPill,
 } from '@/components/portal/CustomerPortalUi'
 import ui from '@/components/portal/CustomerPortalUi.module.css'
-import { adminPortalPaths, careerApplicationStatusOptions } from '@/config/admin-portal'
+import { adminPortalPaths, careerApplicationStatusOptions, careerApplicationTypeFilterOptions } from '@/config/admin-portal'
+import { CareersSubNav } from '@/pages/portal/admin/AdminCareersSubNav'
 import { useAuth } from '@/contexts/AuthProvider'
 import { useFetch } from '@/hooks/useFetch'
 import { adminApi } from '@/services/admin-portal'
@@ -29,13 +30,24 @@ type ApplicationRow = {
 }
 
 export function AdminCareersApplicationsPage() {
-  const [statusFilter, setStatusFilter] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const statusFilter = searchParams.get('status') ?? ''
+  const jobFilter = searchParams.get('jobOpeningId') ?? ''
+  const typeFilter = searchParams.get('applicationType') ?? ''
+  const q = searchParams.get('q') ?? ''
+
+  const { data: jobsData } = useFetch(() => adminApi.careers.listJobs(), [])
+  const jobOptions = (jobsData?.items as Array<{ id: string; title: string }>) ?? []
+
   const { data, error, loading, reload } = useFetch(
     () =>
       adminApi.careers.listApplications({
         status: statusFilter || undefined,
+        jobOpeningId: jobFilter || undefined,
+        applicationType: typeFilter || undefined,
+        q: q || undefined,
       }),
-    [statusFilter],
+    [statusFilter, jobFilter, typeFilter, q],
   )
 
   if (loading) return <ListSkeleton rows={10} />
@@ -50,21 +62,87 @@ export function AdminCareersApplicationsPage() {
         title="Career applications"
         description="Recruitment applications are separate from CRM sales leads."
       />
-      <label className={styles.filter}>
-        <span className={ui.meta}>Status</span>
-        <select
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
-          className={styles.select}
-        >
-          <option value="">All</option>
-          {careerApplicationStatusOptions.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </label>
+      <CareersSubNav active="applications" />
+      <div className={styles.toolbar}>
+        <label className={styles.filter}>
+          <span className={ui.meta}>Status</span>
+          <select
+            value={statusFilter}
+            onChange={(event) => {
+              const next = new URLSearchParams(searchParams)
+              if (event.target.value) next.set('status', event.target.value)
+              else next.delete('status')
+              setSearchParams(next)
+            }}
+            className={styles.select}
+          >
+            <option value="">All</option>
+            {careerApplicationStatusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.filter}>
+          <span className={ui.meta}>Job</span>
+          <select
+            value={jobFilter}
+            onChange={(event) => {
+              const next = new URLSearchParams(searchParams)
+              if (event.target.value) next.set('jobOpeningId', event.target.value)
+              else next.delete('jobOpeningId')
+              setSearchParams(next)
+            }}
+            className={styles.select}
+          >
+            <option value="">All</option>
+            {jobOptions.map((job) => (
+              <option key={job.id} value={job.id}>
+                {job.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.filter}>
+          <span className={ui.meta}>Type</span>
+          <select
+            value={typeFilter}
+            onChange={(event) => {
+              const next = new URLSearchParams(searchParams)
+              if (event.target.value) next.set('applicationType', event.target.value)
+              else next.delete('applicationType')
+              setSearchParams(next)
+            }}
+            className={styles.select}
+          >
+            <option value="">All</option>
+            {careerApplicationTypeFilterOptions.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.filter}>
+          <span className={ui.meta}>Search</span>
+          <input
+            type="search"
+            className={styles.searchInput}
+            value={q}
+            onChange={(event) => {
+              const next = new URLSearchParams(searchParams)
+              if (event.target.value) next.set('q', event.target.value)
+              else next.delete('q')
+              setSearchParams(next)
+            }}
+            placeholder="Name, email, role"
+          />
+        </label>
+        <Link className="link-underline" to={adminPortalPaths.careersJobs}>
+          Manage jobs
+        </Link>
+      </div>
       <p className={ui.meta}>{items.length} applications</p>
       {items.length === 0 ? (
         <p className={ui.meta}>No applications yet.</p>

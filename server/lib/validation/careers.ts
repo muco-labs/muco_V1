@@ -57,4 +57,56 @@ export const updateCareerApplicationStatusSchema = z.object({
   status: z.enum(careerApplicationStatuses),
 })
 
+export const careerJobStatuses = ['draft', 'published', 'closed'] as const
+
+export const careerEmploymentTypes = [
+  'full_time',
+  'part_time',
+  'internship',
+  'contract',
+] as const
+
+const careerJobSlugSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(120)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase letters, numbers and hyphens only.')
+
+const careerJobBodyFields = {
+  slug: careerJobSlugSchema,
+  title: z.string().trim().min(2).max(200),
+  department: z.string().trim().min(2).max(120),
+  employmentType: z.enum(careerEmploymentTypes),
+  experienceLevel: z.string().trim().max(80).optional().nullable(),
+  locationLabel: z.string().trim().max(160).optional().nullable(),
+  remoteStatus: z.string().trim().max(80).optional().nullable(),
+  shortDescription: z.string().trim().min(20).max(2000),
+  responsibilities: z.string().trim().min(20).max(12000),
+  requiredSkills: z.string().trim().min(2).max(4000),
+  preferredSkills: z.string().trim().max(4000).optional().nullable(),
+  publishedAt: z.string().optional().nullable(),
+  closesAt: z.string().optional().nullable(),
+}
+
+export const createCareerJobOpeningSchema = z.object(careerJobBodyFields)
+
+export const updateCareerJobOpeningSchema = z.object({
+  ...careerJobBodyFields,
+  slug: careerJobSlugSchema.optional(),
+  title: careerJobBodyFields.title.optional(),
+  department: careerJobBodyFields.department.optional(),
+  employmentType: careerJobBodyFields.employmentType.optional(),
+  shortDescription: careerJobBodyFields.shortDescription.optional(),
+  responsibilities: careerJobBodyFields.responsibilities.optional(),
+  requiredSkills: careerJobBodyFields.requiredSkills.optional(),
+})
+
+export const updateCareerJobStatusSchema = z.object({
+  status: z.enum(careerJobStatuses),
+})
+
+export type CreateCareerJobOpeningInput = z.infer<typeof createCareerJobOpeningSchema>
+export type UpdateCareerJobOpeningInput = z.infer<typeof updateCareerJobOpeningSchema>
+
 export type CreateCareerApplicationInput = z.infer<typeof createCareerApplicationSchema>

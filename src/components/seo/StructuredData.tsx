@@ -274,6 +274,8 @@ export function JobPostingSchema({
   datePosted,
   validThrough,
   hiringOrganization,
+  locationLabel,
+  remoteStatus,
 }: {
   title: string
   description: string
@@ -282,6 +284,8 @@ export function JobPostingSchema({
   datePosted?: string
   validThrough?: string
   hiringOrganization: { name: string; sameAs: string }
+  locationLabel?: string | null
+  remoteStatus?: string | null
 }) {
   const data: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -299,6 +303,23 @@ export function JobPostingSchema({
 
   if (datePosted) data.datePosted = datePosted
   if (validThrough) data.validThrough = validThrough
+
+  const remote = remoteStatus?.toLowerCase() ?? ''
+  if (remote.includes('remote') || remote.includes('hybrid')) {
+    data.jobLocationType = remote.includes('hybrid') ? 'TELECOMMUTE' : 'TELECOMMUTE'
+    data.applicantLocationRequirements = {
+      '@type': 'Country',
+      name: locationLabel?.trim() || 'Worldwide',
+    }
+  } else if (locationLabel?.trim()) {
+    data.jobLocation = {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: locationLabel.trim(),
+      },
+    }
+  }
 
   return <StructuredData data={data} />
 }

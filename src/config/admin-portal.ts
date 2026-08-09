@@ -7,6 +7,9 @@ export const adminPortalPaths = {
   localInternational: '/admin/local/international',
   productWaitlist: '/admin/product/waitlist',
   careers: '/admin/careers',
+  careersJobs: '/admin/careers/jobs',
+  careersJobNew: '/admin/careers/jobs/new',
+  careersJobDetail: (id: string) => `/admin/careers/jobs/${id}`,
   careersApplicationDetail: (id: string) => `/admin/careers/applications/${id}`,
   executive: '/admin/executive',
   teamAccess: '/admin/team/access',
@@ -100,6 +103,23 @@ export const careerApplicationStatusOptions = [
   'selected',
   'rejected',
   'archived',
+] as const
+
+export const careerJobStatusOptions = ['draft', 'published', 'closed'] as const
+
+export const careerApplicationTypeFilterOptions = [
+  'full_time',
+  'part_time',
+  'internship',
+  'contract',
+  'general',
+] as const
+
+export const careerEmploymentTypeOptions = [
+  { value: 'full_time', label: 'Full-time' },
+  { value: 'part_time', label: 'Part-time' },
+  { value: 'internship', label: 'Internship' },
+  { value: 'contract', label: 'Contract' },
 ] as const
 
 export const CRM_PIPELINE_STATUSES = [

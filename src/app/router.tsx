@@ -190,6 +190,14 @@ const AdminCareerApplicationDetailPage = lazyPage(
   () => import('@/pages/portal/admin/AdminCareersPages'),
   'AdminCareerApplicationDetailPage',
 )
+const AdminCareersJobsPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminCareersJobPages'),
+  'AdminCareersJobsPage',
+)
+const AdminCareersJobEditPage = lazyPage(
+  () => import('@/pages/portal/admin/AdminCareersJobPages'),
+  'AdminCareersJobEditPage',
+)
 const AdminExecutivePage = lazyPage(
   () => import('@/pages/portal/admin/AdminExecutivePage'),
   'AdminExecutivePage',
@@ -333,6 +341,9 @@ export const router = createBrowserRouter([
           { path: 'local/international', element: <AdminInternationalMarketPage /> },
           { path: 'product/waitlist', element: <AdminProductWaitlistPage /> },
           { path: 'careers', element: <AdminCareersApplicationsPage /> },
+          { path: 'careers/jobs', element: <AdminCareersJobsPage /> },
+          { path: 'careers/jobs/new', element: <AdminCareersJobEditPage /> },
+          { path: 'careers/jobs/:id', element: <AdminCareersJobEditPage /> },
           { path: 'careers/applications/:id', element: <AdminCareerApplicationDetailPage /> },
           { path: 'executive', element: <AdminExecutivePage /> },
           { path: 'team/access', element: <AdminTeamAccessPage /> },

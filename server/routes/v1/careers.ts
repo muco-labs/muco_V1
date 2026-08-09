@@ -6,6 +6,7 @@ import { createCareerApplicationSchema, careerResumeMetaSchema } from '../../lib
 import { formatZodErrors } from '../../lib/validation/leads.js'
 import {
   createCareerApplication,
+  getCareerJobApplyContextPublic,
   getPublishedJobOpeningBySlug,
   listPublishedJobOpenings,
   registerCareerResumeUpload,
@@ -16,6 +17,15 @@ export const careersRoutes = new Hono()
 careersRoutes.get('/openings', async (c) => {
   try {
     return jsonSuccess(c, { items: await listPublishedJobOpenings() })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+careersRoutes.get('/openings/:slug/apply-context', async (c) => {
+  try {
+    const slug = c.req.param('slug')
+    return jsonSuccess(c, await getCareerJobApplyContextPublic(slug))
   } catch (error) {
     return handleRouteError(c, error)
   }

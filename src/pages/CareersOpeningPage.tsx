@@ -71,6 +71,8 @@ export function CareersOpeningPage() {
         datePosted={job.publishedAt ?? undefined}
         validThrough={job.closesAt ?? undefined}
         hiringOrganization={{ name: 'MUCO LABS', sameAs: env.siteUrl }}
+        locationLabel={job.locationLabel}
+        remoteStatus={job.remoteStatus}
       />
       <PageShell title={job.title} path={path} description={job.shortDescription}>
         <p className={styles.meta}>

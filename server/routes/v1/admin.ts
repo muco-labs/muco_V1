@@ -84,13 +84,21 @@ import { listProductWaitlistForAdmin } from '../../services/product-waitlist.ser
 import { websiteIntelligenceRoutes } from './website-intelligence.js'
 import {
   addCareerApplicationNoteAdmin,
+  createCareerJobOpeningAdmin,
   getCareerApplicationAdmin,
+  getCareerJobOpeningAdmin,
   getCareerResumeDownloadUrlAdmin,
   listCareerApplicationsAdmin,
+  listCareerJobOpeningsAdmin,
   updateCareerApplicationStatusAdmin,
+  updateCareerJobOpeningAdmin,
+  updateCareerJobOpeningStatusAdmin,
 } from '../../services/careers.service.js'
 import {
+  createCareerJobOpeningSchema,
   updateCareerApplicationStatusSchema,
+  updateCareerJobOpeningSchema,
+  updateCareerJobStatusSchema,
 } from '../../lib/validation/careers.js'
 import {
   getEmployeeAccessReview,
@@ -350,12 +358,83 @@ const careerNoteSchema = z.object({
   content: z.string().trim().min(1).max(8000),
 })
 
+adminRoutes.get('/careers/jobs', requirePermission('careers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const items = await listCareerJobOpeningsAdmin(auth, {
+      status: c.req.query('status'),
+      q: c.req.query('q'),
+    })
+    return jsonSuccess(c, { items, count: items.length })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/careers/jobs', requirePermission('careers.manage'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = createCareerJobOpeningSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid job opening.', 400, formatZodErrors(parsed.error))
+    }
+    const job = await createCareerJobOpeningAdmin(auth, parsed.data)
+    return jsonSuccess(c, { job }, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/careers/jobs/:id', requirePermission('careers.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getCareerJobOpeningAdmin(auth, paramId(c)))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/careers/jobs/:id', requirePermission('careers.manage'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = updateCareerJobOpeningSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid job opening.', 400, formatZodErrors(parsed.error))
+    }
+    const job = await updateCareerJobOpeningAdmin(auth, paramId(c), parsed.data)
+    return jsonSuccess(c, { job })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/careers/jobs/:id/status', requirePermission('careers.manage'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = updateCareerJobStatusSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid status.', 400, formatZodErrors(parsed.error))
+    }
+    const job = await updateCareerJobOpeningStatusAdmin(auth, paramId(c), parsed.data.status)
+    return jsonSuccess(c, { job })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
 adminRoutes.get('/careers/applications', requirePermission('careers.view'), async (c) => {
   try {
     const auth = c.get('auth')
     const items = await listCareerApplicationsAdmin(auth, {
       status: c.req.query('status'),
       q: c.req.query('q'),
+      jobOpeningId: c.req.query('jobOpeningId'),
+      applicationType: c.req.query('applicationType'),
+      from: c.req.query('from'),
+      to: c.req.query('to'),
     })
     return jsonSuccess(c, { items, count: items.length })
   } catch (error) {

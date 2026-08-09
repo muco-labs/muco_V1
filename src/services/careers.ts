@@ -51,6 +51,16 @@ export type CareerApplicationResult =
     }
   | { ok: false; error: string; fieldErrors?: Record<string, string> }
 
+export async function fetchCareerJobApplyContext(slug: string) {
+  return apiRequest<{
+    slug: string
+    title: string
+    acceptingApplications: boolean
+    status: string
+    message: string | null
+  }>(`/api/v1/careers/openings/${encodeURIComponent(slug)}/apply-context`)
+}
+
 export async function fetchCareerOpenings(): Promise<CareerJobOpeningSummary[]> {
   const data = await apiRequest<{ items: CareerJobOpeningSummary[] }>('/api/v1/careers/openings')
   return data.items ?? []

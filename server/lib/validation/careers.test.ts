@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   createCareerApplicationSchema,
+  createCareerJobOpeningSchema,
   updateCareerApplicationStatusSchema,
+  updateCareerJobStatusSchema,
   careerApplicationStatuses,
+  careerJobStatuses,
 } from './careers.js'
 
 const valid = {
@@ -60,5 +63,33 @@ describe('updateCareerApplicationStatusSchema', () => {
 
   it('rejects invalid status', () => {
     expect(updateCareerApplicationStatusSchema.safeParse({ status: 'hired' }).success).toBe(false)
+  })
+})
+
+describe('createCareerJobOpeningSchema', () => {
+  const validJob = {
+    slug: 'frontend-developer',
+    title: 'Frontend Developer',
+    department: 'Engineering',
+    employmentType: 'full_time' as const,
+    shortDescription: 'Build accessible web products with React and TypeScript for MUCO client work.',
+    responsibilities: 'Ship UI features, collaborate with design, write tests, and improve performance.',
+    requiredSkills: 'React, TypeScript, HTML, CSS',
+  }
+
+  it('accepts a valid job draft payload', () => {
+    expect(createCareerJobOpeningSchema.safeParse(validJob).success).toBe(true)
+  })
+
+  it('rejects duplicate-invalid slugs', () => {
+    expect(createCareerJobOpeningSchema.safeParse({ ...validJob, slug: 'Bad Slug' }).success).toBe(false)
+  })
+})
+
+describe('updateCareerJobStatusSchema', () => {
+  it('accepts draft published closed', () => {
+    for (const status of careerJobStatuses) {
+      expect(updateCareerJobStatusSchema.safeParse({ status }).success).toBe(true)
+    }
   })
 })
