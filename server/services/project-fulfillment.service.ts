@@ -14,6 +14,7 @@ import {
 import { AppError } from '../lib/errors.js'
 import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
 import { formatProjectReference } from '../lib/projects/project-reference.js'
+import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
 import {
   canCreateProjectFromLead,
   presentCustomerProjectStatus,
@@ -23,6 +24,7 @@ import {
 import type { AuthContext } from '../middleware/authenticate.js'
 import { hasPermission } from '../lib/auth/permissions.js'
 import { recordLeadActivity, assertCanAccessLead } from './crm.service.js'
+import { getProjectDeliveryAdminExtras, updateProjectStatusWithDeliveryRules } from './project-delivery.service.js'
 
 function assertProjectsPermission(auth: AuthContext, permission: 'projects.view' | 'projects.create' | 'projects.update') {
   if (!hasPermission(auth.permissions, permission)) {
@@ -47,6 +49,7 @@ export function serializeCustomerProjectSummary(project: typeof projects.$inferS
     sourceRequestReference: project.leadId
       ? formatProjectRequestReference(project.leadId)
       : null,
+    proposalReference: project.proposalId ? formatProposalReference(project.proposalId) : null,
   }
 }
 
@@ -150,6 +153,7 @@ function mapAdminProject(row: typeof projects.$inferSelect) {
     ...row,
     reference: formatProjectReference(row.id),
     sourceRequestReference: row.leadId ? formatProjectRequestReference(row.leadId) : null,
+    proposalReference: row.proposalId ? formatProposalReference(row.proposalId) : null,
     startDate: row.startDate?.toISOString() ?? null,
     expectedCompletion: row.expectedCompletion?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
@@ -246,6 +250,8 @@ export async function getProjectFulfillmentAdmin(auth: AuthContext, projectId: s
         .limit(20)
     : []
 
+  const delivery = await getProjectDeliveryAdminExtras(auth, projectId)
+
   return {
     project: mapAdminProject(row.project),
     customer: {
@@ -256,6 +262,7 @@ export async function getProjectFulfillmentAdmin(auth: AuthContext, projectId: s
     },
     sourceLead,
     activities,
+    ...delivery,
   }
 }
 
@@ -271,38 +278,21 @@ export async function updateProjectFulfillmentAdmin(
   const [existing] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
   if (!existing) throw new AppError('NOT_FOUND', 'Project not found.', 404)
 
+  if (input.status && input.status !== existing.status) {
+    await updateProjectStatusWithDeliveryRules(auth, projectId, input.status)
+  }
+
   const patch: Partial<typeof projects.$inferInsert> = { updatedAt: new Date() }
   if (input.name?.trim()) patch.name = input.name.trim()
   if (input.description !== undefined) patch.description = input.description?.trim() || null
-  if (input.status) {
-    if (!PROJECT_FULFILLMENT_STATUSES.includes(input.status)) {
-      throw new AppError('VALIDATION_ERROR', 'Invalid project status.', 400)
-    }
-    patch.status = input.status
+
+  const hasMetaChange = Boolean(input.name?.trim()) || input.description !== undefined
+  if (hasMetaChange) {
+    const [updated] = await db.update(projects).set(patch).where(eq(projects.id, projectId)).returning()
+    return mapAdminProject(updated)
   }
 
-  const [updated] = await db
-    .update(projects)
-    .set(patch)
-    .where(eq(projects.id, projectId))
-    .returning()
-
-  if (input.status && input.status !== existing.status) {
-    await db.insert(auditLogs).values({
-      actorUserId: auth.userId,
-      action: 'project.status_changed',
-      entity: 'projects',
-      entityId: projectId,
-      metadata: JSON.stringify({ from: existing.status, to: input.status }),
-    })
-    if (existing.leadId) {
-      await recordLeadActivity(existing.leadId, 'project.status_changed', auth.userId, {
-        projectId,
-        from: existing.status,
-        to: input.status,
-      })
-    }
-  }
-
-  return mapAdminProject(updated)
+  const [fresh] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+  if (!fresh) throw new AppError('NOT_FOUND', 'Project not found.', 404)
+  return mapAdminProject(fresh)
 }

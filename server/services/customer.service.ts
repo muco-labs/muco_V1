@@ -18,7 +18,6 @@ import {
   supportTickets,
   roles,
   userRoles,
-  tasks,
   users,
 } from '../db/schema.js'
 import { AppError } from '../lib/errors.js'
@@ -32,9 +31,13 @@ import {
   syncOverdueInvoices,
   verifyRazorpayCheckoutSignature,
 } from './payment.service.js'
-import { computeProjectProgressFromTasks } from './workflow.service.js'
 import { serializeCustomerProjectSummary } from './project-fulfillment.service.js'
 import { recordCustomerProposalView, serializeCustomerProposal } from './proposal-fulfillment.service.js'
+import {
+  enrichCustomerProjectDetail,
+  serializeCustomerMilestone,
+} from './project-delivery.service.js'
+import { computeMilestoneProgressPercent } from '../lib/projects/milestone-delivery.js'
 import {
   getProposalPaymentSummaryForCustomer,
   listCustomerPaymentsEnriched,
@@ -318,13 +321,9 @@ export async function listCustomerProjects(ctx: CustomerContext) {
         .select({ status: milestones.status })
         .from(milestones)
         .where(eq(milestones.projectId, project.id))
-      const ts = await db
-        .select({ status: tasks.status })
-        .from(tasks)
-        .where(eq(tasks.projectId, project.id))
       return {
         ...serializeCustomerProjectSummary(project),
-        progressPercent: computeProjectProgressFromTasks(ts, ms),
+        progressPercent: computeMilestoneProgressPercent(ms),
       }
     }),
   )
@@ -341,32 +340,18 @@ export async function getCustomerProjectDetail(ctx: CustomerContext, projectId: 
     .select()
     .from(milestones)
     .where(eq(milestones.projectId, projectId))
-    .orderBy(milestones.dueDate)
+    .orderBy(asc(milestones.sortOrder), asc(milestones.dueDate))
 
-  const taskRows = await db
-    .select({
-      id: tasks.id,
-      title: tasks.title,
-      status: tasks.status,
-      priority: tasks.priority,
-      dueDate: tasks.dueDate,
-      milestoneId: tasks.milestoneId,
-    })
-    .from(tasks)
-    .where(eq(tasks.projectId, projectId))
-    .orderBy(desc(tasks.updatedAt))
+  const delivery = await enrichCustomerProjectDetail(project, milestoneRows)
 
   return {
     project: serializeCustomerProjectSummary(project),
-    milestones: milestoneRows.map((m) => ({
-      id: m.id,
-      name: m.name,
-      description: m.description,
-      status: m.status,
-      dueDate: m.dueDate?.toISOString() ?? null,
-    })),
-    tasks: [],
-    progressPercent: computeProjectProgressFromTasks(taskRows, milestoneRows),
+    milestones: milestoneRows.map((m) => serializeCustomerMilestone(m)),
+    progressPercent: delivery.progressPercent,
+    currentMilestone: delivery.currentMilestone,
+    proposalReference: delivery.proposalReference,
+    paymentReadiness: delivery.paymentReadiness,
+    activities: delivery.activities,
   }
 }
 

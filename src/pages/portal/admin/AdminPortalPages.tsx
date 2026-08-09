@@ -520,6 +520,9 @@ export function AdminProjectDetailPage() {
   const { data, error, loading, reload } = useFetch(() => adminApi.projects.get(id), [id])
   const [statusDraft, setStatusDraft] = useState('')
   const [saving, setSaving] = useState(false)
+  const [milestoneName, setMilestoneName] = useState('')
+  const [milestoneDue, setMilestoneDue] = useState('')
+  const [milestoneBusy, setMilestoneBusy] = useState(false)
 
   if (loading) return <ListSkeleton />
   if (error) return <PortalError message={error} onRetry={reload} />
@@ -528,6 +531,12 @@ export function AdminProjectDetailPage() {
   const project = data.project as Record<string, unknown>
   const customer = data.customer as Record<string, unknown>
   const sourceLead = data.sourceLead as Record<string, unknown> | null | undefined
+  const milestones = (data.milestones as Array<Record<string, unknown>>) ?? []
+  const members = (data.members as Array<Record<string, unknown>>) ?? []
+  const payment = data.payment as Record<string, unknown> | undefined
+  const proposal = data.proposal as Record<string, unknown> | null | undefined
+  const progressPercent = data.progressPercent as number | null | undefined
+  const canStart = Boolean(data.canStart)
   const currentStatus = String(project.status ?? 'draft')
   const displayStatus = statusDraft || currentStatus
 
@@ -545,6 +554,61 @@ export function AdminProjectDetailPage() {
     }
   }
 
+  async function startDelivery() {
+    if (!canUpdate) return
+    setSaving(true)
+    try {
+      await adminApi.projects.start(id)
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not start project')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function completeProject() {
+    if (!canUpdate || !window.confirm('Mark this project as completed?')) return
+    setSaving(true)
+    try {
+      await adminApi.projects.complete(id)
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not complete project')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function addMilestone(e: FormEvent) {
+    e.preventDefault()
+    if (!canUpdate || !milestoneName.trim()) return
+    setMilestoneBusy(true)
+    try {
+      await adminApi.projects.createMilestone(id, {
+        name: milestoneName.trim(),
+        dueDate: milestoneDue || undefined,
+      })
+      setMilestoneName('')
+      setMilestoneDue('')
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not add milestone')
+    } finally {
+      setMilestoneBusy(false)
+    }
+  }
+
+  async function setMilestoneStatus(milestoneId: string, status: string) {
+    if (!canUpdate) return
+    try {
+      await adminApi.projects.updateMilestone(milestoneId, { status })
+      await reload()
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Could not update milestone')
+    }
+  }
+
   return (
     <>
       <PageIntro
@@ -552,6 +616,30 @@ export function AdminProjectDetailPage() {
         description={`${String(project.reference)} · ${String(customer.companyName ?? customer.contactName ?? '')}`}
       />
       <StatusPill status={currentStatus} />
+      {progressPercent != null ? (
+        <p className={ui.meta} aria-label={`Milestone progress ${progressPercent} percent`}>
+          Milestone progress: {progressPercent}%
+        </p>
+      ) : (
+        <p className={ui.meta}>No milestones yet — progress will appear when milestones are added.</p>
+      )}
+      {payment ? (
+        <p className={ui.meta} role="status">
+          Payment:{' '}
+          {payment.paymentVerified
+            ? 'Verified'
+            : payment.paymentRequired
+              ? 'Required before start'
+              : 'Not required'}
+        </p>
+      ) : null}
+      {proposal ? (
+        <p className={ui.meta}>
+          <Link className="link-underline" to={adminPortalPaths.proposalDetail(String(proposal.id))}>
+            Proposal {String(proposal.reference)}
+          </Link>
+        </p>
+      ) : null}
       <dl className={ui.stack} style={{ marginTop: 'var(--space-4)' }}>
         <div>
           <dt className={ui.meta}>Service</dt>
@@ -592,6 +680,95 @@ export function AdminProjectDetailPage() {
           <Link className="link-underline" to={adminPortalPaths.crmLeadDetail(String(sourceLead.id))}>
             Open lead
           </Link>
+        </section>
+      ) : null}
+
+      <section className={ui.stack} style={{ marginTop: 'var(--space-6)' }}>
+        <h2 className="text-h3">Milestones</h2>
+        {milestones.length === 0 ? (
+          <EmptyState title="No milestones" description="Add milestones to track delivery progress." />
+        ) : (
+          <ul className={ui.stack}>
+            {milestones.map((m) => (
+              <li key={String(m.id)} className={`surface ${ui.dataCard}`}>
+                <strong>{String(m.name)}</strong>
+                <StatusPill status={String(m.status)} />
+                {m.dueHint ? <span className={ui.meta}>{String(m.dueHint)}</span> : null}
+                {m.dueDate ? (
+                  <span className={ui.meta}>Due {new Date(String(m.dueDate)).toLocaleDateString()}</span>
+                ) : null}
+                {canUpdate ? (
+                  <div className={ui.actionsRow}>
+                    {m.status === 'planned' ? (
+                      <Button type="button" variant="secondary" onClick={() => void setMilestoneStatus(String(m.id), 'in_progress')}>
+                        Start
+                      </Button>
+                    ) : null}
+                    {m.status === 'in_progress' ? (
+                      <Button type="button" onClick={() => void setMilestoneStatus(String(m.id), 'completed')}>
+                        Complete
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        {canUpdate ? (
+          <form className={ui.form} onSubmit={(e) => void addMilestone(e)}>
+            <div className={ui.field}>
+              <label htmlFor="milestone-name">New milestone</label>
+              <input
+                id="milestone-name"
+                value={milestoneName}
+                onChange={(e) => setMilestoneName(e.target.value)}
+                required
+                maxLength={200}
+              />
+            </div>
+            <div className={ui.field}>
+              <label htmlFor="milestone-due">Due date (optional)</label>
+              <input
+                id="milestone-due"
+                type="date"
+                value={milestoneDue}
+                onChange={(e) => setMilestoneDue(e.target.value)}
+              />
+            </div>
+            <Button type="submit" disabled={milestoneBusy}>
+              {milestoneBusy ? 'Adding…' : 'Add milestone'}
+            </Button>
+          </form>
+        ) : null}
+      </section>
+
+      {members.length > 0 ? (
+        <section style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Team</h2>
+          <ul className={ui.stack}>
+            {members.map((m) => (
+              <li key={String(m.employeeId)} className={ui.meta}>
+                {String(m.displayName)} · {String(m.role)}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {canUpdate ? (
+        <section className={`surface ${ui.dataCard}`} style={{ marginTop: 'var(--space-6)' }}>
+          <h2 className="text-h3">Delivery actions</h2>
+          {canStart ? (
+            <Button type="button" disabled={saving} onClick={() => void startDelivery()}>
+              Start delivery
+            </Button>
+          ) : null}
+          {currentStatus === 'active' ? (
+            <Button type="button" variant="secondary" disabled={saving} onClick={() => void completeProject()}>
+              Mark completed
+            </Button>
+          ) : null}
         </section>
       ) : null}
 

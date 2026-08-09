@@ -6,6 +6,8 @@ export type AdminDashboard = {
   leadsNew: number
   qualifiedLeads: number
   activeProjects: number
+  planningProjects?: number
+  onHoldProjects?: number
   customers: number
   employees: number
   openSupportTickets: number
@@ -202,6 +204,12 @@ export const adminApi = {
       }),
     complete: (projectId: string) =>
       apiRequest(`${base}/projects/${projectId}/complete`, { method: 'POST' }),
+    start: (projectId: string) =>
+      apiRequest(`${base}/projects/${projectId}/start`, { method: 'POST' }),
+    createMilestone: (projectId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/projects/${projectId}/milestones`, { method: 'POST', json: body }),
+    updateMilestone: (milestoneId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/milestones/${milestoneId}`, { method: 'PATCH', json: body }),
   },
   tasks: {
     list: (projectId?: string) =>

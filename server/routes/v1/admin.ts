@@ -103,6 +103,11 @@ import {
   listProjectsFulfillmentAdmin,
   updateProjectFulfillmentAdmin,
 } from '../../services/project-fulfillment.service.js'
+import {
+  createProjectMilestoneAdmin,
+  startProjectDeliveryAdmin,
+  updateProjectMilestoneAdmin,
+} from '../../services/project-delivery.service.js'
 import { PROJECT_FULFILLMENT_STATUSES } from '../../lib/projects/project-fulfillment.js'
 import {
   cancelProposalAdmin,
@@ -838,6 +843,69 @@ adminRoutes.patch('/projects/:id', requirePermission('projects.update'), async (
     }
     const project = await updateProjectFulfillmentAdmin(auth, paramId(c), parsed.data)
     return jsonSuccess(c, { project })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/projects/:id/start', requirePermission('projects.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const project = await startProjectDeliveryAdmin(auth, paramId(c))
+    return jsonSuccess(c, {
+      project: {
+        id: project.id,
+        status: project.status,
+        startDate: project.startDate?.toISOString() ?? null,
+      },
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const milestoneCreateSchema = z.object({
+  name: z.string().trim().min(2).max(200),
+  description: z.string().trim().max(4000).optional(),
+  dueDate: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+})
+
+adminRoutes.post('/projects/:id/milestones', requirePermission('projects.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = milestoneCreateSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid milestone.', 400, formatZodErrors(parsed.error))
+    }
+    return jsonSuccess(
+      c,
+      await createProjectMilestoneAdmin(auth, paramId(c), parsed.data),
+      201,
+    )
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+const milestonePatchSchema = z.object({
+  name: z.string().trim().min(2).max(200).optional(),
+  description: z.string().trim().max(4000).nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+  status: z.enum(['planned', 'in_progress', 'completed', 'cancelled']).optional(),
+})
+
+adminRoutes.patch('/milestones/:id', requirePermission('projects.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = milestonePatchSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new AppError('VALIDATION_ERROR', 'Invalid milestone update.', 400, formatZodErrors(parsed.error))
+    }
+    return jsonSuccess(c, await updateProjectMilestoneAdmin(auth, paramId(c), parsed.data))
   } catch (error) {
     return handleRouteError(c, error)
   }

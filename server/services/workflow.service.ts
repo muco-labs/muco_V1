@@ -184,6 +184,20 @@ export async function completeProjectWorkflow(actorUserId: string, projectId: st
     entityId: projectId,
   })
 
+  const [customerUser] = await db
+    .select({ userId: customerProfiles.userId })
+    .from(customerProfiles)
+    .where(eq(customerProfiles.id, updated.customerId))
+    .limit(1)
+  if (customerUser?.userId) {
+    await db.insert(notifications).values({
+      userId: customerUser.userId,
+      type: 'project.completed',
+      title: 'Project completed',
+      message: `Your project "${updated.name}" has been marked complete.`,
+    })
+  }
+
   return updated
 }
 

@@ -89,7 +89,9 @@ export function CustomerProjectsPage() {
                 <div className={ui.progressBar} aria-label={`Progress ${project.progressPercent}%`}>
                   <span style={{ width: `${project.progressPercent}%` }} />
                 </div>
-              ) : null}
+              ) : (
+                <p className={ui.meta}>Milestones will appear as your project progresses.</p>
+              )}
             </li>
           ))}
         </ul>
@@ -114,6 +116,9 @@ export function CustomerProjectDetailPage() {
   const progressPercent = data.progressPercent as number | null
   const statusLabel = String(project.statusLabel ?? project.status ?? '')
   const nextStep = project.nextStep ? String(project.nextStep) : null
+  const proposalReference = data.proposalReference ? String(data.proposalReference) : null
+  const currentMilestone = data.currentMilestone as Record<string, unknown> | null | undefined
+  const activities = (data.activities as Array<Record<string, unknown>>) ?? []
 
   return (
     <>
@@ -129,6 +134,11 @@ export function CustomerProjectDetailPage() {
       {project.sourceRequestReference ? (
         <p className={ui.meta}>
           From request {String(project.sourceRequestReference)}
+        </p>
+      ) : null}
+      {proposalReference ? (
+        <p className={ui.meta}>
+          Proposal {proposalReference}
         </p>
       ) : null}
       <p className={ui.meta}>
@@ -169,6 +179,17 @@ export function CustomerProjectDetailPage() {
         <div className={ui.progressBar} style={{ marginTop: 'var(--space-3)' }} aria-label={`Progress ${progressPercent}%`}>
           <span style={{ width: `${progressPercent}%` }} />
         </div>
+      ) : (
+        <p className={ui.meta} style={{ marginTop: 'var(--space-3)' }}>
+          Milestones will appear as your project progresses.
+        </p>
+      )}
+
+      {currentMilestone ? (
+        <p className={ui.meta} role="status" style={{ marginTop: 'var(--space-4)' }}>
+          <strong>Current milestone:</strong> {String(currentMilestone.name)} (
+          {String(currentMilestone.statusLabel ?? currentMilestone.status)})
+        </p>
       ) : null}
 
       <section style={{ marginTop: 'var(--space-8)' }}>
@@ -178,14 +199,38 @@ export function CustomerProjectDetailPage() {
         ) : (
           <ol className={ui.timeline}>
             {milestones.map((m) => (
-              <li key={String(m.id)}>
+              <li key={String(m.key ?? m.name)}>
                 <strong>{String(m.name)}</strong>
-                <StatusPill status={String(m.status)} />
+                <StatusPill status={String(m.statusLabel ?? m.status)} />
+                {m.dueDate ? (
+                  <time className={ui.meta} dateTime={String(m.dueDate)}>
+                    Due {new Date(String(m.dueDate)).toLocaleDateString()}
+                    {m.dueHint === 'overdue' ? ' · Overdue' : ''}
+                  </time>
+                ) : null}
+                {m.description ? <p className={ui.meta}>{String(m.description)}</p> : null}
               </li>
             ))}
           </ol>
         )}
       </section>
+
+      {activities.length > 0 ? (
+        <section style={{ marginTop: 'var(--space-8)' }} aria-labelledby="project-activity">
+          <h2 id="project-activity" className="text-h3">
+            Recent updates
+          </h2>
+          <ul className={ui.stack}>
+            {activities.map((a) => (
+              <li key={`${String(a.action)}-${String(a.createdAt)}`} className={ui.meta}>
+                <time dateTime={String(a.createdAt)}>{new Date(String(a.createdAt)).toLocaleString()}</time>
+                {' · '}
+                {String(a.action).replaceAll('.', ' ')}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <p style={{ marginTop: 'var(--space-6)' }}>
         <Link className="link-underline" to={customerPortalPaths.projects}>

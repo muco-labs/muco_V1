@@ -52,6 +52,9 @@ export function AdminDashboardPage() {
         <article className={`surface ${ui.dataCard}`}>
           <h2 className="text-h3">Active projects</h2>
           <p className="text-h2">{data.activeProjects}</p>
+          <p className={ui.meta}>
+            Planning {data.planningProjects ?? 0} · On hold {data.onHoldProjects ?? 0}
+          </p>
           <Link className="link-underline" to={adminPortalPaths.projects}>
             View projects
           </Link>

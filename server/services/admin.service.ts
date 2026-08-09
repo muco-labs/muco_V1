@@ -67,6 +67,14 @@ export async function getAdminDashboard() {
     .select({ c: count() })
     .from(projects)
     .where(eq(projects.status, 'active'))
+  const [planningProjects] = await db
+    .select({ c: count() })
+    .from(projects)
+    .where(eq(projects.status, 'draft'))
+  const [onHoldProjects] = await db
+    .select({ c: count() })
+    .from(projects)
+    .where(eq(projects.status, 'on_hold'))
   const [customerCount] = await db.select({ c: count() }).from(customerProfiles)
   const [employeeCount] = await db.select({ c: count() }).from(employeeProfiles)
   const [openSupport] = await db
@@ -119,6 +127,8 @@ export async function getAdminDashboard() {
     leadsNew: leadCount?.c ?? 0,
     qualifiedLeads: qualifiedLeads?.c ?? 0,
     activeProjects: activeProjects?.c ?? 0,
+    planningProjects: planningProjects?.c ?? 0,
+    onHoldProjects: onHoldProjects?.c ?? 0,
     customers: customerCount?.c ?? 0,
     employees: employeeCount?.c ?? 0,
     openSupportTickets: openSupport?.c ?? 0,
