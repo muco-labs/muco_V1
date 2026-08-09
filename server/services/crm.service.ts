@@ -66,6 +66,10 @@ import { PROJECT_INTAKE_PAGE_SOURCE } from '../lib/intake/project-intake-constan
 import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
 import { formatProjectReference } from '../lib/projects/project-reference.js'
 import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
+import {
+  canTransitionLeadStatus,
+  isLeadEligibleForConversion,
+} from '../lib/crm/lead-lifecycle.js'
 
 const adminRoles = new Set(['ADMIN', 'SUPER_ADMIN', 'FOUNDER'])
 
@@ -631,6 +635,20 @@ export async function updateLeadCrm(
   const [existing] = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1)
   if (!existing) throw new AppError('NOT_FOUND', 'Lead not found.', 404)
 
+  if (existing.convertedAt && input.status && input.status !== existing.status) {
+    throw new AppError('CONFLICT', 'Status cannot be changed after customer conversion.', 409)
+  }
+
+  if (input.status && input.status !== existing.status) {
+    if (!canTransitionLeadStatus(existing.status, input.status)) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        `Cannot move lead from ${existing.status} to ${input.status}.`,
+        400,
+      )
+    }
+  }
+
   const next = { ...existing, ...input }
   if (input.status === 'qualified') {
     assertQualifiedFields(next)
@@ -843,7 +861,16 @@ export async function convertLeadCrm(
 
   const [lead] = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1)
   if (!lead) throw new AppError('NOT_FOUND', 'Lead not found.', 404)
-  if (lead.status !== 'won' && lead.status !== 'negotiation' && lead.status !== 'proposal') {
+
+  if (lead.customerId && lead.convertedAt) {
+    return {
+      lead,
+      customerId: lead.customerId,
+      alreadyConverted: true as const,
+    }
+  }
+
+  if (!isLeadEligibleForConversion(lead.status)) {
     throw new AppError('CONFLICT', 'Lead should be in a late-stage status before conversion.', 409)
   }
 

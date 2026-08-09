@@ -40,4 +40,21 @@ describe('createLeadSchema', () => {
     })
     expect(result.success).toBe(true)
   })
+
+  it('does not accept client-controlled CRM fields', () => {
+    const result = createLeadSchema.safeParse({
+      name: 'Ada',
+      email: 'ada@example.com',
+      message: 'Hello',
+      status: 'won',
+      customerId: '00000000-0000-4000-8000-000000000001',
+      assignedEmployeeId: '00000000-0000-4000-8000-000000000002',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).not.toHaveProperty('status')
+      expect(result.data).not.toHaveProperty('customerId')
+      expect(result.data).not.toHaveProperty('assignedEmployeeId')
+    }
+  })
 })
