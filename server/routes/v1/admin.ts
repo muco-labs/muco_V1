@@ -55,6 +55,21 @@ import {
   setAdminConversationStatus,
 } from '../../services/customer-conversation.service.js'
 import {
+  cancelProjectTaskAdmin,
+  completeProjectTaskAdmin,
+  createProjectTaskAdmin,
+  getProjectTaskAdmin,
+  listProjectTasksAdmin,
+  updateProjectTaskAdmin,
+} from '../../services/project-tasks.service.js'
+import {
+  finalizeAdminProjectFile,
+  getAdminProjectFileDownload,
+  listAdminProjectFiles,
+  prepareAdminProjectFileUpload,
+  updateAdminProjectFile,
+} from '../../services/project-files.service.js'
+import {
   addLeadNoteCrm,
   assignLeadCrm,
   convertLeadCrm,
@@ -835,6 +850,190 @@ adminRoutes.get('/projects/:id', requirePermission('projects.view'), async (c) =
   }
 })
 
+const projectTaskCreateSchema = z.object({
+  title: z.string().min(2).max(200),
+  description: z.string().max(8000).optional(),
+  milestoneId: z.string().uuid().optional(),
+  assignedEmployeeId: z.string().uuid().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  dueDate: z.string().optional(),
+})
+
+const projectTaskUpdateSchema = z.object({
+  title: z.string().min(2).max(200).optional(),
+  description: z.string().max(8000).nullable().optional(),
+  milestoneId: z.string().uuid().nullable().optional(),
+  assignedEmployeeId: z.string().uuid().nullable().optional(),
+  status: z.enum(['todo', 'in_progress', 'blocked', 'done', 'cancelled']).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  dueDate: z.string().nullable().optional(),
+})
+
+adminRoutes.get('/projects/:id/tasks', requirePermission('tasks.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const overdueOnly = c.req.query('overdueOnly') === 'true'
+    return jsonSuccess(c, {
+      items: await listProjectTasksAdmin(auth, paramId(c), {
+        status: c.req.query('status'),
+        priority: c.req.query('priority'),
+        milestoneId: c.req.query('milestoneId'),
+        assigneeEmployeeId: c.req.query('assigneeEmployeeId'),
+        overdueOnly,
+      }),
+    })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/projects/:id/tasks', requirePermission('tasks.create'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = projectTaskCreateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid task.', 400)
+    return jsonSuccess(c, await createProjectTaskAdmin(auth, paramId(c), parsed.data), 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.get('/projects/:id/tasks/:taskId', requirePermission('tasks.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, await getProjectTaskAdmin(auth, paramId(c), paramId(c, 'taskId')))
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.patch('/projects/:id/tasks/:taskId', requirePermission('tasks.update'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = projectTaskUpdateSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid task update.', 400)
+    return jsonSuccess(
+      c,
+      await updateProjectTaskAdmin(auth, paramId(c), paramId(c, 'taskId'), parsed.data),
+    )
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post(
+  '/projects/:id/tasks/:taskId/complete',
+  requirePermission('tasks.update'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(c, await completeProjectTaskAdmin(auth, paramId(c), paramId(c, 'taskId')))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+adminRoutes.post(
+  '/projects/:id/tasks/:taskId/cancel',
+  requirePermission('tasks.update'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(c, await cancelProjectTaskAdmin(auth, paramId(c), paramId(c, 'taskId')))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+const adminProjectFileUploadSchema = z.object({
+  fileName: z.string().min(1).max(200),
+  mimeType: z.string().min(3).max(120),
+  fileSizeBytes: z.number().int().positive(),
+  category: z.string().max(40).optional(),
+  visibility: z.enum(['internal', 'customer_visible']).optional(),
+})
+
+const adminProjectFilePatchSchema = z.object({
+  visibility: z.enum(['internal', 'customer_visible']).optional(),
+  category: z.string().max(40).optional(),
+  status: z.enum(['active', 'archived']).optional(),
+})
+
+adminRoutes.get('/projects/:id/files', requirePermission('files.view'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    return jsonSuccess(c, { items: await listAdminProjectFiles(auth, paramId(c)) })
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post('/projects/:id/files/upload', requirePermission('files.upload'), async (c) => {
+  try {
+    const auth = c.get('auth')
+    const body = await c.req.json().catch(() => null)
+    const parsed = adminProjectFileUploadSchema.safeParse(body)
+    if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid file metadata.', 400)
+    const data = await prepareAdminProjectFileUpload(auth, paramId(c), parsed.data)
+    return jsonSuccess(c, data, 201)
+  } catch (error) {
+    return handleRouteError(c, error)
+  }
+})
+
+adminRoutes.post(
+  '/projects/:id/files/:fileId/finalize',
+  requirePermission('files.upload'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const file = await finalizeAdminProjectFile(auth, paramId(c), paramId(c, 'fileId'))
+      return jsonSuccess(c, file)
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+adminRoutes.patch(
+  '/projects/:id/files/:fileId',
+  requirePermission('files.delete'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const body = await c.req.json().catch(() => null)
+      const parsed = adminProjectFilePatchSchema.safeParse(body)
+      if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid update.', 400)
+      return jsonSuccess(
+        c,
+        await updateAdminProjectFile(auth, paramId(c), paramId(c, 'fileId'), parsed.data),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+adminRoutes.get(
+  '/projects/:id/files/:fileId/download',
+  requirePermission('files.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      return jsonSuccess(
+        c,
+        await getAdminProjectFileDownload(auth, paramId(c), paramId(c, 'fileId')),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
 const projectPatchSchema = z.object({
   status: z.enum(PROJECT_FULFILLMENT_STATUSES).optional(),
   name: z.string().trim().min(2).max(200).optional(),
@@ -1029,7 +1228,7 @@ adminRoutes.post('/tasks', requirePermission('tasks.create'), async (c) => {
 })
 
 const taskUpdateSchema = z.object({
-  status: z.enum(['todo', 'in_progress', 'blocked', 'done']).optional(),
+  status: z.enum(['todo', 'in_progress', 'blocked', 'done', 'cancelled']).optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
   assignedEmployeeId: z.string().uuid().nullable().optional(),
   dueDate: z.string().nullable().optional(),

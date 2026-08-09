@@ -240,6 +240,57 @@ export const adminApi = {
         method: 'POST',
         json: { direction },
       }),
+    listFiles: (projectId: string) =>
+      apiRequest<{ items: unknown[] }>(`${base}/projects/${projectId}/files`),
+    prepareUpload: (
+      projectId: string,
+      body: Record<string, unknown>,
+    ) =>
+      apiRequest<{
+        file: { id: string }
+        upload:
+          | { configured: true; signedUrl: string; token: string; path: string }
+          | { configured: false; message: string }
+      }>(`${base}/projects/${projectId}/files/upload`, { method: 'POST', json: body }),
+    finalizeUpload: (projectId: string, fileId: string) =>
+      apiRequest(`${base}/projects/${projectId}/files/${fileId}/finalize`, { method: 'POST' }),
+    updateFile: (projectId: string, fileId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/projects/${projectId}/files/${fileId}`, { method: 'PATCH', json: body }),
+    downloadFile: (projectId: string, fileId: string) =>
+      apiRequest<{ configured: boolean; url?: string; message?: string }>(
+        `${base}/projects/${projectId}/files/${fileId}/download`,
+      ),
+    listTasks: (
+      projectId: string,
+      params?: {
+        status?: string
+        priority?: string
+        milestoneId?: string
+        assigneeEmployeeId?: string
+        overdueOnly?: boolean
+      },
+    ) => {
+      const search = new URLSearchParams()
+      if (params?.status) search.set('status', params.status)
+      if (params?.priority) search.set('priority', params.priority)
+      if (params?.milestoneId) search.set('milestoneId', params.milestoneId)
+      if (params?.assigneeEmployeeId) search.set('assigneeEmployeeId', params.assigneeEmployeeId)
+      if (params?.overdueOnly) search.set('overdueOnly', 'true')
+      const qs = search.toString()
+      return apiRequest<{ items: unknown[] }>(
+        `${base}/projects/${projectId}/tasks${qs ? `?${qs}` : ''}`,
+      )
+    },
+    createTask: (projectId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/projects/${projectId}/tasks`, { method: 'POST', json: body }),
+    getTask: (projectId: string, taskId: string) =>
+      apiRequest(`${base}/projects/${projectId}/tasks/${taskId}`),
+    updateTask: (projectId: string, taskId: string, body: Record<string, unknown>) =>
+      apiRequest(`${base}/projects/${projectId}/tasks/${taskId}`, { method: 'PATCH', json: body }),
+    completeTask: (projectId: string, taskId: string) =>
+      apiRequest(`${base}/projects/${projectId}/tasks/${taskId}/complete`, { method: 'POST' }),
+    cancelTask: (projectId: string, taskId: string) =>
+      apiRequest(`${base}/projects/${projectId}/tasks/${taskId}/cancel`, { method: 'POST' }),
   },
   tasks: {
     list: (projectId?: string) =>

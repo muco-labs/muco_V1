@@ -51,6 +51,7 @@ import {
 import { formatProjectReference } from '../lib/projects/project-reference.js'
 import { formatProjectRequestReference } from '../lib/intake/project-request-reference.js'
 import { formatProposalReference } from '../lib/proposals/proposal-reference.js'
+import { isCustomerVisibleFile } from '../lib/files/project-file.js'
 
 export type CustomerContext = {
   userId: string
@@ -597,8 +598,7 @@ export async function listCustomerFiles(ctx: CustomerContext, projectId?: string
 
   const byId = new Map<string, (typeof rows)[number]>()
   for (const row of [...rows, ...projectFiles]) {
-    const visibility = row.visibility ?? 'internal'
-    if (visibility !== 'customer_visible' && visibility !== 'deliverable') continue
+    if (!isCustomerVisibleFile(row)) continue
     byId.set(row.id, row)
   }
 
@@ -708,6 +708,10 @@ export async function getCustomerFileDownloadUrl(ctx: CustomerContext, fileId: s
     } else {
       throw new AppError('NOT_FOUND', 'File not found.', 404)
     }
+  }
+
+  if (!isCustomerVisibleFile(row)) {
+    throw new AppError('NOT_FOUND', 'File not found.', 404)
   }
 
   const supabase = getSupabaseAdmin()

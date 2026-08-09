@@ -51,6 +51,12 @@ import {
 } from '../../services/proposal-payment.service.js'
 import { checkRateLimit, rateLimitKeyFromRequest } from '../../middleware/rate-limit.js'
 import {
+  finalizeCustomerProjectFile,
+  getCustomerProjectFileDownload,
+  listCustomerProjectFiles,
+  prepareCustomerProjectFileUpload,
+} from '../../services/project-files.service.js'
+import {
   closeCustomerConversation,
   createCustomerConversation,
   getCustomerConversation,
@@ -133,6 +139,81 @@ customerRoutes.get('/projects', ...customerStack, requirePermission('projects.vi
     return handleRouteError(c, error)
   }
 })
+
+const projectFileUploadSchema = z.object({
+  fileName: z.string().min(1).max(200),
+  mimeType: z.string().min(3).max(120),
+  fileSizeBytes: z.number().int().positive(),
+  category: z.string().max(40).optional(),
+})
+
+customerRoutes.get(
+  '/projects/:id/files',
+  ...customerStack,
+  requirePermission('files.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(c, await listCustomerProjectFiles(ctx, paramId(c)))
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+customerRoutes.post(
+  '/projects/:id/files/upload',
+  ...customerStack,
+  requirePermission('files.upload'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      const body = await c.req.json().catch(() => null)
+      const parsed = projectFileUploadSchema.safeParse(body)
+      if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'Invalid file metadata.', 400)
+      const data = await prepareCustomerProjectFileUpload(ctx, auth, paramId(c), parsed.data)
+      return jsonSuccess(c, data, 201)
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+customerRoutes.post(
+  '/projects/:id/files/:fileId/finalize',
+  ...customerStack,
+  requirePermission('files.upload'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      const file = await finalizeCustomerProjectFile(ctx, paramId(c), paramId(c, 'fileId'))
+      return jsonSuccess(c, file)
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
+
+customerRoutes.get(
+  '/projects/:id/files/:fileId/download',
+  ...customerStack,
+  requirePermission('files.view'),
+  async (c) => {
+    try {
+      const auth = c.get('auth')
+      const ctx = await requireCustomerContext(auth)
+      return jsonSuccess(
+        c,
+        await getCustomerProjectFileDownload(ctx, paramId(c), paramId(c, 'fileId')),
+      )
+    } catch (error) {
+      return handleRouteError(c, error)
+    }
+  },
+)
 
 customerRoutes.get(
   '/projects/:id',

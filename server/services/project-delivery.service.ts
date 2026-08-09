@@ -176,7 +176,7 @@ export async function reorderProjectMilestoneAdmin(
   return refreshed.map(serializeMilestoneAdmin)
 }
 
-function assertProjectsPermission(auth: AuthContext, permission: 'projects.view' | 'projects.update') {
+export function assertProjectsPermission(auth: AuthContext, permission: 'projects.view' | 'projects.update') {
   if (!hasPermission(auth.permissions, permission)) {
     throw new AppError('FORBIDDEN', 'You do not have permission to manage projects.', 403)
   }
@@ -351,12 +351,19 @@ export async function getProjectDeliveryAdminExtras(auth: AuthContext, projectId
   const canStart =
     canStartProjectDelivery(project.status) && (!payment.paymentRequired || payment.paymentVerified)
 
+  const { enrichDeliveryWithTaskProgress } = await import('./project-tasks.service.js')
+  const taskEnriched = await enrichDeliveryWithTaskProgress(
+    projectId,
+    milestoneRows,
+    progressPercent,
+  )
+
   return {
     payment,
     proposal,
-    milestones: milestoneRows,
+    milestones: taskEnriched.milestones,
     members,
-    progressPercent,
+    progressPercent: taskEnriched.progressPercent,
     overdueCount,
     currentMilestone: current ? { name: current.name, status: current.status } : null,
     nextDeliveryAction: deriveAdminNextDeliveryAction({

@@ -24,6 +24,7 @@ import { formatProjectRequestReference, projectRequestNextAction } from '@/lib/c
 import { ProjectDeliveryLifecycle } from '@/components/portal/ProjectDeliveryLifecycle'
 import { startRazorpayCheckout, type RazorpayCheckoutConfig } from '@/lib/payments/razorpay-checkout'
 import { CustomerMessageMucoButton } from '@/components/portal/CustomerMessageMucoButton'
+import { ProjectDocumentsSection } from '@/components/portal/ProjectDocumentsSection'
 import type { CustomerConversationListItem, CustomerConversationMessage } from '@/services/customer-portal'
 
 function formatMoney(amount: string, currency: string) {
@@ -258,6 +259,8 @@ export function CustomerProjectDetailPage() {
       <div style={{ marginTop: 'var(--space-8)' }}>
         <CustomerMessageMucoButton heading="Need help with this project?" projectId={id} />
       </div>
+
+      <ProjectDocumentsSection projectId={id} />
 
       <p style={{ marginTop: 'var(--space-6)' }}>
         <Link className="link-underline" to={customerPortalPaths.projects}>

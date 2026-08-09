@@ -18,6 +18,8 @@ import { adminApi } from '@/services/admin-portal'
 import { Button } from '@/components/ui/Button'
 import { ApiError } from '@/services/api'
 import { CrmEntryChannelBadge } from '@/components/portal/crm/CrmStartProjectLeadPanel'
+import { AdminProjectFilesSection } from '@/components/portal/AdminProjectFilesSection'
+import { AdminProjectTasksSection } from '@/components/portal/AdminProjectTasksSection'
 
 function formatInr(amount: string) {
   const n = Number.parseFloat(amount)
@@ -517,6 +519,9 @@ export function AdminProjectDetailPage() {
   const { id = '' } = useParams()
   const { profile } = useAuth()
   const canUpdate = Boolean(profile?.permissions.includes('projects.update'))
+  const canManageFiles = Boolean(profile?.permissions.includes('files.delete'))
+  const canCreateTasks = Boolean(profile?.permissions.includes('tasks.create'))
+  const canManageTasks = Boolean(profile?.permissions.includes('tasks.update'))
   const { data, error, loading, reload } = useFetch(() => adminApi.projects.get(id), [id])
   const [statusDraft, setStatusDraft] = useState('')
   const [saving, setSaving] = useState(false)
@@ -719,6 +724,12 @@ export function AdminProjectDetailPage() {
                 {m.dueDate ? (
                   <span className={ui.meta}>Due {new Date(String(m.dueDate)).toLocaleDateString()}</span>
                 ) : null}
+                {Number(m.taskCount ?? 0) > 0 ? (
+                  <span className={ui.meta}>
+                    Tasks {String(m.completedTaskCount ?? 0)}/{String(m.taskCount)} (
+                    {m.taskProgressPercent != null ? `${String(m.taskProgressPercent)}%` : '—'})
+                  </span>
+                ) : null}
                 {canUpdate ? (
                   <div className={ui.actionsRow}>
                     <Button type="button" variant="ghost" onClick={() => void reorderMilestone(String(m.id), 'up')}>
@@ -771,6 +782,20 @@ export function AdminProjectDetailPage() {
         ) : null}
       </section>
 
+      <AdminProjectTasksSection
+        projectId={id}
+        canCreate={canCreateTasks}
+        canManage={canManageTasks}
+        milestones={milestones.map((m) => ({
+          id: String(m.id),
+          name: String(m.name),
+        }))}
+        members={members.map((m) => ({
+          employeeId: String(m.employeeId),
+          displayName: String(m.displayName),
+        }))}
+      />
+
       {members.length > 0 ? (
         <section style={{ marginTop: 'var(--space-6)' }}>
           <h2 className="text-h3">Team</h2>
@@ -819,6 +844,8 @@ export function AdminProjectDetailPage() {
           </Button>
         </section>
       ) : null}
+
+      <AdminProjectFilesSection projectId={id} canManage={canManageFiles} />
 
       <p style={{ marginTop: 'var(--space-4)' }}>
         <Link className="link-underline" to={adminPortalPaths.projects}>

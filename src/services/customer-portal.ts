@@ -86,6 +86,16 @@ export type CustomerConversationMessage = {
   read: boolean
 }
 
+export type CustomerProjectFile = {
+  id: string
+  fileName: string
+  mimeType: string
+  sizeBytes: number
+  category: string
+  uploadedAt: string
+  isDeliverable: boolean
+}
+
 const base = '/api/v1/customer'
 
 export const customerApi = {
@@ -98,6 +108,32 @@ export const customerApi = {
   projects: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/projects`),
     get: (id: string) => apiRequest<Record<string, unknown>>(`${base}/projects/${id}`),
+    listFiles: (projectId: string) =>
+      apiRequest<{ documents: CustomerProjectFile[]; deliverables: CustomerProjectFile[] }>(
+        `${base}/projects/${projectId}/files`,
+      ),
+    prepareUpload: (
+      projectId: string,
+      body: { fileName: string; mimeType: string; fileSizeBytes: number; category?: string },
+    ) =>
+      apiRequest<{
+        file: { id: string; fileName: string }
+        upload:
+          | { configured: true; signedUrl: string; token: string; path: string }
+          | { configured: false; message: string }
+      }>(`${base}/projects/${projectId}/files/upload`, { method: 'POST', json: body }),
+    finalizeUpload: (projectId: string, fileId: string) =>
+      apiRequest<CustomerProjectFile>(`${base}/projects/${projectId}/files/${fileId}/finalize`, {
+        method: 'POST',
+      }),
+    downloadFile: (projectId: string, fileId: string) =>
+      apiRequest<{
+        configured: boolean
+        url?: string
+        fileName?: string
+        message?: string
+        expiresInSeconds?: number
+      }>(`${base}/projects/${projectId}/files/${fileId}/download`),
   },
   proposals: {
     list: () => apiRequest<{ items: unknown[] }>(`${base}/proposals`),

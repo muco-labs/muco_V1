@@ -56,7 +56,7 @@ export const projectStatusEnum = pgEnum('project_status', [
   'completed',
   'cancelled',
 ])
-export const taskStatusEnum = pgEnum('task_status', ['todo', 'in_progress', 'blocked', 'done'])
+export const taskStatusEnum = pgEnum('task_status', ['todo', 'in_progress', 'blocked', 'done', 'cancelled'])
 export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high', 'urgent'])
 export const milestoneStatusEnum = pgEnum('milestone_status', [
   'planned',
@@ -606,11 +606,14 @@ export const files = pgTable(
     fileSizeBytes: integer('file_size_bytes').notNull(),
     category: text('category').default('other'),
     visibility: text('visibility').notNull().default('internal'),
+    status: text('status').notNull().default('active'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('files_customer_id_idx').on(table.customerId),
     index('files_project_id_idx').on(table.projectId),
+    index('files_status_idx').on(table.status),
   ],
 )
 
