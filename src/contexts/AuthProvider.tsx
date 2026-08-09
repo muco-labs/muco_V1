@@ -19,17 +19,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<MeResponse | null>(null)
 
   const refreshProfile = useCallback(async () => {
-    if (!session) {
+    const client = getSupabaseClient()
+    if (!client) {
+      setProfile(null)
+      setSession(null)
+      return
+    }
+    const { data } = await client.auth.getSession()
+    const nextSession = data.session ?? null
+    setSession(nextSession)
+    if (!nextSession) {
       setProfile(null)
       return
     }
     try {
-      const data = await apiRequest<MeResponse>('/api/v1/auth/me')
-      setProfile(data)
+      const me = await apiRequest<MeResponse>('/api/v1/auth/me')
+      setProfile(me)
     } catch {
       setProfile(null)
     }
-  }, [session])
+  }, [])
 
   useEffect(() => {
     const client = getSupabaseClient()

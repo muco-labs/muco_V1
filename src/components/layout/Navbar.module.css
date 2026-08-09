@@ -107,6 +107,28 @@
 
 .auth {
   display: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.authMuted {
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+}
+
+.authSignOut {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.authSignOut:hover {
+  color: var(--color-text);
 }
 
 .authLink {
