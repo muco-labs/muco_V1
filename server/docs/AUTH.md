@@ -39,7 +39,7 @@ Portal subdomains expose `/auth/*` and portal sign-in routes **outside** `Protec
 
 ### Google sign-in (Firebase Auth + Supabase session)
 
-Marketing sign-up/sign-in uses **Firebase Authentication** for the Google popup when `VITE_FIREBASE_*` env vars are set. The Google ID token is exchanged for a **Supabase session** via `signInWithIdToken`, so the API and `users.auth_user_id` model stay unchanged.
+Marketing sign-up/sign-in uses **Firebase Authentication** for the Google popup only when all four `VITE_FIREBASE_*` env vars are set on the deployment host. Bundled `firebase-applet-config.json` is not enough to enable the popup path. The Google ID token is exchanged for a **Supabase session** via `signInWithIdToken`, so the API and `users.auth_user_id` model stay unchanged.
 
 Required client env (or bundled defaults in `src/config/firebase-applet-config.json` from muco-webpage):
 
@@ -50,7 +50,7 @@ Required client env (or bundled defaults in `src/config/firebase-applet-config.j
 
 In Firebase Console: enable Google sign-in for the web app. Use the **same Google OAuth client** (or matching client ID) in Supabase Auth → Google provider so ID tokens are accepted.
 
-If Firebase vars are missing, Google falls back to Supabase hosted OAuth redirect.
+If Firebase vars are missing, Google uses **Supabase hosted OAuth redirect** (same as GitHub).
 
 ## Founder bootstrap (not public signup)
 

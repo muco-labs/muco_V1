@@ -11,14 +11,18 @@ export type FirebaseWebConfig = {
   measurementId?: string
 }
 
-/** Env overrides win; otherwise defaults from muco-webpage `firebase-applet-config.json`. */
+/** Env overrides win; applet fills gaps only when VITE_FIREBASE_API_KEY is set on the host. */
 export function resolveFirebaseWebConfig(): FirebaseWebConfig | null {
-  const apiKey = env.firebaseApiKey ?? appletDefaults.apiKey?.trim()
-  const authDomain = env.firebaseAuthDomain ?? appletDefaults.authDomain?.trim()
-  const projectId = env.firebaseProjectId ?? appletDefaults.projectId?.trim()
-  const appId = env.firebaseAppId ?? appletDefaults.appId?.trim()
+  if (!env.firebaseApiKey?.trim()) {
+    return null
+  }
 
-  if (!apiKey || !authDomain || !projectId || !appId) {
+  const apiKey = env.firebaseApiKey.trim()
+  const authDomain = env.firebaseAuthDomain?.trim() ?? appletDefaults.authDomain?.trim()
+  const projectId = env.firebaseProjectId?.trim() ?? appletDefaults.projectId?.trim()
+  const appId = env.firebaseAppId?.trim() ?? appletDefaults.appId?.trim()
+
+  if (!authDomain || !projectId || !appId) {
     return null
   }
 
@@ -33,6 +37,12 @@ export function resolveFirebaseWebConfig(): FirebaseWebConfig | null {
   }
 }
 
+/** Popup Google only when operator set VITE_FIREBASE_* on the host (not bundled applet alone). */
 export function isFirebaseWebConfigured(): boolean {
-  return resolveFirebaseWebConfig() !== null
+  return Boolean(
+    env.firebaseApiKey?.trim() &&
+      env.firebaseAuthDomain?.trim() &&
+      env.firebaseProjectId?.trim() &&
+      env.firebaseAppId?.trim(),
+  )
 }

@@ -120,12 +120,24 @@ export async function signInWithOAuth(provider: OAuthProvider) {
   if (error) throw error
 }
 
-/** Google via Firebase popup when configured; otherwise Supabase OAuth redirect. */
+/** Google via Firebase popup when VITE_FIREBASE_* is set; otherwise Supabase OAuth redirect. */
+function isGooglePopupCancelled(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const code = (error as { code?: string }).code
+  return code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request'
+}
+
 export async function signInWithGoogle(): Promise<'popup' | 'redirect'> {
   if (isFirebaseGoogleConfigured()) {
-    const { signInWithGoogleFirebase } = await import('@/lib/firebase/google-sign-in')
-    await signInWithGoogleFirebase()
-    return 'popup'
+    try {
+      const { signInWithGoogleFirebase } = await import('@/lib/firebase/google-sign-in')
+      await signInWithGoogleFirebase()
+      return 'popup'
+    } catch (error) {
+      if (isGooglePopupCancelled(error)) throw error
+      await signInWithOAuth('google')
+      return 'redirect'
+    }
   }
   await signInWithOAuth('google')
   return 'redirect'
