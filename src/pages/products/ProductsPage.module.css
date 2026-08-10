@@ -1,0 +1,75 @@
+.page {
+  padding-bottom: var(--space-16);
+}
+
+.hero {
+  position: relative;
+  padding-block: clamp(var(--space-12), 6vw, var(--space-20));
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.heroScene {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.heroPoster {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 55% 70% at 75% 30%, var(--aurora-3), transparent 65%),
+    radial-gradient(ellipse 45% 55% at 15% 70%, var(--aurora-1), transparent 60%);
+}
+
+.lead {
+  margin: var(--space-4) 0 0;
+  max-width: 42rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-body-lg);
+}
+
+.body {
+  margin: var(--space-2) 0 var(--space-6);
+  color: var(--color-text-muted);
+  max-width: 42rem;
+}
+
+.productCard {
+  position: relative;
+  padding: clamp(var(--space-6), 4vw, var(--space-10));
+  display: grid;
+  gap: var(--space-4);
+  overflow: hidden;
+}
+
+.productScene {
+  position: absolute;
+  right: -10%;
+  top: 10%;
+  width: min(22rem, 45%);
+  height: min(22rem, 50%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.list {
+  margin: var(--space-4) 0 var(--space-8);
+  padding-left: var(--space-5);
+  color: var(--color-text-muted);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.waitlistCard {
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  max-width: 40rem;
+}
+
+@media (min-width: 40rem) {
+  .waitlistCard {
+    padding: var(--space-8);
+  }
+}

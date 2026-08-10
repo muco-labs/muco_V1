@@ -34,6 +34,12 @@ export default defineConfig({
           if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
             return 'vendor-router'
           }
+          if (
+            id.includes('node_modules/three') ||
+            id.includes('node_modules/@react-three')
+          ) {
+            return 'vendor-three'
+          }
         },
       },
     },

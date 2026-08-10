@@ -1,0 +1,6 @@
+.mount {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}

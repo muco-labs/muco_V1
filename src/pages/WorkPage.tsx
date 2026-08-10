@@ -6,6 +6,7 @@ import { Reveal } from '@/components/motion/Reveal'
 import { PageHero } from '@/components/design-system/PageHero'
 import { ProjectCard } from '@/components/design-system/ProjectCard'
 import { FinalCta } from '@/components/design-system/FinalCta'
+import { DecorativeScene } from '@/components/three/DecorativeScene'
 import { portfolioProjects } from '@/data/portfolio'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
@@ -39,6 +40,13 @@ export function WorkPage() {
           eyebrow="Portfolio"
           title="Internal builds, concepts & demos"
           lead="Every item is labeled by type. Internal MUCO LABS work and concept explorations are never presented as unverified client case studies."
+          visual={
+            <DecorativeScene
+              sceneId="work-constellation"
+              scene={() => import('@/components/three/scenes/ServiceConstellationScene')}
+              fallback={null}
+            />
+          }
         />
         <section className="section">
           <div className="shell">

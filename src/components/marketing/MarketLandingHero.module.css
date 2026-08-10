@@ -1,0 +1,45 @@
+.hero {
+  position: relative;
+  padding-block: clamp(var(--space-12), 6vw, var(--space-20));
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% -15%, var(--aurora-1), transparent 58%),
+    radial-gradient(ellipse 45% 35% at 85% 0%, var(--aurora-3), transparent 62%);
+}
+
+.visual {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+  margin-bottom: var(--space-6);
+  position: relative;
+  z-index: 1;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sep {
+  opacity: 0.5;
+}
+
+.lead {
+  margin: var(--space-4) 0 0;
+  max-width: 42rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-body-lg);
+}

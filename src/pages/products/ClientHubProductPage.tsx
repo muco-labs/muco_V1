@@ -11,7 +11,7 @@ import {
   productsHubSeo,
 } from '@/content/products/client-hub'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
-import styles from '@/pages/ErodePage.module.css'
+import styles from '@/pages/products/ProductsPage.module.css'
 
 export function ClientHubProductPage() {
   useEffect(() => {

@@ -1,0 +1,37 @@
+/* FlowKit-style layout helpers for new marketing sections */
+
+.fk-section {
+  padding-block: var(--section-gap);
+}
+
+.fk-section--tight {
+  padding-block: clamp(var(--space-12), 6vw, var(--space-20));
+}
+
+.fk-eyebrow {
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--color-accent-hover), var(--color-accent-aurora));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.fk-scene {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+.fk-scene__canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fk-scene__content {
+  position: relative;
+  z-index: 1;
+}

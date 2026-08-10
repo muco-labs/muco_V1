@@ -136,6 +136,13 @@
   --card-radius: var(--radius-lg);
   --section-gap: clamp(var(--space-16), 8vw, var(--space-28));
 
+  /* WebGL / R3F scene semantics */
+  --scene-fog: #04060f;
+  --scene-accent: var(--color-brand-cyan);
+  --scene-accent-secondary: var(--color-brand-violet);
+  --scene-grid: rgba(0, 194, 255, 0.12);
+  --scene-bloom: 0.35;
+
   --z-header: 100;
   --z-overlay: 200;
   --z-modal: 300;

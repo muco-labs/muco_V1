@@ -22,6 +22,7 @@ export type BrandAssetsMap = {
   logo: BrandAsset
   logoMark: BrandAsset
   founderPhoto: BrandAsset
+  heroPoster: BrandAsset
 }
 
 const LOGO_MARK_SRC = '/brand/muco-logo-mark.png'
@@ -59,6 +60,16 @@ export const brandAssets: BrandAssetsMap = {
       aspectRatio: '3:4 or 4:5 portrait',
       minWidthPx: 1200,
       usage: 'Homepage founder spotlight, About page',
+    },
+  },
+  heroPoster: {
+    id: 'hero-poster',
+    label: 'WebGL hero fallback poster',
+    status: 'missing',
+    recommended: {
+      aspectRatio: '16:9',
+      minWidthPx: 1920,
+      usage: 'R3F reduced-motion and mobile fallback for marketing hero scenes',
     },
   },
 }

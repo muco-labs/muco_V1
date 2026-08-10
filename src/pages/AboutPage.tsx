@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { FounderPortrait } from '@/components/content/FounderPortrait'
+import { DecorativeScene } from '@/components/three/DecorativeScene'
 import { BreadcrumbSchema, PersonSchema } from '@/components/seo/StructuredData'
 import { PageHero } from '@/components/design-system/PageHero'
 import { FinalCta } from '@/components/design-system/FinalCta'
@@ -188,13 +189,21 @@ export function AboutPage() {
               </Reveal>
               <div className={styles.founder}>
                 <Reveal>
-                  <FounderPortrait
+                  <div className={styles.founderVisual}>
+                    <DecorativeScene
+                      sceneId="about-founder-depth"
+                      className={styles.founderScene}
+                      scene={() => import('@/components/three/scenes/FounderDepthScene')}
+                      fallback={null}
+                    />
+                    <FounderPortrait
                     name={founder.name}
                     imageSrc={founder.imageSrc}
                     size="hero"
                     placeholderLabel="Founder photo"
                     loading="eager"
                   />
+                  </div>
                 </Reveal>
                 <Reveal delayMs={100}>
                   <div className={styles.founderBody}>

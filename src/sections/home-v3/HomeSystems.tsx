@@ -1,5 +1,9 @@
+import { useRef, useState } from 'react'
+import { useMotionValueEvent, useScroll } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Reveal } from '@/components/motion/Reveal'
+import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { ScrollSceneSection } from '@/components/three/DecorativeScene'
 import { ProjectCard } from '@/components/design-system/ProjectCard'
 import { portfolioProjects } from '@/data/portfolio'
 import { erodePositioning, erodeServiceLinks, erodeServiceHref } from '@/data/erode'
@@ -43,9 +47,29 @@ export function HomeHowWeWorkSection() {
 }
 
 export function HomeTechnologySection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+  const [scrollProgress, setScrollProgress] = useState(0)
+  useMotionValueEvent(scrollYProgress, 'change', setScrollProgress)
+
   return (
-    <section className="section section--tight" aria-labelledby="tech-title">
-      <div className="shell">
+    <ScrollSceneSection scrollProgress={scrollProgress}>
+      <section
+        ref={sectionRef}
+        className={`section section--tight ${styles.techSection}`}
+        aria-labelledby="tech-title"
+      >
+        <div className={styles.techScene} aria-hidden="true">
+          <DecorativeScene
+            sceneId="home-tech-lattice"
+            scene={() => import('@/components/three/scenes/TechnologyLatticeScene')}
+            fallback={<div className={styles.techPoster} />}
+          />
+        </div>
+        <div className="shell fk-scene__content">
         <Reveal className={styles.techHead}>
           <div>
             <p className="text-label">Technology & AI</p>
@@ -68,8 +92,9 @@ export function HomeTechnologySection() {
             </Reveal>
           ))}
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </ScrollSceneSection>
   )
 }
 

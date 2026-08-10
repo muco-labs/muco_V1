@@ -14,6 +14,7 @@ import { primaryNav } from '@/data/navigation'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
 import { startProjectHref } from '@/lib/conversion/start-project-link'
 import { useTheme } from '@/hooks/useTheme'
+import { Magnetic } from '@/components/motion/Magnetic'
 import { Button } from '@/components/ui/Button'
 import { NavDropdown, NavPlainLink } from '@/components/layout/NavDropdown'
 import { SiteSearchDialog } from '@/components/layout/SiteSearchDialog'
@@ -141,14 +142,16 @@ export function Navbar() {
             >
               Contact us
             </Button>
-            <Button
-              to={startProjectHref({ source: 'navbar' })}
-              size="sm"
-              trackEvent={analyticsEvents.startProjectClick}
-              trackParams={{ source: 'navbar' }}
-            >
-              Start a project
-            </Button>
+            <Magnetic strength={0.2}>
+              <Button
+                to={startProjectHref({ source: 'navbar' })}
+                size="sm"
+                trackEvent={analyticsEvents.startProjectClick}
+                trackParams={{ source: 'navbar' }}
+              >
+                Start a project
+              </Button>
+            </Magnetic>
             <button
               type="button"
               className={styles.menuBtn}

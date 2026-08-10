@@ -2,6 +2,8 @@
   display: grid;
   overflow: hidden;
   padding: 0;
+  transform-style: preserve-3d;
+  perspective: 900px;
   transition:
     transform var(--duration-base) var(--ease-out),
     border-color var(--duration-base) var(--ease-out);
@@ -10,14 +12,16 @@
 @media (hover: hover) {
   .card:hover {
     border-color: var(--color-border-accent);
+    transform: rotateX(2deg) rotateY(-2deg) translateY(-4px);
   }
 
   .card:hover .visual {
-    transform: scale(1.02);
+    transform: scale(1.02) translateZ(12px);
   }
 }
 
 .visual {
+  transform-style: preserve-3d;
   transition: transform var(--duration-slow) var(--ease-out);
   border-bottom: 1px solid var(--color-border);
 }

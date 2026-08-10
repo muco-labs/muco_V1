@@ -6,6 +6,7 @@ import {
   LocalBusinessSchema,
 } from '@/components/seo/StructuredData'
 import { Reveal } from '@/components/motion/Reveal'
+import { MarketLandingHero } from '@/components/marketing/MarketLandingHero'
 import { Button } from '@/components/ui/Button'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
@@ -34,20 +35,15 @@ export function ErodePage() {
       <FaqPageSchema faqs={[...erodeLocalFaqs]} />
       <LocalBusinessSchema />
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className="shell">
-            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-              <Link to={routePaths.home}>Home</Link>
-              <span aria-hidden="true">/</span>
-              <span aria-current="page">Erode</span>
-            </nav>
-            <Reveal>
-              <p className="text-label">Erode, Tamil Nadu</p>
-              <h1 className="text-display">{erodeLocalPage.h1}</h1>
-              <p className={styles.lead}>{erodeLocalPage.lead}</p>
-            </Reveal>
-          </div>
-        </header>
+        <MarketLandingHero
+          breadcrumbs={[
+            { label: 'Home', href: routePaths.home },
+            { label: 'Erode' },
+          ]}
+          label="Erode, Tamil Nadu"
+          title={erodeLocalPage.h1}
+          lead={erodeLocalPage.lead}
+        />
 
         <section className="section section--tight">
           <div className="shell">

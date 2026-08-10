@@ -134,6 +134,27 @@
   color: var(--color-text-muted);
 }
 
+.techSection {
+  position: relative;
+  overflow: hidden;
+}
+
+.techScene {
+  position: absolute;
+  inset: 0;
+  max-height: 22rem;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.techPoster {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 50% 80% at 70% 20%, var(--aurora-3), transparent 65%),
+    radial-gradient(ellipse 40% 60% at 20% 80%, var(--aurora-1), transparent 60%);
+}
+
 .techHead {
   display: grid;
   gap: var(--space-4);

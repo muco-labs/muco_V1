@@ -29,6 +29,15 @@
   display: grid;
   gap: var(--space-5);
   max-width: 44rem;
+  position: relative;
+  z-index: 1;
+}
+
+.visual {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .lead {

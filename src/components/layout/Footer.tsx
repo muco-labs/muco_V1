@@ -7,6 +7,7 @@ import { site } from '@/config/site'
 import { brandAssets } from '@/config/brand-assets'
 import { socialLinkList } from '@/content/social'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
+import { Magnetic } from '@/components/motion/Magnetic'
 import { startProjectHref } from '@/lib/conversion/start-project-link'
 import styles from './Footer.module.css'
 
@@ -34,9 +35,11 @@ export function Footer() {
               <span>{site.name}</span>
             </Link>
             <p className={styles.desc}>{company.footerBlurb}</p>
-            <Link to={startProjectHref({ source: 'footer' })} className={styles.footerCta}>
-              Start a project
-            </Link>
+            <Magnetic strength={0.18}>
+              <Link to={startProjectHref({ source: 'footer' })} className={styles.footerCta}>
+                Start a project
+              </Link>
+            </Magnetic>
             <a
               href={`mailto:${site.contactEmail}`}
               className={styles.email}

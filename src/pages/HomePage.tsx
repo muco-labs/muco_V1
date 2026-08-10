@@ -20,6 +20,7 @@ import {
   HomeWorkPreviewSection,
 } from '@/sections/home-v3/HomeSystems'
 import { HomeTeamSection } from '@/sections/home-v3/HomeTeam'
+import { HomeTrustStrip } from '@/sections/home-v3/HomeTrustStrip'
 import { SignatureHero } from '@/sections/home-v3/SignatureHero'
 
 const home = pageSeo.home
@@ -42,6 +43,7 @@ export function HomePage() {
       <LocalBusinessSchema />
       <FaqPageSchema faqs={homeFaqs} />
       <SignatureHero />
+      <HomeTrustStrip />
       <HomeServicesShowcase />
       <HomeCultureSections />
       <HomeHowWeWorkSection />

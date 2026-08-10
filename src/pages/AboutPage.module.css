@@ -228,6 +228,18 @@
   align-items: start;
 }
 
+.founderVisual {
+  position: relative;
+  min-height: 16rem;
+}
+
+.founderScene {
+  position: absolute;
+  inset: -10% -20% -10% -10%;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 @media (min-width: 56rem) {
   .founder {
     grid-template-columns: minmax(14rem, 22rem) 1fr;

@@ -7,11 +7,13 @@ type PageHeroProps = {
   title: string
   lead: string
   children?: ReactNode
+  visual?: ReactNode
 }
 
-export function PageHero({ eyebrow, title, lead, children }: PageHeroProps) {
+export function PageHero({ eyebrow, title, lead, children, visual }: PageHeroProps) {
   return (
     <header className={styles.hero}>
+      {visual ? <div className={styles.visual}>{visual}</div> : null}
       <div className="shell">
         <Reveal className={styles.inner}>
           <p className="text-label">{eyebrow}</p>

@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { TechnicalBackdrop } from '@/components/opening/TechnicalBackdrop'
+import { DecorativeScene } from '@/components/three/DecorativeScene'
 import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
 import { HeroSignalPanel } from '@/components/home/HeroSignalPanel'
@@ -50,6 +51,12 @@ export function SignatureHero() {
         aria-hidden="true"
       >
         <TechnicalBackdrop intensity="ambient" className={styles.backdrop} />
+        <DecorativeScene
+          sceneId="home-hero-aurora"
+          className={styles.sceneCanvas}
+          scene={() => import('@/components/three/scenes/HeroAuroraScene')}
+          fallback={null}
+        />
       </motion.div>
       <div className="shell">
         <div className={styles.grid}>
