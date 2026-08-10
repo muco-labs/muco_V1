@@ -35,6 +35,7 @@ export function CustomerDashboardPage() {
 
   const unreadMessages = data.messagesUnreadCount ?? 0
   const needsAttention = pendingCount > 0 || unreadMessages > 0
+  const activeProjectCount = data.activeProjects.length + planningProjects.length
 
   return (
     <>
@@ -68,22 +69,42 @@ export function CustomerDashboardPage() {
       ) : null}
 
       <header className={styles.hero}>
-        <div>
-          <p className="text-label">Dashboard</p>
-          <h1 className="text-h1">Welcome back, {data.welcomeName}</h1>
-          <p className={styles.heroDesc}>
-            {data.companyName
-              ? `${data.companyName} — track requests, projects, and next steps.`
-              : 'Track your project requests, active work, and next steps.'}
-          </p>
+        <div className={styles.heroTop}>
+          <div>
+            <p className="text-label">Dashboard</p>
+            <h1 className="text-h1">Welcome back, {data.welcomeName}</h1>
+            <p className={styles.heroDesc}>
+              {data.companyName
+                ? `${data.companyName} — track requests, projects, and next steps.`
+                : 'Track your project requests, active work, and next steps.'}
+            </p>
+          </div>
+          <Button to={customerPortalPaths.startProject} size="lg">
+            Start Your Project
+          </Button>
         </div>
-        <Button to={customerPortalPaths.startProject} size="lg">
-          Start Your Project
-        </Button>
+        <div className={styles.statRow} aria-label="Overview">
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{pendingCount}</span>
+            <span className={styles.statLabel}>Pending actions</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{activeProjectCount}</span>
+            <span className={styles.statLabel}>Active projects</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{unreadMessages}</span>
+            <span className={styles.statLabel}>Unread messages</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{data.unreadNotificationCount}</span>
+            <span className={styles.statLabel}>Notifications</span>
+          </div>
+        </div>
       </header>
 
-      <section className={ui.cardGrid} aria-labelledby="dash-requests">
-        <article className={`surface ${ui.dataCard}`}>
+      <div className={styles.bento}>
+        <article className={styles.panel} aria-labelledby="dash-requests">
           <div className={styles.sectionHead}>
             <h2 id="dash-requests" className="text-h3">
               Project requests
@@ -115,9 +136,11 @@ export function CustomerDashboardPage() {
           )}
         </article>
 
-        <article className={`surface ${ui.dataCard}`}>
+        <article className={styles.panel} aria-labelledby="dash-projects">
           <div className={styles.sectionHead}>
-            <h2 className="text-h3">Active projects</h2>
+            <h2 id="dash-projects" className="text-h3">
+              Active projects
+            </h2>
             <Link className="link-underline" to={customerPortalPaths.projects}>
               View all
             </Link>
@@ -177,10 +200,17 @@ export function CustomerDashboardPage() {
           )}
         </article>
 
-        <article className={`surface ${ui.dataCard}`}>
-          <h2 className="text-h3">Pending actions</h2>
+        <article className={`${styles.panel} ${styles.bentoWide}`} aria-labelledby="dash-pending">
+          <div className={styles.sectionHead}>
+            <h2 id="dash-pending" className="text-h3">
+              Pending actions
+            </h2>
+          </div>
           {pendingCount === 0 ? (
-            <EmptyState title="You're all caught up" description="No approvals, invoices, or support items need your attention right now." />
+            <EmptyState
+              title="You're all caught up"
+              description="No approvals, invoices, or support items need your attention right now."
+            />
           ) : (
             <ul className={ui.stack}>
               {data.pendingApprovals.map((p) => (
@@ -207,9 +237,9 @@ export function CustomerDashboardPage() {
             </ul>
           )}
         </article>
-      </section>
+      </div>
 
-      <section className={ui.stack} style={{ marginTop: 'var(--space-8)' }} aria-labelledby="dash-messages">
+      <section className={styles.stackSection} aria-labelledby="dash-messages">
         <h2 id="dash-messages" className="text-h3">
           Messages
         </h2>
@@ -219,7 +249,7 @@ export function CustomerDashboardPage() {
             description="When your team replies, conversations will appear here."
           />
         ) : (
-          <article className={`surface ${ui.dataCard}`}>
+          <article className={styles.panel}>
             {(data.messagesUnreadCount ?? 0) > 0 ? (
               <p className={ui.meta}>
                 <strong>{data.messagesUnreadCount}</strong> unread message
@@ -255,7 +285,7 @@ export function CustomerDashboardPage() {
         )}
       </section>
 
-      <section className={ui.stack} style={{ marginTop: 'var(--space-8)' }} aria-labelledby="dash-activity">
+      <section className={styles.stackSection} aria-labelledby="dash-activity">
         <h2 id="dash-activity" className="text-h3">
           Recent activity
         </h2>
@@ -265,27 +295,29 @@ export function CustomerDashboardPage() {
             description="Submissions, messages, and payments will show here when available."
           />
         ) : (
-          <ul className={ui.timeline}>
-            {recentRequests.map((row) => (
-              <li key={`req-${row.id}`}>
-                <strong>Project request submitted</strong>
-                <br />
-                <span className={ui.meta}>
-                  {row.serviceInterest ?? 'Request'} ·{' '}
-                  {new Date(row.createdAt).toLocaleString()}
-                </span>
-              </li>
-            ))}
-            {data.recentPayments.map((pay) => (
-              <li key={pay.id}>
-                <strong>Payment recorded</strong>
-                <br />
-                <span className={ui.meta}>
-                  ₹{pay.amount} · {new Date(pay.createdAt).toLocaleString()}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <article className={styles.panel}>
+            <ul className={ui.timeline}>
+              {recentRequests.map((row) => (
+                <li key={`req-${row.id}`}>
+                  <strong>Project request submitted</strong>
+                  <br />
+                  <span className={ui.meta}>
+                    {row.serviceInterest ?? 'Request'} ·{' '}
+                    {new Date(row.createdAt).toLocaleString()}
+                  </span>
+                </li>
+              ))}
+              {data.recentPayments.map((pay) => (
+                <li key={pay.id}>
+                  <strong>Payment recorded</strong>
+                  <br />
+                  <span className={ui.meta}>
+                    ₹{pay.amount} · {new Date(pay.createdAt).toLocaleString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </article>
         )}
         {data.unreadNotificationCount > 0 ? (
           <p className={ui.meta}>

@@ -1,0 +1,33 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+}
+
+.mark {
+  display: block;
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sm {
+  height: 2rem;
+}
+
+.md {
+  height: 2.5rem;
+}
+
+.lg {
+  height: 3.25rem;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

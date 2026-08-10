@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import { MucoBrandLogo } from '@/components/brand/MucoBrandLogo'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { customerNavMore, customerNavPrimary, customerPortalPaths } from '@/config/customer-portal'
 import { authRoutes } from '@/config/auth'
@@ -36,7 +37,8 @@ export function CustomerAppLayout() {
         <header className={styles.topbar}>
           <div className={styles.topbarInner}>
             <Link to={customerPortalPaths.root} className={styles.brand}>
-              MUCO LABS <span>Customer</span>
+              <MucoBrandLogo size="sm" />
+              <span className={styles.brandBadge}>Customer</span>
             </Link>
             <button
               type="button"

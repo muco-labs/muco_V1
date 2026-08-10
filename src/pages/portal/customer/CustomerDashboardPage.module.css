@@ -1,16 +1,79 @@
 .hero {
+  display: grid;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+  padding: var(--space-6) var(--space-6);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-strong);
+  background:
+    radial-gradient(ellipse 80% 120% at 100% 0%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 55%),
+    var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.heroTop {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-8);
 }
 
 .heroDesc {
   margin: var(--space-2) 0 0;
   max-width: 36rem;
   color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: var(--space-3);
+}
+
+.stat {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated, var(--color-bg));
+}
+
+.statValue {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.statLabel {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.bento {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 56rem) {
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bentoWide {
+    grid-column: 1 / -1;
+  }
+}
+
+.panel {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 .sectionHead {
@@ -19,16 +82,26 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .sectionHead h2 {
   margin: 0;
 }
 
+.stackSection {
+  margin-top: var(--space-8);
+  display: grid;
+  gap: var(--space-4);
+}
+
 @media (max-width: 480px) {
-  .hero {
+  .heroTop {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .hero {
+    padding: var(--space-5);
   }
 }

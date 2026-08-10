@@ -1,0 +1,124 @@
+.page {
+  min-height: calc(100dvh - var(--header-height, 0px));
+  padding: var(--space-6) var(--space-4) var(--space-10);
+  background:
+    radial-gradient(ellipse 70% 55% at 0% 0%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 60%),
+    var(--color-bg);
+}
+
+.grid {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-8);
+}
+
+@media (min-width: 56rem) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    align-items: start;
+    gap: var(--space-10);
+  }
+}
+
+.aside {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-2) 0;
+}
+
+.brandLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.asideTagline {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--color-text);
+  max-width: 28rem;
+}
+
+.values {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.values li {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+}
+
+.values strong {
+  font-size: var(--text-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.values span {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.asideFoot {
+  margin: 0;
+  font-size: var(--text-small);
+  color: var(--color-text-subtle);
+  line-height: var(--leading-snug);
+  max-width: 28rem;
+}
+
+.main {
+  min-width: 0;
+}
+
+.card {
+  padding: clamp(var(--space-6), 4vw, var(--space-10));
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-h1);
+  line-height: var(--leading-tight);
+}
+
+.lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: var(--leading-snug);
+}
+
+.footer {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  font-size: var(--text-small);
+}

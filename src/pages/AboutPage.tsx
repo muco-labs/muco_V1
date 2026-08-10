@@ -10,7 +10,6 @@ import { Reveal } from '@/components/motion/Reveal'
 import { pageSeo } from '@/config/seo'
 import { company } from '@/data/company'
 import { founder } from '@/data/founder'
-import { teamGroups, teamMembers, teamHiringNote } from '@/data/team'
 import { deliveryProcess } from '@/content/process'
 import { routePaths } from '@/config/routes'
 import { env } from '@/config/env'
@@ -55,9 +54,6 @@ export function AboutPage() {
           <nav className={styles.jumpNav} aria-label="On this page">
             <a className={styles.jumpLink} href="#founder">
               Founder
-            </a>
-            <a className={styles.jumpLink} href="#team">
-              Team
             </a>
             <Link className={styles.jumpLink} to={routePaths.careers}>
               Careers
@@ -246,68 +242,6 @@ export function AboutPage() {
                     </ul>
                   </div>
                 </Reveal>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          className={`section section--tight ${styles.anchorSection}`}
-          id="team"
-          aria-labelledby="about-team"
-        >
-          <div className="shell">
-            <div className={styles.sectionBlock}>
-              <Reveal>
-                <h2 id="about-team" className="text-h2">
-                  Team
-                </h2>
-                <p className={styles.teamNote}>{teamHiringNote}</p>
-              </Reveal>
-              <div className={styles.teamGrid}>
-                {teamMembers.map((member, index) => (
-                  <Reveal key={member.id} delayMs={index * 60}>
-                    <article className={`surface ${styles.memberCard}`}>
-                      <FounderPortrait
-                        name={member.name}
-                        imageSrc={member.imageSrc}
-                        size="team"
-                        objectPosition={member.imageObjectPosition}
-                      />
-                      <div className={styles.memberBody}>
-                        <h3 className="text-h3">{member.name}</h3>
-                        <p className={styles.memberRole}>{member.role}</p>
-                        {member.bio ? <p className={styles.memberBio}>{member.bio}</p> : null}
-                        {member.skills?.length ? (
-                          <ul className={styles.memberSkills}>
-                            {member.skills.map((skill) => (
-                              <li key={skill}>{skill}</li>
-                            ))}
-                          </ul>
-                        ) : null}
-                        {member.links?.length ? (
-                          <ul className={styles.memberLinks}>
-                            {member.links.map((link) => (
-                              <li key={link.href}>
-                                <a className={styles.contactLink} href={link.href}>
-                                  {link.label}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    </article>
-                  </Reveal>
-                ))}
-              </div>
-              <div className={styles.teamGroups}>
-                {teamGroups.map((group) => (
-                  <article key={group.id} className="surface">
-                    <h3 className="text-label">{group.label}</h3>
-                    <p className={styles.groupDesc}>{group.description}</p>
-                  </article>
-                ))}
               </div>
             </div>
           </div>

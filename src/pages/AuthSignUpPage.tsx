@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
+import { CustomerAuthShell } from '@/components/auth/CustomerAuthShell'
 import { authCopy, authRoutes } from '@/config/auth'
 import { startProjectPaths } from '@/config/start-project'
 import { pageSeo } from '@/config/seo'
@@ -14,7 +15,6 @@ import { apiRequest } from '@/services/api'
 import type { MeResponse } from '@/contexts/auth-context'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
 import { completeRegistration, signUpCustomer } from '@/services/auth'
-import styles from './AuthPage.module.css'
 import formStyles from './AuthForm.module.css'
 
 const signUp = pageSeo.authSignUp
@@ -69,6 +69,10 @@ export function AuthSignUpPage() {
     }
   }
 
+  const lead = isStartProject
+    ? 'Create your account to start your project request. Progress is saved to your MUCO Labs account.'
+    : undefined
+
   return (
     <>
       <PageMeta
@@ -77,88 +81,79 @@ export function AuthSignUpPage() {
         path={signUp.path}
         noIndex
       />
-      <div className={styles.page}>
-        <div className="shell">
-          <div className={`surface ${styles.card}`}>
-            <p className={formStyles.brand}>{authCopy.brandLabel}</p>
-            <h1 className="text-h1">{authCopy.signUpTitle}</h1>
-            {isStartProject ? (
-              <p className={formStyles.hint}>
-                Create your account to start your project request. Progress is saved to your MUCO
-                Labs account.
-              </p>
-            ) : null}
-            {!configured ? (
-              <p>{authCopy.supabaseMissing}</p>
-            ) : (
-              <>
-                <form className={formStyles.form} onSubmit={onSubmit}>
-                  <div className={formStyles.field}>
-                    <label htmlFor="fullName">Full name</label>
-                    <input
-                      id="fullName"
-                      required
-                      autoComplete="name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
-                  </div>
-                  <div className={formStyles.field}>
-                    <label htmlFor="company">Company (optional)</label>
-                    <input
-                      id="company"
-                      autoComplete="organization"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                  </div>
-                  <div className={formStyles.field}>
-                    <label htmlFor="email">Email</label>
-                    <input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <PasswordField
-                    id="password"
-                    label="Password"
-                    value={password}
-                    onChange={setPassword}
-                    autoComplete="new-password"
-                    minLength={8}
-                  />
-                  <PasswordField
-                    id="confirmPassword"
-                    label="Confirm password"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                    autoComplete="new-password"
-                    minLength={8}
-                  />
-                  {error ? (
-                    <p className={formStyles.error} role="alert">
-                      {error}
-                    </p>
-                  ) : null}
-                  <Button type="submit" disabled={submitting}>
-                    {submitting ? 'Creating account…' : 'Create account'}
-                  </Button>
-                </form>
-                <AuthOAuthButtons returnPath={returnPath} disabled={submitting} />
-              </>
-            )}
-            <div className={styles.actions}>
-              <Link className="link-underline" to={authRoutes.signIn} state={returnState}>
-                Sign in
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CustomerAuthShell
+        title={authCopy.signUpTitle}
+        lead={lead}
+        footer={
+          <Link className="link-underline" to={authRoutes.signIn} state={returnState}>
+            Sign in
+          </Link>
+        }
+      >
+        {!configured ? (
+          <p className={formStyles.hint}>{authCopy.supabaseMissing}</p>
+        ) : (
+          <>
+            <form className={formStyles.form} onSubmit={onSubmit}>
+              <div className={formStyles.field}>
+                <label htmlFor="fullName">Full name</label>
+                <input
+                  id="fullName"
+                  required
+                  autoComplete="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+              <div className={formStyles.field}>
+                <label htmlFor="company">Company (optional)</label>
+                <input
+                  id="company"
+                  autoComplete="organization"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+              </div>
+              <div className={formStyles.field}>
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <PasswordField
+                id="password"
+                label="Password"
+                value={password}
+                onChange={setPassword}
+                autoComplete="new-password"
+                minLength={8}
+              />
+              <PasswordField
+                id="confirmPassword"
+                label="Confirm password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+                minLength={8}
+              />
+              {error ? (
+                <p className={formStyles.error} role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <Button type="submit" disabled={submitting} size="lg">
+                {submitting ? 'Creating account…' : 'Create account'}
+              </Button>
+            </form>
+            <AuthOAuthButtons returnPath={returnPath} disabled={submitting} />
+          </>
+        )}
+      </CustomerAuthShell>
     </>
   )
 }

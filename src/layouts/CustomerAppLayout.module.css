@@ -66,15 +66,24 @@
 }
 
 .brand {
-  font-family: var(--font-display);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   text-decoration: none;
   color: var(--color-text);
-  font-size: var(--text-sm);
+  min-width: 0;
 }
 
-.brand span {
+.brandBadge {
+  font-size: var(--text-small);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-accent);
-  margin-left: var(--space-1);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  background: var(--color-accent-soft);
 }
 
 .menuBtn {

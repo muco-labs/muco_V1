@@ -43,7 +43,7 @@ export const brandAssets: BrandAssetsMap = {
   },
   logoMark: {
     id: 'logo-mark',
-    label: 'Logo mark (icon only)',
+    label: 'MUCO LABS logo mark',
     status: 'available',
     src: LOGO_MARK_SRC,
     recommended: {
