@@ -18,7 +18,8 @@ export function SignatureHero() {
           <Reveal className={styles.copy}>
             <p className="eyebrow-line">{site.name} · Web, software & AI</p>
             <h1 id="home-hero-title" className="text-display">
-              We build digital products that move businesses forward.
+              We build digital products that{' '}
+              <span className={styles.highlight}>move businesses forward.</span>
             </h1>
             <p className={styles.lead}>
               <strong>MUCO LABS</strong> is a founder-led technology company in Erode—websites,

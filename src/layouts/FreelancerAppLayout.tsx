@@ -28,6 +28,7 @@ export function FreelancerAppLayout() {
         noIndex
       />
       <div className={styles.shell}>
+        <div className="aurora-bg" aria-hidden="true" />
         <a href="#freelancer-main" className={styles.skipLink}>
           Skip to main content
         </a>

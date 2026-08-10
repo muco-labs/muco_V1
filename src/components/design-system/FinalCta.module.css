@@ -1,10 +1,14 @@
 .block {
   position: relative;
-  padding: clamp(var(--space-10), 6vw, var(--space-16));
+  padding: clamp(var(--space-10), 6vw, var(--space-20));
   overflow: hidden;
   border-color: var(--color-border-accent);
-  background: var(--color-surface-gradient);
+  background:
+    radial-gradient(640px 260px at 24% 0%, var(--aurora-1), transparent 70%),
+    radial-gradient(520px 220px at 80% 8%, var(--aurora-3), transparent 66%),
+    var(--color-surface-gradient);
   text-align: center;
+  box-shadow: var(--shadow-glow);
 }
 
 .grid {

@@ -1,9 +1,28 @@
 .hero {
-  padding-block: clamp(var(--space-16), 8vw, var(--space-24));
+  position: relative;
+  padding-block: clamp(var(--space-16), 9vw, var(--space-28));
   border-bottom: 1px solid var(--color-border);
   background:
-    radial-gradient(ellipse 80% 60% at 20% -20%, var(--color-accent-glow), transparent 55%),
-    var(--color-bg);
+    radial-gradient(ellipse 80% 60% at 20% -20%, var(--aurora-1), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 85% 0%, var(--aurora-3), transparent 60%),
+    transparent;
+}
+
+/* Glowing divider under the hero */
+.hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-accent) 30%,
+    var(--color-accent-aurora-soft) 70%,
+    transparent
+  );
 }
 
 .inner {

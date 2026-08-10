@@ -11,11 +11,14 @@
 
 .eyebrow {
   margin: 0;
-  color: var(--color-accent-hover);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
+  background: linear-gradient(90deg, var(--color-accent-hover), var(--color-accent-aurora));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .title {

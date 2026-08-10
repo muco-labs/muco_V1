@@ -1,8 +1,9 @@
 :root {
-  /* MUCO brand palette */
-  --color-brand-bg: #050816;
+  /* MUCO brand palette — Aurora v2 */
+  --color-brand-bg: #04060f;
   --color-brand-blue: #1e88ff;
   --color-brand-cyan: #00c2ff;
+  --color-brand-violet: #7c5cff;
   --color-brand-gold: #ffb300;
 
   --color-primary: #f4f3ef;
@@ -10,22 +11,26 @@
   --color-accent: var(--color-brand-cyan);
   --color-accent-soft: rgba(0, 194, 255, 0.14);
   --color-accent-muted: rgba(30, 136, 255, 0.1);
-  --color-accent-glow: rgba(30, 136, 255, 0.12);
-  --color-accent-ink: #050816;
+  --color-accent-glow: rgba(30, 136, 255, 0.14);
+  --color-accent-ink: #04060f;
   --color-accent-warm: var(--color-brand-gold);
+  --color-accent-aurora: var(--color-brand-violet);
+  --color-accent-aurora-soft: rgba(124, 92, 255, 0.12);
   --color-border-accent: rgba(0, 194, 255, 0.28);
 
   --color-bg: var(--color-brand-bg);
-  --color-bg-elevated: #0a0f24;
-  --color-bg-subtle: #0d1228;
-  --color-surface: #111831;
-  --color-surface-elevated: #161e3a;
+  --color-bg-elevated: #0a0f22;
+  --color-bg-subtle: #0d1330;
+  --color-surface: #101736;
+  --color-surface-elevated: #16204a;
   --color-surface-gradient: linear-gradient(
     165deg,
-    rgba(30, 136, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.02) 48%,
-    rgba(0, 0, 0, 0.25) 100%
+    rgba(30, 136, 255, 0.07) 0%,
+    rgba(124, 92, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.02) 65%,
+    rgba(0, 0, 0, 0.28) 100%
   );
+  --color-glass: rgba(16, 23, 54, 0.55);
 
   --color-border: rgba(255, 255, 255, 0.09);
   --color-border-strong: rgba(255, 255, 255, 0.16);
@@ -40,13 +45,18 @@
   --color-warning: var(--color-brand-gold);
   --color-danger: #ff7b7b;
 
+  /* Aurora background layers */
+  --aurora-1: rgba(30, 136, 255, 0.16);
+  --aurora-2: rgba(0, 194, 255, 0.1);
+  --aurora-3: rgba(124, 92, 255, 0.12);
+
   /* Typography */
   --font-display: 'Syne', system-ui, sans-serif;
   --font-body: 'Manrope', system-ui, sans-serif;
   --font-mono: ui-monospace, 'JetBrains Mono', monospace;
 
-  --text-display: clamp(2.75rem, 6vw, 4.75rem);
-  --text-h1: clamp(2.125rem, 4.2vw, 3.25rem);
+  --text-display: clamp(3rem, 7vw, 5.5rem);
+  --text-h1: clamp(2.25rem, 4.6vw, 3.5rem);
   --text-h2: clamp(1.75rem, 3vw, 2.5rem);
   --text-h3: clamp(1.125rem, 2vw, 1.5rem);
   --text-body: 1rem;
@@ -54,7 +64,7 @@
   --text-small: 0.875rem;
   --text-caption: 0.6875rem;
   --text-button: 0.8125rem;
-  --text-stat: clamp(2rem, 4vw, 3rem);
+  --text-stat: clamp(2.25rem, 4.5vw, 3.5rem);
 
   --text-xs: var(--text-caption);
   --text-sm: var(--text-small);
@@ -66,13 +76,13 @@
   --text-4xl: var(--text-h1);
   --text-5xl: var(--text-display);
 
-  --leading-tight: 1.05;
+  --leading-tight: 1.02;
   --leading-snug: 1.35;
   --leading-normal: 1.65;
   --tracking-tight: -0.04em;
   --tracking-normal: -0.015em;
   --tracking-wide: 0.12em;
-  --tracking-display: -0.05em;
+  --tracking-display: -0.055em;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -97,8 +107,14 @@
   --radius-full: 9999px;
 
   --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04);
-  --shadow-md: 0 24px 60px rgba(0, 0, 0, 0.45);
-  --shadow-glow: 0 0 0 1px var(--color-accent-soft), 0 24px 48px rgba(30, 136, 255, 0.12);
+  --shadow-md: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 32px 80px rgba(2, 4, 12, 0.65);
+  --shadow-glow:
+    0 0 0 1px var(--color-accent-soft),
+    0 24px 48px rgba(30, 136, 255, 0.14);
+  --shadow-glow-aurora:
+    0 0 0 1px var(--color-accent-aurora-soft),
+    0 24px 56px rgba(124, 92, 255, 0.16);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
@@ -136,6 +152,7 @@
   --color-bg-subtle: #eef2f9;
   --color-surface: #ffffff;
   --color-surface-elevated: #f3f6fb;
+  --color-glass: rgba(255, 255, 255, 0.65);
   --color-primary: #0a1020;
   --color-text: #0a1020;
   --color-text-muted: #3d4a66;
@@ -143,4 +160,9 @@
   --color-border: rgba(10, 16, 32, 0.1);
   --color-border-strong: rgba(10, 16, 32, 0.18);
   --color-accent-ink: #ffffff;
+  --aurora-1: rgba(30, 136, 255, 0.1);
+  --aurora-2: rgba(0, 194, 255, 0.07);
+  --aurora-3: rgba(124, 92, 255, 0.08);
+  --shadow-md: 0 24px 60px rgba(10, 16, 32, 0.12);
+  --shadow-lg: 0 32px 80px rgba(10, 16, 32, 0.16);
 }

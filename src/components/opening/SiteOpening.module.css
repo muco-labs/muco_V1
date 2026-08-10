@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #050816;
+  background: var(--color-brand-bg, #04060f);
   animation: overlay-fade-in 0.2s ease-out;
 }
 

@@ -1,5 +1,9 @@
 .page {
+  position: relative;
   padding-block: var(--space-16);
+  background:
+    radial-gradient(ellipse 70% 40% at 15% -10%, var(--aurora-1), transparent 60%),
+    radial-gradient(ellipse 45% 30% at 90% -5%, var(--aurora-3), transparent 65%);
 }
 
 @media (min-width: 48rem) {

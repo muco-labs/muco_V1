@@ -28,6 +28,7 @@ export function EmployeeAppLayout() {
         noIndex
       />
       <div className={styles.shell}>
+        <div className="aurora-bg" aria-hidden="true" />
         <a href="#employee-main" className={styles.skipLink}>
           Skip to main content
         </a>

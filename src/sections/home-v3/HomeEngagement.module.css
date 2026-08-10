@@ -24,7 +24,7 @@
 }
 
 .tierFeatured {
-  border-color: rgba(212, 255, 92, 0.35);
+  border-color: var(--color-border-accent);
   box-shadow: var(--shadow-glow);
 }
 

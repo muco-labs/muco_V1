@@ -28,11 +28,58 @@ body {
   line-height: var(--leading-normal);
   color: var(--color-text);
   background: var(--color-bg);
-  background-image:
-    radial-gradient(900px 500px at 100% -10%, rgba(30, 136, 255, 0.14), transparent 55%),
-    radial-gradient(700px 400px at 0% 0%, rgba(0, 194, 255, 0.08), transparent 50%),
-    linear-gradient(180deg, var(--color-bg) 0%, #070b1a 45%, var(--color-bg) 100%);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Aurora background — two slowly drifting gradient layers behind all content */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-elevated) 48%, var(--color-bg) 100%);
+}
+
+.aurora-bg::before,
+.aurora-bg::after {
+  content: '';
+  position: absolute;
+  width: 140vmax;
+  height: 140vmax;
+  top: -70vmax;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.aurora-bg::before {
+  left: -40vmax;
+  background:
+    radial-gradient(closest-side at 62% 38%, var(--aurora-1), transparent 62%),
+    radial-gradient(closest-side at 34% 60%, var(--aurora-3), transparent 58%);
+  animation: aurora-drift 46s var(--ease-out) infinite alternate;
+}
+
+.aurora-bg::after {
+  right: -50vmax;
+  background: radial-gradient(closest-side at 45% 55%, var(--aurora-2), transparent 60%);
+  animation: aurora-drift 58s var(--ease-out) infinite alternate-reverse;
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate3d(6vmax, 4vmax, 0) rotate(24deg) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-bg::before,
+  .aurora-bg::after {
+    animation: none;
+  }
 }
 
 img,
@@ -136,18 +183,27 @@ a {
 .surface {
   border: 1px solid var(--color-border);
   background: var(--color-surface-gradient);
+  backdrop-filter: blur(12px);
   border-radius: var(--radius-xl);
 }
 
 .surface--lift {
   transition:
-    transform var(--duration-base) var(--ease-out),
-    border-color var(--duration-base) var(--ease-out);
+    transform var(--duration-base) var(--ease-spring),
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
 }
 
 @media (hover: hover) {
   .surface--lift:hover {
     transform: translateY(-4px);
-    border-color: var(--color-border-strong);
+    border-color: var(--color-border-accent);
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface--lift:hover {
+    transform: none;
   }
 }

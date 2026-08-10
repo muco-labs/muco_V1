@@ -29,6 +29,7 @@ export function CustomerAppLayout() {
         noIndex
       />
       <div className={styles.shell}>
+        <div className="aurora-bg" aria-hidden="true" />
         <a href="#customer-main" className={styles.skipLink}>
           Skip to main content
         </a>

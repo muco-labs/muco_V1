@@ -30,6 +30,7 @@ export function MainLayout() {
 
   return (
     <div className={introActive ? styles.introActive : undefined}>
+      <div className="aurora-bg" aria-hidden="true" />
       <RouteAnalytics />
       <LegacyPortalRedirect />
       <a href="#main-content" className="skip-link">
