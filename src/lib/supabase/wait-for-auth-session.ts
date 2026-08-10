@@ -1,5 +1,6 @@
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
-import { preparePkceOAuthCallback } from '@/lib/supabase/pkce-callback-url'
+import { preparePkceOAuthCallback, listPkceFlowIdsFromVerifierCookies } from '@/lib/supabase/pkce-callback-url'
+import { PKCE_FLOW_ID_QUERY_PARAM } from '@/lib/auth/oauth-callback-diagnostics'
 import { getSupabaseAuthStorageKey } from '@/lib/supabase/client'
 import { createSupabaseAuthStorage } from '@/lib/supabase/cross-subdomain-auth-storage'
 
@@ -15,7 +16,7 @@ function readOAuthCodeFromUrl(): string | null {
 }
 
 function getClientAuthStorage(client: SupabaseClient): Storage {
-  const auth = client.auth as { storage?: Storage }
+  const auth = client.auth as unknown as { storage?: Storage }
   return auth.storage ?? createSupabaseAuthStorage()
 }
 
@@ -78,10 +79,49 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
   let session = data.session ?? null
   const oauthCode = oauthCodeCaptured ?? readOAuthCodeFromUrl()
 
-  if (!session && oauthCode) {
-    const exchanged = await client.auth.exchangeCodeForSession(oauthCode)
-    if (exchanged.error) {
-      if (isPkceCodeAlreadyUsedError(exchanged.error)) {
+  if (!session && oauthCode && storageKey) {
+    const storage = getClientAuthStorage(client)
+    const flowIds = listPkceFlowIdsFromVerifierCookies(storageKey)
+    const urlFlowId =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get(PKCE_FLOW_ID_QUERY_PARAM)?.trim()
+        : null
+    const attemptFlowIds = [urlFlowId, ...flowIds].filter((id): id is string => Boolean(id))
+    const seen = new Set<string>()
+    const orderedFlowIds = attemptFlowIds.filter((id) => {
+      if (seen.has(id)) return false
+      seen.add(id)
+      return true
+    })
+
+    let lastExchangeError: Error | null = null
+    for (const flowId of orderedFlowIds.length > 0 ? orderedFlowIds : [null]) {
+      if (flowId && typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        url.searchParams.set(PKCE_FLOW_ID_QUERY_PARAM, flowId)
+        window.history.replaceState(window.history.state, '', url.toString())
+        preparePkceOAuthCallback(storageKey, storage)
+      }
+
+      const exchanged = await client.auth.exchangeCodeForSession(oauthCode)
+      if (!exchanged.error) {
+        session = exchanged.data.session ?? null
+        if (!session) {
+          const afterExchange = await client.auth.getSession()
+          session = afterExchange.data.session ?? null
+        }
+        if (session) break
+      } else {
+        lastExchangeError = exchanged.error
+        if (isPkceCodeAlreadyUsedError(exchanged.error)) continue
+        const recovered = await client.auth.getSession()
+        session = recovered.data.session ?? null
+        if (session) break
+      }
+    }
+
+    if (!session && lastExchangeError) {
+      if (isPkceCodeAlreadyUsedError(lastExchangeError)) {
         const recovered = await client.auth.getSession()
         session = recovered.data.session ?? null
         if (!session && recovered.error) {
@@ -93,28 +133,13 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
             initializeError: null,
           }
         }
-      } else {
+      } else if (!session) {
         return {
           session: null,
-          error: exchanged.error,
+          error: lastExchangeError,
           failurePoint: 'pkce_exchange_skipped_or_failed',
           initializeOk: true,
           initializeError: null,
-        }
-      }
-    } else {
-      session = exchanged.data.session ?? null
-      if (!session) {
-        const afterExchange = await client.auth.getSession()
-        session = afterExchange.data.session ?? null
-        if (afterExchange.error && !session) {
-          return {
-            session: null,
-            error: afterExchange.error,
-            failurePoint: 'get_session',
-            initializeOk: true,
-            initializeError: null,
-          }
         }
       }
     }

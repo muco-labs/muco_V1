@@ -114,17 +114,104 @@ function deleteChunked(base: string) {
 /** ~1 year — Supabase refresh handles expiry; storage must outlive access token. */
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 400
 
+const PKCE_MIRROR_PREFIX = 'muco_pkce_mirror:'
+
+function isPkceVerifierStorageKey(key: string): boolean {
+  return key.endsWith('-code-verifier')
+}
+
+function pkceMirrorKey(key: string): string {
+  return `${PKCE_MIRROR_PREFIX}${key}`
+}
+
+function readPkceMirror(key: string): string | null {
+  try {
+    return sessionStorage.getItem(pkceMirrorKey(key))
+  } catch {
+    return null
+  }
+}
+
+function writePkceMirror(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(pkceMirrorKey(key), value)
+  } catch {
+    /* ignore */
+  }
+}
+
+function removePkceMirror(key: string): void {
+  try {
+    sessionStorage.removeItem(pkceMirrorKey(key))
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearAllPkceMirrors(): void {
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i -= 1) {
+      const key = sessionStorage.key(i)
+      if (key?.startsWith(PKCE_MIRROR_PREFIX)) {
+        sessionStorage.removeItem(key)
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 export function createSupabaseAuthStorage(): Storage {
   if (!shouldUseSharedMucolabsCookieStorage()) {
-    return window.localStorage
+    const base = window.localStorage
+    return {
+      getItem(key: string): string | null {
+        try {
+          const value = base.getItem(key)
+          if (value !== null && value !== '') return value
+          if (isPkceVerifierStorageKey(key)) return readPkceMirror(key)
+          return value
+        } catch {
+          return isPkceVerifierStorageKey(key) ? readPkceMirror(key) : null
+        }
+      },
+      setItem(key: string, value: string): void {
+        try {
+          base.setItem(key, value)
+        } catch {
+          /* ignore */
+        }
+        if (isPkceVerifierStorageKey(key)) writePkceMirror(key, value)
+      },
+      removeItem(key: string): void {
+        try {
+          base.removeItem(key)
+        } catch {
+          /* ignore */
+        }
+        removePkceMirror(key)
+      },
+      key(index: number): string | null {
+        return base.key(index)
+      },
+      get length() {
+        return base.length
+      },
+      clear(): void {
+        /* Supabase only clears known keys via removeItem */
+      },
+    }
   }
 
   return {
     getItem(key: string): string | null {
       try {
-        return readChunked(key)
+        const fromCookie = readChunked(key)
+        if (fromCookie !== null && fromCookie !== '') return fromCookie
+        if (isPkceVerifierStorageKey(key)) return readPkceMirror(key)
+        return fromCookie
       } catch {
-        return null
+        return isPkceVerifierStorageKey(key) ? readPkceMirror(key) : null
       }
     },
     setItem(key: string, value: string): void {
@@ -133,6 +220,7 @@ export function createSupabaseAuthStorage(): Storage {
       } catch {
         /* quota / privacy mode */
       }
+      if (isPkceVerifierStorageKey(key)) writePkceMirror(key, value)
     },
     removeItem(key: string): void {
       try {
@@ -140,6 +228,7 @@ export function createSupabaseAuthStorage(): Storage {
       } catch {
         /* ignore */
       }
+      removePkceMirror(key)
     },
     key(index: number): string | null {
       return window.localStorage.key(index)
@@ -186,6 +275,7 @@ export function clearPkceVerifierCookies(storageKey: string): void {
     } catch {
       /* ignore */
     }
+    clearAllPkceMirrors()
     return
   }
 
@@ -207,4 +297,5 @@ export function clearPkceVerifierCookies(storageKey: string): void {
   for (const name of namesToDelete) {
     deleteChunked(name)
   }
+  clearAllPkceMirrors()
 }

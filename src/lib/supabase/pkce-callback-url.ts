@@ -3,6 +3,26 @@ import {
   readSharedAuthStorageValue,
 } from '@/lib/supabase/cross-subdomain-auth-storage'
 
+function readPkceVerifierRawFromDocumentCookie(slotKey: string): string | null {
+  if (typeof document === 'undefined') return null
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    const eq = trimmed.indexOf('=')
+    if (eq < 0) continue
+    const rawName = trimmed.slice(0, eq).trim()
+    const name = decodeCookieName(rawName)
+    if (name !== slotKey) continue
+    const value = trimmed.slice(eq + 1)
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  }
+  return null
+}
+
 function decodeCookieName(raw: string): string {
   try {
     return decodeURIComponent(raw)
@@ -11,11 +31,12 @@ function decodeCookieName(raw: string): string {
   }
 }
 
-/** Parse flow id from verifier cookie names for this storage key. */
-export function readPkceFlowIdFromVerifierCookies(storageKey: string): string | null {
-  if (typeof document === 'undefined') return null
+/** List all PKCE flow ids present in verifier cookie names. */
+export function listPkceFlowIdsFromVerifierCookies(storageKey: string): string[] {
+  if (typeof document === 'undefined') return []
   const prefix = `${storageKey}-flow-`
   const suffix = '-code-verifier'
+  const ids: string[] = []
 
   for (const part of document.cookie.split(';')) {
     const trimmed = part.trim()
@@ -25,9 +46,14 @@ export function readPkceFlowIdFromVerifierCookies(storageKey: string): string | 
     const name = decodeCookieName(rawName)
     if (!name.startsWith(prefix) || !name.endsWith(suffix)) continue
     const flowId = name.slice(prefix.length, name.length - suffix.length)
-    if (flowId) return flowId
+    if (flowId) ids.push(flowId)
   }
-  return null
+  return ids
+}
+
+export function readPkceFlowIdFromVerifierCookies(storageKey: string): string | null {
+  const ids = listPkceFlowIdsFromVerifierCookies(storageKey)
+  return ids[0] ?? null
 }
 
 /** When Supabase omits `sb_flow_id` on callback, recover it from the PKCE verifier cookie name. */
@@ -62,7 +88,7 @@ export function syncPkceVerifierIntoStorage(
     /* continue */
   }
 
-  const fromCookie = readSharedAuthStorageValue(slotKey)
+  const fromCookie = readSharedAuthStorageValue(slotKey) ?? readPkceVerifierRawFromDocumentCookie(slotKey)
   if (!fromCookie) return
 
   try {
@@ -74,15 +100,31 @@ export function syncPkceVerifierIntoStorage(
 
 /** Run before auth.initialize on OAuth callback. */
 export function preparePkceOAuthCallback(storageKey: string, storage: Storage): void {
+  const flowIds = listPkceFlowIdsFromVerifierCookies(storageKey)
   const flowIdFromUrl = ensurePkceFlowIdOnCallbackUrl(storageKey)
-  const flowId =
-    flowIdFromUrl ??
-    (typeof window !== 'undefined'
+  const urlFlowId =
+    typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get(PKCE_FLOW_ID_QUERY_PARAM)?.trim()
-      : null) ??
-    readPkceFlowIdFromVerifierCookies(storageKey)
+      : null
 
-  if (flowId) {
+  const orderedFlowIds = [
+    flowIdFromUrl,
+    urlFlowId,
+    ...flowIds,
+  ].filter((id): id is string => Boolean(id))
+
+  const seen = new Set<string>()
+  for (const flowId of orderedFlowIds) {
+    if (seen.has(flowId)) continue
+    seen.add(flowId)
     syncPkceVerifierIntoStorage(storageKey, flowId, storage)
+  }
+
+  const legacyKey = `${storageKey}-code-verifier`
+  try {
+    const legacy = readSharedAuthStorageValue(legacyKey)
+    if (legacy) storage.setItem(legacyKey, legacy)
+  } catch {
+    /* ignore */
   }
 }
