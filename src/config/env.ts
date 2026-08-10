@@ -1,5 +1,6 @@
 import { resolveCanonicalSiteUrl } from './canonical-site'
 import { resolveSupabaseBrowserKey } from './resolve-supabase-browser-key'
+import { resolveSupabaseProjectUrl } from './resolve-supabase-project-url'
 
 const trimTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
@@ -30,6 +31,11 @@ function readVercelEnv(): string | undefined {
 }
 
 /** Values exposed to the browser bundle — never put server secrets in VITE_*. */
+const supabaseAnonKey = resolveSupabaseBrowserKey(
+  readViteEnv('VITE_SUPABASE_ANON_KEY'),
+  readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY'),
+)
+
 export const env = {
   siteUrl: trimTrailingSlash(
     resolveCanonicalSiteUrl({
@@ -42,11 +48,8 @@ export const env = {
   contactApiUrl: readViteEnv('VITE_CONTACT_API_URL')?.trim() || '/api/v1/leads',
   gaMeasurementId: readViteEnv('VITE_GA_MEASUREMENT_ID')?.trim() || undefined,
   gscVerification: readViteEnv('VITE_GSC_VERIFICATION')?.trim() || undefined,
-  supabaseUrl: readViteEnv('VITE_SUPABASE_URL')?.trim() || undefined,
-  supabaseAnonKey: resolveSupabaseBrowserKey(
-    readViteEnv('VITE_SUPABASE_ANON_KEY'),
-    readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY'),
-  ),
+  supabaseUrl: resolveSupabaseProjectUrl(readViteEnv('VITE_SUPABASE_URL'), supabaseAnonKey),
+  supabaseAnonKey,
   authRedirectUrl: readViteEnv('VITE_AUTH_REDIRECT_URL')?.trim() || undefined,
   firebaseApiKey: readViteEnv('VITE_FIREBASE_API_KEY')?.trim() || undefined,
   firebaseAuthDomain: readViteEnv('VITE_FIREBASE_AUTH_DOMAIN')?.trim() || undefined,

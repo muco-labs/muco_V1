@@ -1,3 +1,5 @@
+import { resolveSupabaseProjectUrl } from '../../src/config/resolve-supabase-project-url.js'
+
 const trim = (value: string | undefined) => value?.trim() || undefined
 
 /** JWT anon key required for Supabase password grant; `sb_publishable_*` is not valid for auth API. */
@@ -30,7 +32,7 @@ export const serverEnv = {
   leadRateLimitMax: Number(process.env.LEAD_RATE_LIMIT_MAX ?? 5),
   authRateLimitWindowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? 60_000),
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 20),
-  supabaseUrl: trim(process.env.SUPABASE_URL),
+  supabaseUrl: resolveSupabaseProjectUrl(trim(process.env.SUPABASE_URL), resolveSupabaseServerAnonKey()),
   supabaseServiceRoleKey: trim(process.env.SUPABASE_SERVICE_ROLE_KEY),
   supabaseAnonKey: resolveSupabaseServerAnonKey(),
   supabaseJwtSecret: trim(process.env.SUPABASE_JWT_SECRET),

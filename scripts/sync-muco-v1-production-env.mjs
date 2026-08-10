@@ -25,7 +25,20 @@ function loadEnv(path) {
   return out
 }
 
-function isUsable(value) {
+function normalizeSupabaseApiUrl(value) {
+  const trimmed = value?.trim()
+  if (!trimmed) return trimmed
+  try {
+    const host = new URL(trimmed).hostname.toLowerCase()
+    if (host.endsWith('.supabase.co')) return trimmed.replace(/\/$/, '')
+  } catch {
+    /* ignore */
+  }
+  const ref = trimmed.match(/project\/([a-z0-9]+)/i)?.[1]
+  if (ref) return `https://${ref}.supabase.co`
+  return trimmed.replace(/\/$/, '')
+}
+
   return Boolean(value && !value.includes('[SENSITIVE]'))
 }
 
@@ -83,10 +96,13 @@ const staticVars = {
 console.log('Syncing muco-v1 production env (names only in log)...')
 
 for (const [target, sourceKey] of mappings) {
-  const value = src[sourceKey]
+  let value = src[sourceKey]
   if (!isUsable(value)) {
     console.log(`skip ${target} (source ${sourceKey} masked or missing)`)
     continue
+  }
+  if (target === 'SUPABASE_URL' || target === 'VITE_SUPABASE_URL') {
+    value = normalizeSupabaseApiUrl(value)
   }
   addEnv(target, value)
 }
