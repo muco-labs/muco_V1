@@ -41,7 +41,7 @@ Portal subdomains expose `/auth/*` and portal sign-in routes **outside** `Protec
 
 Marketing sign-up/sign-in uses **Firebase Authentication** for the Google popup when `VITE_FIREBASE_*` env vars are set. The Google ID token is exchanged for a **Supabase session** via `signInWithIdToken`, so the API and `users.auth_user_id` model stay unchanged.
 
-Required client env:
+Required client env (or bundled defaults in `src/config/firebase-applet-config.json` from muco-webpage):
 
 - `VITE_FIREBASE_API_KEY`
 - `VITE_FIREBASE_AUTH_DOMAIN`
