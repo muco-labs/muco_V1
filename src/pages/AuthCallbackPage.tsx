@@ -158,7 +158,20 @@ export function AuthCallbackPage() {
         })
         publishDiag(snapshot)
         if (!cancelled) {
-          setError('Sign-in could not be completed. Try again.')
+          if (status === 503 && session?.user) {
+            const fromState = (location.state as { from?: string } | null)?.from
+            const from = fromState ?? consumeOAuthReturnPath()
+            const destination = from ?? 'https://app.mucolabs.com/'
+            snapshot = { ...snapshot, finalDestination: destination, navigationStarted: true }
+            publishDiag(snapshot)
+            completeAuthNavigation(navigate, destination)
+            return
+          }
+          setError(
+            status === 503
+              ? 'Your Google sign-in succeeded, but account services are temporarily unavailable. Try again shortly.'
+              : 'Sign-in could not be completed. Try again.',
+          )
         }
         return
       }
