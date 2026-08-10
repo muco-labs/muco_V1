@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from 'react'
+import { createElement, type CSSProperties, type ElementType, type ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/utils/cn'
 
@@ -43,19 +43,21 @@ export function Reveal({
     return () => observer.disconnect()
   }, [])
 
-  return (
-    <Tag
-      ref={ref}
-      className={cn(
+  const style: CSSProperties | undefined = delayMs ? { transitionDelay: `${delayMs}ms` } : undefined
+
+  return createElement(
+    Tag,
+    {
+      ref,
+      className: cn(
         'reveal',
         variant === 'fade' && 'reveal--fade',
         variant === 'slide-left' && 'reveal--slide-left',
         visible && 'is-visible',
         className,
-      )}
-      style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
-    >
-      {children}
-    </Tag>
+      ),
+      style,
+    },
+    children,
   )
 }

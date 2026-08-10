@@ -3,6 +3,8 @@ import { PageMeta } from '@/components/seo/PageMeta'
 import { BreadcrumbSchema, FaqPageSchema } from '@/components/seo/StructuredData'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
+import { MarketLandingHero } from '@/components/marketing/MarketLandingHero'
+import { MarketGeoHeroVisual } from '@/components/marketing/MarketGeoHeroVisual'
 import { routePaths } from '@/config/routes'
 import {
   tamilNaduContactBlurb,
@@ -38,20 +40,16 @@ export function TamilNaduPage() {
       />
       <FaqPageSchema faqs={[...tamilNaduFaqs]} />
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className="shell">
-            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-              <Link to={routePaths.home}>Home</Link>
-              <span aria-hidden="true">/</span>
-              <span aria-current="page">Tamil Nadu</span>
-            </nav>
-            <Reveal>
-              <p className="text-label">Tamil Nadu, India</p>
-              <h1 className="text-display">{tamilNaduHub.h1}</h1>
-              <p className={styles.lead}>{tamilNaduHub.lead}</p>
-            </Reveal>
-          </div>
-        </header>
+        <MarketLandingHero
+          breadcrumbs={[
+            { label: 'Home', href: routePaths.home },
+            { label: 'Tamil Nadu' },
+          ]}
+          label="Tamil Nadu, India"
+          title={tamilNaduHub.h1}
+          lead={tamilNaduHub.lead}
+          visual={<MarketGeoHeroVisual sceneId="tamil-nadu-constellation" scene="constellation" />}
+        />
 
         <section className="section section--tight">
           <div className="shell">

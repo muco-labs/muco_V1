@@ -7,8 +7,7 @@ import {
 } from '@/components/seo/StructuredData'
 import { Reveal } from '@/components/motion/Reveal'
 import { MarketLandingHero } from '@/components/marketing/MarketLandingHero'
-import { DecorativeScene } from '@/components/three/DecorativeScene'
-import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
+import { MarketGeoHeroVisual } from '@/components/marketing/MarketGeoHeroVisual'
 import { Button } from '@/components/ui/Button'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
@@ -45,13 +44,7 @@ export function ErodePage() {
           label="Erode, Tamil Nadu"
           title={erodeLocalPage.h1}
           lead={erodeLocalPage.lead}
-          visual={
-            <DecorativeScene
-              sceneId="erode-aurora"
-              scene={() => import('@/components/three/scenes/HeroAuroraScene')}
-              fallback={<HeroSceneFallback />}
-            />
-          }
+          visual={<MarketGeoHeroVisual sceneId="erode-aurora" scene="aurora" />}
         />
 
         <section className="section section--tight">

@@ -74,8 +74,28 @@ Run `npm run build` after changes; record largest JS chunks in dist/assets. Targ
 
 ## Issues logged for implementation
 
-1. ProductsPage imports `ErodePage.module.css` — replace with dedicated module.
-2. `src/sections/home/*` — unused legacy sections; remove after import check.
-3. No WebGL — add `@react-three/fiber`, `three`, `@react-three/drei` with route-level code splitting.
-4. Footer/Navbar — elevate to signature chrome (aurora blur, magnetic primary CTA).
-5. Figma MCP — blocked; tokens in `src/styles/tokens.css` remain source of truth.
+1. ~~ProductsPage imports `ErodePage.module.css`~~ — dedicated `ProductsPage.module.css`.
+2. ~~`src/sections/home/*` unused~~ — **removed** (superseded by `home-v3`).
+3. ~~No WebGL~~ — R3F scenes on home, services, work, products, about, contact, pricing, erode.
+4. Footer/Navbar — aurora blur chrome in place; continue visual polish in QA.
+5. Figma MCP — design tokens in `src/styles/tokens.css` are source of truth; FigJam delivery diagram generated for process storytelling.
+
+## Webflow vs production
+
+- **Production site:** this Vite/React app (`mucolabs.com` per SEO script).
+- **Webflow:** legacy template site `6a761c1c71343758bba0354a` — asset audit in `src/docs/WEBFLOW-ASSET-AUDIT.md`.
+- **Webflow Cloud:** not configured (`webflow.json` absent); deploy via existing Vercel/hosting pipeline.
+
+## Plugin workflow status (2026-08-10)
+
+| Phase | Tool | Status |
+|-------|------|--------|
+| Asset audit | Webflow `data_assets_tool` + local `/public` | Done |
+| FlowKit naming | `flowkit.css` + `FLOWKIT-NAMING-MAP.md` | Done |
+| Design | In-code Aurora v2 + R3F | Ongoing in repo |
+| Diagram | FigJam delivery process | [Edit in FigJam](https://www.figma.com/board/nQbGhoc2PZKrLU0oN8ewLT) |
+| Motion | Framer Motion + `ReducedMotionSceneGate` | Implemented |
+| Implement | This commit batch | Geo landers + `MarketGeoHeroVisual`; legacy `sections/home` deleted |
+| Figma design file | [Aurora v2 Design System](https://www.figma.com/design/1ZgqXYxg2FJVwUXrKoIUB8) | Created; homepage capture blocked by MCP rate limit on Starter |
+| CMS | Drizzle/Supabase app CMS | Not Webflow CMS |
+| Deploy | No Webflow Cloud | Use existing CI/deploy |

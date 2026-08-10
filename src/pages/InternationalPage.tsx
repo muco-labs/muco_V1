@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { BreadcrumbSchema, FaqPageSchema } from '@/components/seo/StructuredData'
+import { MarketLandingHero } from '@/components/marketing/MarketLandingHero'
+import { MarketGeoHeroVisual } from '@/components/marketing/MarketGeoHeroVisual'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { routePaths } from '@/config/routes'
@@ -37,20 +39,16 @@ export function InternationalPage() {
       />
       <FaqPageSchema faqs={[...internationalFaqs]} />
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className="shell">
-            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-              <Link to={routePaths.home}>Home</Link>
-              <span aria-hidden="true">/</span>
-              <span aria-current="page">International</span>
-            </nav>
-            <Reveal>
-              <p className="text-label">Global · Remote-first</p>
-              <h1 className="text-display">{internationalHub.h1}</h1>
-              <p className={styles.lead}>{internationalHub.lead}</p>
-            </Reveal>
-          </div>
-        </header>
+        <MarketLandingHero
+          breadcrumbs={[
+            { label: 'Home', href: routePaths.home },
+            { label: 'International' },
+          ]}
+          label="Global · Remote-first"
+          title={internationalHub.h1}
+          lead={internationalHub.lead}
+          visual={<MarketGeoHeroVisual sceneId="international-core" scene="product-core" />}
+        />
 
         <section className="section section--tight">
           <div className="shell">

@@ -2,6 +2,8 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { BreadcrumbSchema, FaqPageSchema } from '@/components/seo/StructuredData'
 import { Reveal } from '@/components/motion/Reveal'
+import { MarketLandingHero } from '@/components/marketing/MarketLandingHero'
+import { MarketGeoHeroVisual } from '@/components/marketing/MarketGeoHeroVisual'
 import { Button } from '@/components/ui/Button'
 import { routePaths, servicePath } from '@/config/routes'
 import {
@@ -44,21 +46,22 @@ export function ErodeLocalServicePage() {
       />
       <FaqPageSchema faqs={content.faqs} />
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className="shell">
-            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-              <Link to={routePaths.home}>Home</Link>
-              <span aria-hidden="true">/</span>
-              <Link to={routePaths.erode}>Erode</Link>
-              <span aria-hidden="true">/</span>
-              <span aria-current="page">{content.h1}</span>
-            </nav>
-            <Reveal>
-              <h1 className="text-display">{content.h1}</h1>
-              <p className={styles.lead}>{content.lead}</p>
-            </Reveal>
-          </div>
-        </header>
+        <MarketLandingHero
+          breadcrumbs={[
+            { label: 'Home', href: routePaths.home },
+            { label: 'Erode', href: routePaths.erode },
+            { label: content.h1 },
+          ]}
+          label="Erode, Tamil Nadu"
+          title={content.h1}
+          lead={content.lead}
+          visual={
+            <MarketGeoHeroVisual
+              sceneId={`erode-service-${serviceSlug}`}
+              scene="constellation"
+            />
+          }
+        />
 
         {content.sections.map((section, index) => (
           <section key={section.title} className="section section--tight">

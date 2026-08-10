@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { BreadcrumbSchema, FaqPageSchema } from '@/components/seo/StructuredData'
+import { MarketLandingHero } from '@/components/marketing/MarketLandingHero'
+import { MarketGeoHeroVisual } from '@/components/marketing/MarketGeoHeroVisual'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import { routePaths } from '@/config/routes'
@@ -37,20 +39,16 @@ export function IndiaPage() {
       />
       <FaqPageSchema faqs={[...indiaFaqs]} />
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className="shell">
-            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-              <Link to={routePaths.home}>Home</Link>
-              <span aria-hidden="true">/</span>
-              <span aria-current="page">India</span>
-            </nav>
-            <Reveal>
-              <p className="text-label">India-wide delivery</p>
-              <h1 className="text-display">{indiaHub.h1}</h1>
-              <p className={styles.lead}>{indiaHub.lead}</p>
-            </Reveal>
-          </div>
-        </header>
+        <MarketLandingHero
+          breadcrumbs={[
+            { label: 'Home', href: routePaths.home },
+            { label: 'India' },
+          ]}
+          label="India-wide delivery"
+          title={indiaHub.h1}
+          lead={indiaHub.lead}
+          visual={<MarketGeoHeroVisual sceneId="india-lattice" scene="lattice" />}
+        />
 
         <section className="section section--tight">
           <div className="shell">
