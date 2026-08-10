@@ -96,6 +96,7 @@ Run `npm run build` after changes; record largest JS chunks in dist/assets. Targ
 | Diagram | FigJam delivery process | [Edit in FigJam](https://www.figma.com/board/nQbGhoc2PZKrLU0oN8ewLT) |
 | Motion | Framer Motion + `ReducedMotionSceneGate` | Implemented |
 | Implement | This commit batch | Geo landers + `MarketGeoHeroVisual`; legacy `sections/home` deleted |
+| Portal auth | Subdomain routing | `/auth/*` and portal sign-in routes sit outside `ProtectedPortal`; PKCE `exchangeCodeForSession` on callback |
 | Figma design file | [Aurora v2 Design System](https://www.figma.com/design/1ZgqXYxg2FJVwUXrKoIUB8) | Created; homepage capture blocked by MCP rate limit on Starter |
 | CMS | Drizzle/Supabase app CMS | Not Webflow CMS |
 | Deploy | No Webflow Cloud | Use existing CI/deploy |

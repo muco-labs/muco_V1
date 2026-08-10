@@ -1,4 +1,5 @@
 import { Float, MeshDistortMaterial } from '@react-three/drei'
+/** R3F hooks must run inside SceneCanvas children, not this file's default export wrapper. */
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import type { Mesh } from 'three'

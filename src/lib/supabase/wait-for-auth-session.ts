@@ -6,6 +6,31 @@ export type AuthSessionFailurePoint =
   | 'pkce_exchange_skipped_or_failed'
   | null
 
+function readOAuthCodeFromUrl(): string | null {
+  if (typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search).get('code')
+}
+
+function isPkceCodeAlreadyUsedError(error: Error): boolean {
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('already been used') ||
+    message.includes('invalid grant') ||
+    message.includes('code verifier') ||
+    message.includes('invalid flow state')
+  )
+}
+
+function stripOAuthCodeFromUrl(): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has('code')) return
+  url.searchParams.delete('code')
+  const search = url.searchParams.toString()
+  const next = `${url.pathname}${search ? `?${search}` : ''}${url.hash}`
+  window.history.replaceState(window.history.state, '', next)
+}
+
 /**
  * Wait for Supabase client initialization (PKCE / implicit URL handling) before reading session.
  */
@@ -37,33 +62,45 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
     }
   }
   let session = data.session ?? null
-  const oauthCode =
-    typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('code')
-      : null
+  const oauthCode = readOAuthCodeFromUrl()
 
   if (!session && oauthCode) {
     const exchanged = await client.auth.exchangeCodeForSession(oauthCode)
     if (exchanged.error) {
-      return {
-        session: null,
-        error: exchanged.error,
-        failurePoint: 'pkce_exchange_skipped_or_failed',
-        initializeOk: true,
-        initializeError: null,
-      }
-    }
-    session = exchanged.data.session ?? null
-    if (!session) {
-      const afterExchange = await client.auth.getSession()
-      session = afterExchange.data.session ?? null
-      if (afterExchange.error && !session) {
+      if (isPkceCodeAlreadyUsedError(exchanged.error)) {
+        const recovered = await client.auth.getSession()
+        session = recovered.data.session ?? null
+        if (!session && recovered.error) {
+          return {
+            session: null,
+            error: recovered.error,
+            failurePoint: 'get_session',
+            initializeOk: true,
+            initializeError: null,
+          }
+        }
+      } else {
         return {
           session: null,
-          error: afterExchange.error,
-          failurePoint: 'get_session',
+          error: exchanged.error,
+          failurePoint: 'pkce_exchange_skipped_or_failed',
           initializeOk: true,
           initializeError: null,
+        }
+      }
+    } else {
+      session = exchanged.data.session ?? null
+      if (!session) {
+        const afterExchange = await client.auth.getSession()
+        session = afterExchange.data.session ?? null
+        if (afterExchange.error && !session) {
+          return {
+            session: null,
+            error: afterExchange.error,
+            failurePoint: 'get_session',
+            initializeOk: true,
+            initializeError: null,
+          }
         }
       }
     }
@@ -80,6 +117,11 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
       initializeError: null,
     }
   }
+
+  if (session && oauthCode) {
+    stripOAuthCodeFromUrl()
+  }
+
   return {
     session,
     error: null,

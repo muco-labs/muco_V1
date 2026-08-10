@@ -18,3 +18,8 @@ export {
   resolvePortalHomePath,
   resolvePortalHomeUrl,
 } from './portal-urls'
+export {
+  isMucolabsPortalHostname,
+  isMucolabsPortalOrigin,
+  resolvePortalSignInPath,
+} from './portal-hostname'

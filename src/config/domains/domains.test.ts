@@ -4,6 +4,9 @@ import {
   resolveApplicationDomain,
   resolveLegacyPortalRedirectUrl,
   resolveRoutingMode,
+  resolvePortalSignInPath,
+  isMucolabsPortalHostname,
+  isMucolabsPortalOrigin,
 } from '@/config/domains'
 
 describe('resolveApplicationDomain', () => {
@@ -59,5 +62,20 @@ describe('legacy portal redirects', () => {
 
   it('does not redirect on vercel staging', () => {
     expect(resolveLegacyPortalRedirectUrl('muco-v1.vercel.app', '/app/projects')).toBeNull()
+  })
+})
+
+describe('portal hostname helpers', () => {
+  it('detects mucolabs portal subdomains', () => {
+    expect(isMucolabsPortalHostname('admin.mucolabs.com')).toBe(true)
+    expect(isMucolabsPortalHostname('www.mucolabs.com')).toBe(false)
+    expect(isMucolabsPortalOrigin('https://app.mucolabs.com')).toBe(true)
+  })
+
+  it('resolvePortalSignInPath uses subdomain paths on portal hosts', () => {
+    expect(resolvePortalSignInPath('admin', 'admin.mucolabs.com')).toBe('/admin/sign-in')
+    expect(resolvePortalSignInPath('admin', 'www.mucolabs.com')).toBe('/admin/sign-in')
+    expect(resolvePortalSignInPath('employee', 'team.mucolabs.com')).toBe('/team/sign-in')
+    expect(resolvePortalSignInPath('customer', 'app.mucolabs.com')).toBe('/auth/sign-in')
   })
 })

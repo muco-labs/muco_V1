@@ -1,9 +1,18 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth-context'
 import { authRoutes, portalRoutes } from '@/config/auth'
+import { resolvePortalSignInPath, resolveRoutingMode } from '@/config/domains'
+import { readPortalOriginsFromEnv } from '@/config/domains/portal-origins'
 import { DomainPortalEnforcer } from '@/components/portal/DomainPortalEnforcer'
 import { LoadingState } from '@/components/ui/LoadingState'
 import type { PortalKind } from '@/config/access'
+
+function freelancerApplyUrl(hostname: string): string {
+  if (resolveRoutingMode(hostname) === 'subdomain_root') {
+    return `${readPortalOriginsFromEnv().public}/freelancers/apply`
+  }
+  return '/freelancers/apply'
+}
 
 type ProtectedPortalProps = {
   portal: PortalKind
@@ -19,14 +28,9 @@ export function ProtectedPortal({ portal, children }: ProtectedPortalProps) {
   }
 
   if (!session) {
-    const loginPath =
-      portal === 'employee'
-        ? authRoutes.teamSignIn
-        : portal === 'admin'
-          ? authRoutes.adminSignIn
-          : portal === 'freelancer'
-            ? authRoutes.signIn
-            : authRoutes.signIn
+    const hostname =
+      typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+    const loginPath = resolvePortalSignInPath(portal, hostname)
     return (
       <Navigate
         to={loginPath}
@@ -62,7 +66,7 @@ export function ProtectedPortal({ portal, children }: ProtectedPortalProps) {
       profile.freelancer &&
       profile.freelancer.approvalStatus !== 'approved'
     ) {
-      return <Navigate to="/freelancers/apply" replace />
+      return <Navigate to={freelancerApplyUrl(window.location.hostname)} replace />
     }
     return <Navigate to={portalRoutes.unauthorized} replace />
   }

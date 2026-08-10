@@ -19,6 +19,24 @@
 
 Configure redirect URLs in the Supabase dashboard for local, preview, and production origins.
 
+### Production OAuth redirect URLs (required)
+
+Allow these callback paths on the same Supabase project:
+
+- `https://www.mucolabs.com/auth/callback`
+- `https://mucolabs.com/auth/callback` (apex redirects to www with query preserved)
+- `https://app.mucolabs.com/auth/callback`
+- `https://team.mucolabs.com/auth/callback`
+- `https://freelancers.mucolabs.com/auth/callback`
+- `https://admin.mucolabs.com/auth/callback`
+
+Vercel Production:
+
+- `VITE_AUTH_REDIRECT_URL=https://www.mucolabs.com` (marketing OAuth; portal hosts use their own origin at runtime)
+- `CORS_ORIGINS` must include all portal origins listed in deployment docs
+
+Portal subdomains expose `/auth/*` and portal sign-in routes **outside** `ProtectedPortal` so sign-in pages render when unauthenticated.
+
 ## Founder bootstrap (not public signup)
 
 1. Set `FOUNDER_BOOTSTRAP_SECRET` in the server environment (long random value; never commit).
