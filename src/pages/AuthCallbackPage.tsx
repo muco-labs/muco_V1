@@ -250,6 +250,14 @@ export function AuthCallbackPage() {
                   <Link className="link-underline" to={authRoutes.signIn}>
                     Return to sign in
                   </Link>
+                  {!showDiagnostics ? (
+                    <>
+                      {' · '}
+                      <Link className="link-underline" to={`${authRoutes.signIn}?auth_diag=1`}>
+                        Troubleshoot sign-in
+                      </Link>
+                    </>
+                  ) : null}
                 </p>
               </>
             ) : (

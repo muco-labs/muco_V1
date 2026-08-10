@@ -1,4 +1,6 @@
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
+import { ensurePkceFlowIdOnCallbackUrl } from '@/lib/supabase/pkce-callback-url'
+import { getSupabaseAuthStorageKey } from '@/lib/supabase/client'
 
 export type AuthSessionFailurePoint =
   | 'initialize'
@@ -41,6 +43,11 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
   initializeOk: boolean
   initializeError: Error | null
 }> {
+  const storageKey = getSupabaseAuthStorageKey()
+  if (storageKey) {
+    ensurePkceFlowIdOnCallbackUrl(storageKey)
+  }
+
   const init = await client.auth.initialize()
   if (init.error) {
     return {

@@ -1,7 +1,8 @@
 import { env } from '@/config/env'
 import { buildAuthRedirectUrl } from '@/lib/auth/auth-redirect-url'
-import { isMucolabsPortalOrigin } from '@/config/domains'
+import { isMucolabsPortalOrigin, isMucolabsProductionMarketingHost } from '@/config/domains'
 import { recordOAuthFlowDiagnosticsAtStart } from '@/lib/auth/oauth-callback-diagnostics'
+import { isFirebaseGoogleConfigured } from '@/lib/firebase/client'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
 import type { User } from '@supabase/supabase-js'
@@ -10,6 +11,12 @@ export type OAuthProvider = 'google' | 'github'
 
 function redirectUrl(path: string): string | undefined {
   const origin = typeof window !== 'undefined' ? window.location.origin : undefined
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined
+
+  if (origin && hostname && isMucolabsProductionMarketingHost(hostname)) {
+    return buildAuthRedirectUrl(path, origin.replace(/\/$/, ''), origin)
+  }
+
   const authRedirectBase =
     origin && isMucolabsPortalOrigin(origin) ? undefined : env.authRedirectUrl
   return buildAuthRedirectUrl(path, authRedirectBase, origin)
@@ -111,6 +118,17 @@ export async function signInWithOAuth(provider: OAuthProvider) {
     },
   })
   if (error) throw error
+}
+
+/** Google via Firebase popup when configured; otherwise Supabase OAuth redirect. */
+export async function signInWithGoogle(): Promise<'popup' | 'redirect'> {
+  if (isFirebaseGoogleConfigured()) {
+    const { signInWithGoogleFirebase } = await import('@/lib/firebase/google-sign-in')
+    await signInWithGoogleFirebase()
+    return 'popup'
+  }
+  await signInWithOAuth('google')
+  return 'redirect'
 }
 
 /** Provisions CUSTOMER profile when Supabase session exists but app user row is missing. */

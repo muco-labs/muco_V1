@@ -74,6 +74,10 @@ const staticVars = {
   VITE_AUTH_REDIRECT_URL: 'https://www.mucolabs.com',
   AUTH_REDIRECT_URL: 'https://www.mucolabs.com',
   SUPABASE_STORAGE_BUCKET: 'customer-files',
+  VITE_FIREBASE_API_KEY: 'AIzaSyAHkJnwCRbtbm2ak1Qv8cNy8eShx4EGG7A',
+  VITE_FIREBASE_AUTH_DOMAIN: 'muco-labs.firebaseapp.com',
+  VITE_FIREBASE_PROJECT_ID: 'muco-labs',
+  VITE_FIREBASE_APP_ID: '1:979380201939:web:9b118436601db819f1a726',
 }
 
 console.log('Syncing muco-v1 production env (names only in log)...')
