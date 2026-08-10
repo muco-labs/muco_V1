@@ -5,6 +5,7 @@ import {
   resolveLegacyPortalRedirectUrl,
   resolveRoutingMode,
   resolvePortalSignInPath,
+  resolveFreelancerApplyUrl,
   isMucolabsPortalHostname,
   isMucolabsPortalOrigin,
 } from '@/config/domains'
@@ -30,6 +31,7 @@ describe('resolveApplicationDomain', () => {
 
   it('unknown host is safe', () => {
     expect(resolveApplicationDomain('evil.example')).toBe('unknown')
+    expect(resolveApplicationDomain('app.evil.example')).toBe('unknown')
   })
 })
 
@@ -77,5 +79,17 @@ describe('portal hostname helpers', () => {
     expect(resolvePortalSignInPath('admin', 'www.mucolabs.com')).toBe('/admin/sign-in')
     expect(resolvePortalSignInPath('employee', 'team.mucolabs.com')).toBe('/team/sign-in')
     expect(resolvePortalSignInPath('customer', 'app.mucolabs.com')).toBe('/auth/sign-in')
+  })
+})
+
+describe('resolveFreelancerApplyUrl', () => {
+  it('uses www origin on portal subdomains', () => {
+    expect(resolveFreelancerApplyUrl('freelancers.mucolabs.com')).toBe(
+      'https://www.mucolabs.com/freelancers/apply',
+    )
+  })
+
+  it('uses relative path on path-prefix hosts', () => {
+    expect(resolveFreelancerApplyUrl('localhost')).toBe('/freelancers/apply')
   })
 })

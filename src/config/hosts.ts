@@ -26,8 +26,9 @@ const origins = readPortalOriginsFromEnv()
 export const portalOrigins = {
   customer: origins.customer,
   employee: origins.employee,
+  freelancer: origins.freelancer,
   admin: origins.admin,
-  api: 'https://api.mucolabs.com',
+  public: origins.public,
 } as const
 
 export type { DomainPortalKind }

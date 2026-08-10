@@ -70,4 +70,16 @@ describe('resolvePostAuthDestination', () => {
       }),
     ).toBe('/auth/sign-up')
   })
+
+  it('sends pending freelancers on subdomain to www apply', () => {
+    const dest = resolvePostAuthDestination(
+      profile({
+        portals: { customer: false, employee: false, admin: false, freelancer: false },
+        freelancer: { approvalStatus: 'under_review' },
+      }),
+      null,
+      'freelancers.mucolabs.com',
+    )
+    expect(dest).toBe('https://www.mucolabs.com/freelancers/apply')
+  })
 })

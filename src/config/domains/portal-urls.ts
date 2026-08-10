@@ -1,6 +1,17 @@
 import { isMucolabsProductionMarketingHost, resolveApplicationDomain } from './resolve-application-domain'
 import { readPortalOriginsFromEnv } from './portal-origins'
+import { resolveRoutingMode } from './routing-mode'
 import type { PortalKind } from './types'
+
+export const freelancerApplyPath = '/freelancers/apply' as const
+
+/** Public marketing apply form — absolute on portal subdomains (route exists on www only). */
+export function resolveFreelancerApplyUrl(hostname: string): string {
+  if (resolveRoutingMode(hostname) === 'subdomain_root') {
+    return `${readPortalOriginsFromEnv().public}${freelancerApplyPath}`
+  }
+  return freelancerApplyPath
+}
 
 /**
  * On www/mucolabs.com, legacy path-prefix portal URLs redirect to subdomain origins.

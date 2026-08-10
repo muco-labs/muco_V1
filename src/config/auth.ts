@@ -15,6 +15,7 @@ export const authRoutes = {
 export const portalRoutes = {
   customer: '/app',
   employee: '/team',
+  freelancer: '/app/freelancer',
   admin: '/admin',
   unauthorized: '/auth/unauthorized',
 } as const

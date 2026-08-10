@@ -1,5 +1,5 @@
 import { authRoutes, portalRoutes } from '@/config/auth'
-import { resolvePortalHomeUrl } from '@/config/domains'
+import { resolveFreelancerApplyUrl, resolvePortalHomeUrl } from '@/config/domains'
 import type { MeResponse } from '@/contexts/auth-context'
 import { resolveSafeCustomerReturnPath } from './safe-return-path'
 
@@ -39,7 +39,7 @@ export function resolvePostAuthDestination(
   if (profile.portals?.customer) return resolvePortalHomeUrl('customer', host)
 
   if (profile.freelancer && profile.freelancer.approvalStatus !== 'approved') {
-    return '/freelancers/apply'
+    return resolveFreelancerApplyUrl(host)
   }
 
   return portalRoutes.unauthorized

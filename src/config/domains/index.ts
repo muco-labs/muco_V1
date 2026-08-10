@@ -17,6 +17,8 @@ export {
   resolveLegacyPortalRedirectUrl,
   resolvePortalHomePath,
   resolvePortalHomeUrl,
+  freelancerApplyPath,
+  resolveFreelancerApplyUrl,
 } from './portal-urls'
 export {
   isMucolabsPortalHostname,
