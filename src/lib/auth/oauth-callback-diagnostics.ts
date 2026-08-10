@@ -137,10 +137,10 @@ export function wouldSupabaseTreatAsPkceCallback(
   if (!hasOAuthCode || !storageKey) return false
   if (flowId) {
     const slot = inspectVerifierStorageRead(storage, pkceVerifierSlotKey(storageKey, flowId))
-    if (slot.verifierReadable && slot.verifierJsonParsable) return true
+    if (slot.verifierReadable) return true
   }
   const legacy = inspectVerifierStorageRead(storage, `${storageKey}-code-verifier`)
-  return legacy.verifierReadable && legacy.verifierJsonParsable
+  return legacy.verifierReadable
 }
 
 export function getSupabaseClientStorageKey(client: SupabaseClient): string | null {

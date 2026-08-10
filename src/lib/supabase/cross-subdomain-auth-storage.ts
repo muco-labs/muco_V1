@@ -16,16 +16,37 @@ function cookieDomain(): string {
   return '.mucolabs.com'
 }
 
+function decodeCookieName(raw: string): string {
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    return raw
+  }
+}
+
 function readCookie(name: string): string | null {
-  // Browsers expose cookie names literally in document.cookie (not URI-encoded).
-  const prefixes = [`${name}=`, `${encodeURIComponent(name)}=`]
+  const nameCandidates = new Set<string>([name])
+  try {
+    nameCandidates.add(decodeURIComponent(name))
+    nameCandidates.add(encodeURIComponent(name))
+  } catch {
+    /* ignore */
+  }
+
   const parts = document.cookie.split(';')
-  for (const prefix of prefixes) {
-    for (const part of parts) {
-      const trimmed = part.trim()
-      if (trimmed.startsWith(prefix)) {
-        return decodeURIComponent(trimmed.slice(prefix.length))
-      }
+  for (const part of parts) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    const eq = trimmed.indexOf('=')
+    if (eq < 0) continue
+    const rawName = trimmed.slice(0, eq).trim()
+    const decodedName = decodeCookieName(rawName)
+    if (!nameCandidates.has(rawName) && !nameCandidates.has(decodedName)) continue
+    const value = trimmed.slice(eq + 1)
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
     }
   }
   return null
@@ -134,4 +155,56 @@ export function createSupabaseAuthStorage(): Storage {
 
 export function isSharedMucolabsAuthStorageEnabled(): boolean {
   return shouldUseSharedMucolabsCookieStorage()
+}
+
+/** Read auth storage value (cookie-backed on mucolabs.com). */
+export function readSharedAuthStorageValue(key: string): string | null {
+  if (!shouldUseSharedMucolabsCookieStorage()) {
+    try {
+      return window.localStorage.getItem(key)
+    } catch {
+      return null
+    }
+  }
+  return readChunked(key)
+}
+
+/** Remove stale PKCE verifier keys before starting a new OAuth redirect. */
+export function clearPkceVerifierCookies(storageKey: string): void {
+  if (!shouldUseSharedMucolabsCookieStorage()) {
+    try {
+      for (let i = window.localStorage.length - 1; i >= 0; i -= 1) {
+        const key = window.localStorage.key(i)
+        if (!key) continue
+        if (
+          key === `${storageKey}-code-verifier` ||
+          (key.startsWith(`${storageKey}-flow-`) && key.endsWith('-code-verifier'))
+        ) {
+          window.localStorage.removeItem(key)
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return
+  }
+
+  const namesToDelete: string[] = []
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    const eq = trimmed.indexOf('=')
+    const rawName = eq >= 0 ? trimmed.slice(0, eq).trim() : trimmed
+    const name = decodeCookieName(rawName)
+    if (
+      name.includes('-code-verifier') ||
+      name.startsWith(`${storageKey}-flow-`) ||
+      name === `${storageKey}-code-verifier`
+    ) {
+      namesToDelete.push(name)
+    }
+  }
+  for (const name of namesToDelete) {
+    deleteChunked(name)
+  }
 }

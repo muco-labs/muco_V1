@@ -3,7 +3,7 @@ import { buildAuthRedirectUrl } from '@/lib/auth/auth-redirect-url'
 import { isMucolabsPortalOrigin, isMucolabsProductionMarketingHost } from '@/config/domains'
 import { recordOAuthFlowDiagnosticsAtStart } from '@/lib/auth/oauth-callback-diagnostics'
 import { isFirebaseGoogleConfigured } from '@/lib/firebase/client'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { getSupabaseAuthStorageKey, getSupabaseClient } from '@/lib/supabase/client'
 import { apiRequest } from '@/services/api'
 import type { User } from '@supabase/supabase-js'
 
@@ -106,6 +106,12 @@ export async function signInWithOAuth(provider: OAuthProvider) {
   const client = getSupabaseClient()
   if (!client) {
     throw new Error('Authentication is not configured.')
+  }
+
+  const storageKey = getSupabaseAuthStorageKey()
+  if (storageKey) {
+    const { clearPkceVerifierCookies } = await import('@/lib/supabase/cross-subdomain-auth-storage')
+    clearPkceVerifierCookies(storageKey)
   }
 
   const redirectTo = redirectUrl('/auth/callback')

@@ -1,6 +1,7 @@
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
-import { ensurePkceFlowIdOnCallbackUrl } from '@/lib/supabase/pkce-callback-url'
+import { preparePkceOAuthCallback } from '@/lib/supabase/pkce-callback-url'
 import { getSupabaseAuthStorageKey } from '@/lib/supabase/client'
+import { createSupabaseAuthStorage } from '@/lib/supabase/cross-subdomain-auth-storage'
 
 export type AuthSessionFailurePoint =
   | 'initialize'
@@ -11,6 +12,11 @@ export type AuthSessionFailurePoint =
 function readOAuthCodeFromUrl(): string | null {
   if (typeof window === 'undefined') return null
   return new URLSearchParams(window.location.search).get('code')
+}
+
+function getClientAuthStorage(client: SupabaseClient): Storage {
+  const auth = client.auth as { storage?: Storage }
+  return auth.storage ?? createSupabaseAuthStorage()
 }
 
 function isPkceCodeAlreadyUsedError(error: Error): boolean {
@@ -43,9 +49,10 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
   initializeOk: boolean
   initializeError: Error | null
 }> {
+  const oauthCodeCaptured = readOAuthCodeFromUrl()
   const storageKey = getSupabaseAuthStorageKey()
-  if (storageKey) {
-    ensurePkceFlowIdOnCallbackUrl(storageKey)
+  if (storageKey && oauthCodeCaptured) {
+    preparePkceOAuthCallback(storageKey, getClientAuthStorage(client))
   }
 
   const init = await client.auth.initialize()
@@ -69,7 +76,7 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
     }
   }
   let session = data.session ?? null
-  const oauthCode = readOAuthCodeFromUrl()
+  const oauthCode = oauthCodeCaptured ?? readOAuthCodeFromUrl()
 
   if (!session && oauthCode) {
     const exchanged = await client.auth.exchangeCodeForSession(oauthCode)
@@ -113,7 +120,7 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
     }
   }
 
-  if (!session && oauthCode) {
+  if (!session && oauthCodeCaptured) {
     return {
       session: null,
       error: new Error(
@@ -125,7 +132,7 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
     }
   }
 
-  if (session && oauthCode) {
+  if (session && oauthCodeCaptured) {
     stripOAuthCodeFromUrl()
   }
 

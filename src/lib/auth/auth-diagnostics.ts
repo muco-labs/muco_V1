@@ -41,7 +41,16 @@ export function listSbStorageKeyNames(): string[] {
   if (typeof document === 'undefined') return []
   return document.cookie
     .split(';')
-    .map((part) => part.trim().split('=')[0] ?? '')
+    .map((part) => {
+      const trimmed = part.trim()
+      const eq = trimmed.indexOf('=')
+      const raw = eq >= 0 ? trimmed.slice(0, eq).trim() : trimmed
+      try {
+        return decodeURIComponent(raw)
+      } catch {
+        return raw
+      }
+    })
     .filter((name) => name.startsWith('sb-'))
 }
 

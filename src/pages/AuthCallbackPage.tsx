@@ -128,7 +128,11 @@ export function AuthCallbackPage() {
       if (sessionError || !session?.user) {
         publishDiag(snapshot)
         if (!cancelled) {
-          setError(friendlyAuthError(sessionError, 'Sign-in could not be completed. Try again.'))
+          const fallback =
+            snapshot.hasOAuthCode && !session?.user
+              ? 'Sign-in could not be completed. Clear cookies for mucolabs.com and try again, or use email sign-in.'
+              : 'Sign-in could not be completed. Try again.'
+          setError(friendlyAuthError(sessionError, fallback))
         }
         return
       }
