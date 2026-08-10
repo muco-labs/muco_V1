@@ -1,5 +1,20 @@
 const trim = (value: string | undefined) => value?.trim() || undefined
 
+/** JWT anon key required for Supabase password grant; `sb_publishable_*` is not valid for auth API. */
+function resolveSupabaseServerAnonKey(): string | undefined {
+  const candidates = [
+    trim(process.env.SUPABASE_ANON_KEY),
+    trim(process.env.VITE_SUPABASE_ANON_KEY),
+    trim(process.env.SUPABASE_PUBLISHABLE_KEY),
+    trim(process.env.VITE_SUPABASE_PUBLISHABLE_KEY),
+  ].filter(Boolean) as string[]
+
+  const jwt = candidates.find((key) => key.startsWith('eyJ'))
+  if (jwt) return jwt
+
+  return candidates[0]
+}
+
 export const serverEnv = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   databaseUrl:
@@ -17,11 +32,7 @@ export const serverEnv = {
   authRateLimitMax: Number(process.env.AUTH_RATE_LIMIT_MAX ?? 20),
   supabaseUrl: trim(process.env.SUPABASE_URL),
   supabaseServiceRoleKey: trim(process.env.SUPABASE_SERVICE_ROLE_KEY),
-  supabaseAnonKey:
-    trim(process.env.SUPABASE_ANON_KEY) ??
-    trim(process.env.SUPABASE_PUBLISHABLE_KEY) ??
-    trim(process.env.VITE_SUPABASE_PUBLISHABLE_KEY) ??
-    trim(process.env.VITE_SUPABASE_ANON_KEY),
+  supabaseAnonKey: resolveSupabaseServerAnonKey(),
   supabaseJwtSecret: trim(process.env.SUPABASE_JWT_SECRET),
   authRedirectUrl: trim(process.env.AUTH_REDIRECT_URL),
   bootstrapSecret: trim(process.env.FOUNDER_BOOTSTRAP_SECRET),

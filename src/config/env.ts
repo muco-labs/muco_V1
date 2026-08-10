@@ -1,4 +1,5 @@
 import { resolveCanonicalSiteUrl } from './canonical-site'
+import { resolveSupabaseBrowserKey } from './resolve-supabase-browser-key'
 
 const trimTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
@@ -42,10 +43,10 @@ export const env = {
   gaMeasurementId: readViteEnv('VITE_GA_MEASUREMENT_ID')?.trim() || undefined,
   gscVerification: readViteEnv('VITE_GSC_VERIFICATION')?.trim() || undefined,
   supabaseUrl: readViteEnv('VITE_SUPABASE_URL')?.trim() || undefined,
-  supabaseAnonKey:
-    readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY')?.trim() ||
-    readViteEnv('VITE_SUPABASE_ANON_KEY')?.trim() ||
-    undefined,
+  supabaseAnonKey: resolveSupabaseBrowserKey(
+    readViteEnv('VITE_SUPABASE_ANON_KEY'),
+    readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY'),
+  ),
   authRedirectUrl: readViteEnv('VITE_AUTH_REDIRECT_URL')?.trim() || undefined,
   isDev: typeof import.meta.env !== 'undefined' ? Boolean(import.meta.env.DEV) : false,
 } as const
