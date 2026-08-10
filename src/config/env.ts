@@ -48,5 +48,9 @@ export const env = {
     readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY'),
   ),
   authRedirectUrl: readViteEnv('VITE_AUTH_REDIRECT_URL')?.trim() || undefined,
+  firebaseApiKey: readViteEnv('VITE_FIREBASE_API_KEY')?.trim() || undefined,
+  firebaseAuthDomain: readViteEnv('VITE_FIREBASE_AUTH_DOMAIN')?.trim() || undefined,
+  firebaseProjectId: readViteEnv('VITE_FIREBASE_PROJECT_ID')?.trim() || undefined,
+  firebaseAppId: readViteEnv('VITE_FIREBASE_APP_ID')?.trim() || undefined,
   isDev: typeof import.meta.env !== 'undefined' ? Boolean(import.meta.env.DEV) : false,
 } as const

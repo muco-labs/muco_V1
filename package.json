@@ -26,6 +26,7 @@
     "@supabase/supabase-js": "^2.112.2",
     "cheerio": "^1.2.0",
     "drizzle-orm": "^0.45.2",
+    "firebase": "^12.17.1",
     "framer-motion": "^13.0.0",
     "hono": "^4.13.1",
     "postgres": "^3.4.9",

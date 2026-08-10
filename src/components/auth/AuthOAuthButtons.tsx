@@ -1,9 +1,14 @@
 import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import type { OAuthProvider } from '@/services/auth'
-import { signInWithOAuth } from '@/services/auth'
+import { signInWithGoogle, signInWithOAuth } from '@/services/auth'
 import { persistOAuthReturnPath } from '@/lib/auth/oauth-return-path'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
+import { ensureAppProfileAfterSignIn } from '@/lib/auth/ensure-app-profile-after-sign-in'
+import { resolvePostAuthDestination } from '@/lib/auth/post-auth-destination'
+import { completeAuthNavigation } from '@/lib/auth/complete-auth-navigation'
+import { useAuth } from '@/contexts/auth-context'
 import formStyles from '@/pages/AuthForm.module.css'
 
 type AuthOAuthButtonsProps = {
@@ -12,16 +17,44 @@ type AuthOAuthButtonsProps = {
 }
 
 export function AuthOAuthButtons({ returnPath, disabled }: AuthOAuthButtonsProps) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { refreshProfile } = useAuth()
   const [busy, setBusy] = useState<OAuthProvider | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function start(provider: OAuthProvider) {
+  async function finishGoogleSignIn() {
+    const fromState = (location.state as { from?: string } | null)?.from
+    const from = fromState ?? returnPath
+    const me = await ensureAppProfileAfterSignIn()
+    await refreshProfile()
+    completeAuthNavigation(navigate, resolvePostAuthDestination(me, from))
+  }
+
+  async function startGoogle() {
     if (disabled || busy) return
     setError(null)
-    setBusy(provider)
+    setBusy('google')
     persistOAuthReturnPath(returnPath)
     try {
-      await signInWithOAuth(provider)
+      const mode = await signInWithGoogle()
+      if (mode === 'popup') {
+        await finishGoogleSignIn()
+      }
+    } catch (err) {
+      setError(friendlyAuthError(err, 'Could not sign in with Google. Try again or use email.'))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function startGithub() {
+    if (disabled || busy) return
+    setError(null)
+    setBusy('github')
+    persistOAuthReturnPath(returnPath)
+    try {
+      await signInWithOAuth('github')
     } catch (err) {
       setError(friendlyAuthError(err, 'Could not start sign-in. Try again or use email.'))
       setBusy(null)
@@ -38,15 +71,15 @@ export function AuthOAuthButtons({ returnPath, disabled }: AuthOAuthButtonsProps
           type="button"
           variant="secondary"
           disabled={Boolean(disabled || busy)}
-          onClick={() => void start('google')}
+          onClick={() => void startGoogle()}
         >
-          {busy === 'google' ? 'Redirecting…' : 'Continue with Google'}
+          {busy === 'google' ? 'Signing in…' : 'Continue with Google'}
         </Button>
         <Button
           type="button"
           variant="secondary"
           disabled={Boolean(disabled || busy)}
-          onClick={() => void start('github')}
+          onClick={() => void startGithub()}
         >
           {busy === 'github' ? 'Redirecting…' : 'Continue with GitHub'}
         </Button>
