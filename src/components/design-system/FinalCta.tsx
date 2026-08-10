@@ -26,7 +26,7 @@ export function FinalCta({
   return (
     <section className="section section--tight" aria-labelledby="final-cta-title">
       <div className="shell">
-        <Reveal className={`surface ${styles.block}`}>
+        <Reveal className={`surface glow-pulse ${styles.block}`}>
           <div className={styles.grid} aria-hidden="true" />
           <h2 id="final-cta-title" className="text-h1">
             {title}

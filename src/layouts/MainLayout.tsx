@@ -9,9 +9,30 @@ import { SiteOpening } from '@/components/opening/SiteOpening'
 import { shouldPlaySiteOpening, preloadIntroBrandAssets } from '@/components/opening/site-opening-session'
 import { StickyStartCta } from '@/components/conversion/StickyStartCta'
 import { PageTransition } from '@/components/ui/PageTransition'
+import { ScrollProgress } from '@/components/ui/ScrollProgress'
 import styles from './MainLayout.module.css'
 
+/** Track the pointer over glass surfaces so the CSS spotlight can follow it. */
+function useSurfaceSpotlight() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.matchMedia('(hover: hover)').matches) return
+
+    function onPointerMove(event: PointerEvent) {
+      const target = (event.target as Element | null)?.closest?.('.surface')
+      if (!(target instanceof HTMLElement)) return
+      const rect = target.getBoundingClientRect()
+      target.style.setProperty('--spot-x', `${event.clientX - rect.left}px`)
+      target.style.setProperty('--spot-y', `${event.clientY - rect.top}px`)
+    }
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true })
+    return () => window.removeEventListener('pointermove', onPointerMove)
+  }, [])
+}
+
 export function MainLayout() {
+  useSurfaceSpotlight()
   const location = useLocation()
   const [introComplete, setIntroComplete] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -31,6 +52,8 @@ export function MainLayout() {
   return (
     <div className={introActive ? styles.introActive : undefined}>
       <div className="aurora-bg" aria-hidden="true" />
+      <div className="aurora-grain" aria-hidden="true" />
+      <ScrollProgress />
       <RouteAnalytics />
       <LegacyPortalRedirect />
       <a href="#main-content" className="skip-link">

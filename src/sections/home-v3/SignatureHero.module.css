@@ -38,12 +38,31 @@
   background: linear-gradient(
     92deg,
     var(--color-brand-cyan) 0%,
-    var(--color-accent-hover) 45%,
-    var(--color-accent-aurora) 100%
+    var(--color-accent-hover) 30%,
+    var(--color-accent-aurora) 60%,
+    var(--color-brand-cyan) 100%
   );
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: highlight-shimmer 9s ease-in-out infinite;
+}
+
+@keyframes highlight-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlight {
+    animation: none;
+  }
 }
 
 .lead {
