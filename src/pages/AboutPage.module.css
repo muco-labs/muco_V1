@@ -344,6 +344,10 @@
   color: var(--color-text-muted);
   font-size: var(--text-small);
   line-height: var(--leading-snug);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .memberRole {

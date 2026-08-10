@@ -124,14 +124,14 @@ export const portfolioProjects: PortfolioProject[] = [
     id: 'textile-erp-portal',
     title: 'Enterprise ERP & supply chain portal',
     category: 'Web Development',
-    kind: 'case_study',
-    status: 'live',
+    kind: 'demo',
+    status: 'prototype',
     tagline:
-      'Cloud inventory, dispatch tracking, GST billing and supplier portals for textile manufacturers.',
+      'Cloud inventory, dispatch tracking, GST billing and supplier portals for textile operations.',
     problem:
-      'Paper billing and fragmented spreadsheets caused inventory mismatches and delayed dispatch across manufacturing units.',
+      'Paper billing and fragmented spreadsheets cause inventory mismatches and delayed dispatch across manufacturing units.',
     solution:
-      'React + Node.js + PostgreSQL ERP with role-based vendor access, reorder alerts and automated GST invoicing workflows.',
+      'React + Node.js + PostgreSQL ERP patterns with role-based vendor access, reorder alerts and automated GST invoicing workflows.',
     capabilities: ['Inventory & dispatch', 'GST e-invoicing', 'Multi-user RBAC', 'Vendor portal'],
     features: [
       'Real-time inventory and dispatch logging',
@@ -139,58 +139,45 @@ export const portfolioProjects: PortfolioProject[] = [
       'Supplier vendor portal',
       'Multi-unit operations visibility',
     ],
-    technology: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
-    role: 'Full-stack delivery (MUCO LABS)',
+    technology: ['React', 'TypeScript', 'Node.js', 'PostgreSQL'],
+    role: 'Representative delivery pattern (MUCO LABS)',
     visual: 'saas',
     relatedServiceSlug: 'software-development',
-    outcome: 'Faster dispatch cycles and cleaner GST compliance workflows.',
-    screenshotSrc:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
-    caseStudy: {
-      challenge:
-        'Legacy paper-based billing and Excel sheets caused inventory mismatches and manual GST errors across units.',
-      approach:
-        'Unified cloud ERP with inventory alerts, vendor roles and one-click GST e-way bill generation.',
-      build: 'React 18 frontend, Node.js API, PostgreSQL data model, role-based access controls.',
-      result: 'Reduced order dispatch latency and automated GST invoice generation for operators.',
-    },
   },
   {
     id: 'b2b-export-marketplace',
     title: 'Multi-vendor B2B export marketplace',
     category: 'Web Development',
-    kind: 'case_study',
-    status: 'live',
-    tagline: 'Bulk catalog, multi-currency pricing and freight-aware inquiry flows for agri exporters.',
+    kind: 'demo',
+    status: 'prototype',
+    tagline: 'Bulk catalog, multi-currency pricing and freight-aware inquiry flows for exporters.',
     problem:
-      'Regional producers lacked a direct digital channel to overseas wholesale buyers.',
+      'Regional producers often lack a direct digital channel to overseas wholesale buyers.',
     solution:
-      'High-concurrency B2B marketplace with catalog search, sample booking and international payment-ready checkout patterns.',
+      'B2B marketplace patterns with catalog search, sample booking and international payment-ready checkout flows.',
     capabilities: ['B2B catalog', 'Multi-currency pricing', 'Lead capture', 'Performance SEO'],
     features: [
       'Bulk SKU listing and filtering',
       'Freight and sample inquiry flows',
       'Buyer inquiry pipeline',
-      'Sub-second catalog search patterns',
+      'Fast catalog search patterns',
     ],
-    technology: ['Next.js', 'TypeScript', 'Stripe', 'Redis', 'Tailwind CSS'],
-    role: 'Product engineering (MUCO LABS)',
+    technology: ['Next.js', 'TypeScript', 'Stripe', 'Redis'],
+    role: 'Representative delivery pattern (MUCO LABS)',
     visual: 'commerce',
     relatedServiceSlug: 'ecommerce-development',
-    screenshotSrc:
-      'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1200&q=80',
   },
   {
     id: 'fleet-manager-app',
     title: 'Cross-platform fleet manager',
     category: 'Mobile App',
-    kind: 'case_study',
-    status: 'live',
+    kind: 'demo',
+    status: 'prototype',
     tagline: 'GPS tracking, route optimization and offline proof-of-delivery for logistics fleets.',
     problem:
-      'Fleet managers lacked verified delivery logs and live visibility on off-grid routes.',
+      'Fleet managers need verified delivery logs and live visibility when drivers go offline.',
     solution:
-      'React Native app with background GPS, offline SQLite sync, route optimization and digital signature capture.',
+      'React Native patterns with background GPS, offline sync, route optimization and digital signature capture.',
     capabilities: ['Background GPS', 'Offline sync', 'Proof of delivery', 'Route optimization'],
     features: [
       'Live truck tracking',
@@ -198,49 +185,45 @@ export const portfolioProjects: PortfolioProject[] = [
       'Digital POD signatures',
       'Driver route guidance',
     ],
-    technology: ['React Native', 'Expo', 'Google Maps API', 'Firebase', 'TypeScript'],
-    role: 'Mobile product delivery (MUCO LABS)',
+    technology: ['React Native', 'Expo', 'Google Maps API', 'TypeScript'],
+    role: 'Representative delivery pattern (MUCO LABS)',
     visual: 'mobile',
     relatedServiceSlug: 'mobile-app-development',
-    screenshotSrc:
-      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&q=80',
   },
   {
     id: 'ai-support-bot',
     title: 'AI smart customer support bot',
     category: 'AI & Automation',
-    kind: 'case_study',
-    status: 'live',
+    kind: 'demo',
+    status: 'prototype',
     tagline: 'Gemini-powered assistant on web chat and WhatsApp with human handoff.',
     problem:
-      'Support teams drowned in repetitive catalog and FAQ questions without after-hours coverage.',
+      'Support teams drown in repetitive catalog and FAQ questions without after-hours coverage.',
     solution:
-      'Custom Gemini agent integrated with WhatsApp Business API and an embeddable web widget for catalog search, FAQs and lead routing.',
+      'Custom Gemini agent patterns with WhatsApp Business API and an embeddable widget for FAQs and lead routing.',
     capabilities: ['RAG assistants', 'WhatsApp API', 'Human handoff', 'Lead routing'],
     features: [
-      '24/7 instant responses',
+      'Always-on assistant responses',
       'Catalog and FAQ retrieval',
       'Seamless agent escalation',
       'Conversation analytics',
     ],
     technology: ['Gemini AI', 'Node.js', 'WhatsApp API', 'Express'],
-    role: 'AI systems delivery (MUCO LABS)',
+    role: 'Representative delivery pattern (MUCO LABS)',
     visual: 'ai-dashboard',
     relatedServiceSlug: 'ai-solutions',
-    screenshotSrc:
-      'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1200&q=80',
   },
   {
     id: 'hospital-saas',
     title: 'Multi-tenant hospital & diagnostic SaaS',
     category: 'SaaS Platform',
-    kind: 'case_study',
-    status: 'live',
+    kind: 'demo',
+    status: 'prototype',
     tagline: 'EHR, lab reports, appointments and billing for clinic networks.',
     problem:
-      'Diagnostic clinics needed a shared cloud system for records, reports and appointments without fragile desktop tools.',
+      'Diagnostic clinics need a shared cloud system for records, reports and appointments without fragile desktop tools.',
     solution:
-      'Hospital information SaaS with patient records, PDF lab reports, booking and billing across clinic tenants.',
+      'Hospital information SaaS patterns with patient records, PDF lab reports, booking and billing across tenants.',
     capabilities: ['Multi-tenant SaaS', 'EHR workflows', 'Report generation', 'Appointments'],
     features: [
       'Patient electronic health records',
@@ -248,24 +231,22 @@ export const portfolioProjects: PortfolioProject[] = [
       'Doctor appointment booking',
       'Clinic billing modules',
     ],
-    technology: ['React', 'Node.js', 'Express', 'PostgreSQL', 'Docker'],
-    role: 'SaaS platform engineering (MUCO LABS)',
+    technology: ['React', 'Node.js', 'Express', 'PostgreSQL'],
+    role: 'Representative delivery pattern (MUCO LABS)',
     visual: 'saas',
     relatedServiceSlug: 'software-development',
-    screenshotSrc:
-      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
   },
   {
     id: 'quick-commerce-app',
     title: 'On-demand grocery delivery apps',
     category: 'Mobile App',
-    kind: 'case_study',
-    status: 'live',
+    kind: 'demo',
+    status: 'prototype',
     tagline: 'Consumer ordering and driver partner apps with UPI payments and live status.',
     problem:
-      'Local grocery networks needed reliable mobile ordering, driver assignment and payment collection.',
+      'Local grocery networks need reliable mobile ordering, driver assignment and payment collection.',
     solution:
-      'Flutter consumer and driver apps with Firebase auth, push notifications and Razorpay UPI payments.',
+      'Flutter consumer and driver app patterns with auth, push notifications and Razorpay UPI payments.',
     capabilities: ['Dual-app delivery', 'Push notifications', 'UPI payments', 'Order routing'],
     features: [
       'Real-time order status',
@@ -274,11 +255,9 @@ export const portfolioProjects: PortfolioProject[] = [
       'Local delivery routing',
     ],
     technology: ['Flutter', 'Dart', 'Firebase Auth', 'Razorpay', 'Node.js'],
-    role: 'Mobile product delivery (MUCO LABS)',
+    role: 'Representative delivery pattern (MUCO LABS)',
     visual: 'mobile',
     relatedServiceSlug: 'mobile-app-development',
-    screenshotSrc:
-      'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
   },
   {
     id: 'concept-commerce',

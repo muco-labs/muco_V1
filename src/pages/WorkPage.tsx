@@ -39,8 +39,8 @@ export function WorkPage() {
       <div className={styles.page}>
         <PageHero
           eyebrow="Portfolio"
-          title="Internal builds, concepts & demos"
-          lead="Every item is labeled by type. Internal MUCO LABS work and concept explorations are never presented as unverified client case studies."
+          title="Internal builds, demos & concepts"
+          lead="Every item is labeled by type. Internal MUCO LABS work, delivery demos and concept explorations are clearly marked—never presented as unverified client testimonials."
           visual={
             <DecorativeScene
               sceneId="work-constellation"

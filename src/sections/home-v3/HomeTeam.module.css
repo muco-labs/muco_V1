@@ -59,6 +59,10 @@
   font-size: var(--text-small);
   line-height: var(--leading-snug);
   text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .skills {
@@ -76,4 +80,10 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
+}
+
+@media (min-width: 64rem) {
+  .card .body .bio {
+    -webkit-line-clamp: 3;
+  }
 }

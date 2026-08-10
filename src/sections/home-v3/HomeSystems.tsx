@@ -100,8 +100,9 @@ export function HomeTechnologySection() {
 
 export function HomeWorkPreviewSection() {
   const preview = [
-    ...portfolioProjects.filter((p) => p.kind === 'case_study'),
-    ...portfolioProjects.filter((p) => p.kind !== 'case_study'),
+    ...portfolioProjects.filter((p) => p.kind === 'internal'),
+    ...portfolioProjects.filter((p) => p.kind === 'demo'),
+    ...portfolioProjects.filter((p) => p.kind !== 'internal' && p.kind !== 'demo'),
   ].slice(0, 3)
 
   return (
@@ -111,7 +112,7 @@ export function HomeWorkPreviewSection() {
           <div>
             <p className="text-label">Work</p>
             <h2 id="work-title" className="text-h2">
-              Case studies, internal builds and concept work—clearly labeled.
+              Internal builds, demos and concepts—clearly labeled.
             </h2>
           </div>
           <Link className="link-underline" to={routePaths.work}>

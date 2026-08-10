@@ -42,10 +42,12 @@
   border-radius: 0;
   border: none;
   box-shadow: none;
+  background: var(--color-bg-subtle);
 }
 
 .team .photo {
   object-fit: cover;
+  object-position: center 12%;
 }
 
 .editorial {

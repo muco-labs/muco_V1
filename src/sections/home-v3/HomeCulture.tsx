@@ -4,7 +4,7 @@ import { trustPillars } from '@/data/testimonials'
 import styles from './HomeCulture.module.css'
 
 const principles = [
-  'Built for outcomes—not deliverable theatre.',
+  'Build. Innovate. Solve—with accountable delivery.',
   'Design and engineering in one continuous thread.',
   'AI only where accountability and value are clear.',
   'Architectures that survive real users and real data.',
@@ -12,10 +12,6 @@ const principles = [
 
 export function HomeCultureSections() {
   const cover = brandAssets.brandCover
-  const officeShots = [
-    { src: '/brand/office-01.jpeg', alt: 'MUCO LABS team and workplace' },
-    { src: '/brand/office-02.jpeg', alt: 'MUCO LABS studio atmosphere' },
-  ]
 
   return (
     <>
@@ -45,21 +41,12 @@ export function HomeCultureSections() {
               <figure className={styles.brandCover}>
                 <img
                   src={cover.src}
-                  alt="MUCO LABS — technology company building digital products from Erode"
+                  alt="MUCO LABS — IT services and technology solutions from Erode"
                   loading="lazy"
                   decoding="async"
                 />
               </figure>
             </Reveal>
-            <div className={styles.officeGrid}>
-              {officeShots.map((shot, index) => (
-                <Reveal key={shot.src} delayMs={index * 70}>
-                  <figure className={styles.officeShot}>
-                    <img src={shot.src} alt={shot.alt} loading="lazy" decoding="async" />
-                  </figure>
-                </Reveal>
-              ))}
-            </div>
           </div>
         </section>
       ) : null}
