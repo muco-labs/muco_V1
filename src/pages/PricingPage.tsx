@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { FaqPageSchema } from '@/components/seo/StructuredData'
 import { FaqAccordion } from '@/components/content/FaqAccordion'
+import { PageHero } from '@/components/design-system/PageHero'
+import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { Reveal } from '@/components/motion/Reveal'
 import { Button } from '@/components/ui/Button'
 import {
@@ -38,22 +41,26 @@ export function PricingPage() {
       />
       <FaqPageSchema faqs={pricingFaqs.map((f) => ({ question: f.question, answer: f.answer }))} />
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className="shell">
-            <Reveal>
-              <p className="text-label">Engagement</p>
-              <h1 className="text-h1">Clear starting points. Honest proposals.</h1>
-              <p className={styles.lead}>{pricingNote}</p>
-              <p className={styles.lead}>
-                {internationalPricingNote}{' '}
-                <Link className="link-underline" to={routePaths.international}>
-                  International delivery
-                </Link>
-                .
-              </p>
-            </Reveal>
-          </div>
-        </header>
+        <PageHero
+          eyebrow="Engagement"
+          title="Clear starting points. Honest proposals."
+          lead={pricingNote}
+          visual={
+            <DecorativeScene
+              sceneId="pricing-lattice"
+              scene={() => import('@/components/three/scenes/TechnologyLatticeScene')}
+              fallback={<HeroSceneFallback />}
+            />
+          }
+        >
+          <p className={styles.lead}>
+            {internationalPricingNote}{' '}
+            <Link className="link-underline" to={routePaths.international}>
+              International delivery
+            </Link>
+            .
+          </p>
+        </PageHero>
         <section className="section section--tight">
           <div className="shell">
             <Reveal>

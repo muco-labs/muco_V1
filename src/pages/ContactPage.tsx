@@ -5,6 +5,8 @@ import { BreadcrumbSchema } from '@/components/seo/StructuredData'
 import { PageHero } from '@/components/design-system/PageHero'
 import { FinalCta } from '@/components/design-system/FinalCta'
 import { InquiryForm } from '@/components/conversion/InquiryForm'
+import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { pageSeo } from '@/config/seo'
 import { site } from '@/config/site'
 import { contact } from '@/content/contact'
@@ -61,8 +63,15 @@ export function ContactPage() {
       <div className={styles.page}>
         <PageHero
           eyebrow="Contact"
-          title="Contact & project inquiry"
+          title="Let's build something memorable."
           lead="Tell us what you are building. We respond with a practical next step—usually within one business day."
+          visual={
+            <DecorativeScene
+              sceneId="contact-constellation"
+              scene={() => import('@/components/three/scenes/ServiceConstellationScene')}
+              fallback={<HeroSceneFallback />}
+            />
+          }
         />
         <section className="section section--tight">
           <div className="shell">

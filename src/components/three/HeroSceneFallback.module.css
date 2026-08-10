@@ -1,0 +1,16 @@
+.poster {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-bg);
+  background-image: url('/brand/hero-poster.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+.gradient {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 55% 70% at 75% 30%, var(--aurora-3), transparent 65%),
+    radial-gradient(ellipse 45% 55% at 15% 70%, var(--aurora-1), transparent 60%);
+}

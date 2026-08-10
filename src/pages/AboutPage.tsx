@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { FounderPortrait } from '@/components/content/FounderPortrait'
 import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { BreadcrumbSchema, PersonSchema } from '@/components/seo/StructuredData'
 import { PageHero } from '@/components/design-system/PageHero'
 import { FinalCta } from '@/components/design-system/FinalCta'
@@ -42,6 +43,13 @@ export function AboutPage() {
           eyebrow="About"
           title="Technology with founder-led accountability."
           lead={company.tagline}
+          visual={
+            <DecorativeScene
+              sceneId="about-hero-lattice"
+              scene={() => import('@/components/three/scenes/TechnologyLatticeScene')}
+              fallback={<HeroSceneFallback />}
+            />
+          }
         >
           <p className={styles.heroSecondary}>{company.whoWeServe}</p>
           <nav className={styles.jumpNav} aria-label="On this page">

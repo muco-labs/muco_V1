@@ -5,6 +5,7 @@ import { DecorativeScene } from '@/components/three/DecorativeScene'
 import { routePaths } from '@/config/routes'
 import { Button } from '@/components/ui/Button'
 import { HeroSignalPanel } from '@/components/home/HeroSignalPanel'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { Magnetic } from '@/components/motion/Magnetic'
 import { Reveal } from '@/components/motion/Reveal'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -55,7 +56,7 @@ export function SignatureHero() {
           sceneId="home-hero-aurora"
           className={styles.sceneCanvas}
           scene={() => import('@/components/three/scenes/HeroAuroraScene')}
-          fallback={null}
+          fallback={<HeroSceneFallback />}
         />
       </motion.div>
       <div className="shell">

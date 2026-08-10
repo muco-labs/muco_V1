@@ -27,6 +27,7 @@ export type BrandAssetsMap = {
 
 const LOGO_MARK_SRC = '/brand/muco-logo-mark.png'
 const FOUNDER_PHOTO_SRC = '/brand/Founder.png'
+const HERO_POSTER_SRC = '/brand/hero-poster.svg'
 
 export const brandAssets: BrandAssetsMap = {
   logo: {
@@ -65,7 +66,8 @@ export const brandAssets: BrandAssetsMap = {
   heroPoster: {
     id: 'hero-poster',
     label: 'WebGL hero fallback poster',
-    status: 'missing',
+    status: 'available',
+    src: HERO_POSTER_SRC,
     recommended: {
       aspectRatio: '16:9',
       minWidthPx: 1920,

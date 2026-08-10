@@ -7,6 +7,7 @@ import { PageHero } from '@/components/design-system/PageHero'
 import { ProjectCard } from '@/components/design-system/ProjectCard'
 import { FinalCta } from '@/components/design-system/FinalCta'
 import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { portfolioProjects } from '@/data/portfolio'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
@@ -44,7 +45,7 @@ export function WorkPage() {
             <DecorativeScene
               sceneId="work-constellation"
               scene={() => import('@/components/three/scenes/ServiceConstellationScene')}
-              fallback={null}
+              fallback={<HeroSceneFallback />}
             />
           }
         />

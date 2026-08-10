@@ -6,6 +6,7 @@ import { PageHero } from '@/components/design-system/PageHero'
 import { ServiceCard } from '@/components/design-system/ServiceCard'
 import { FinalCta } from '@/components/design-system/FinalCta'
 import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { serviceHighlights } from '@/content/services-catalog'
 import { pageSeo } from '@/config/seo'
 import { routePaths } from '@/config/routes'
@@ -38,16 +39,7 @@ export function ServicesPage() {
             <DecorativeScene
               sceneId="services-constellation"
               scene={() => import('@/components/three/scenes/ServiceConstellationScene')}
-              fallback={
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    background:
-                      'radial-gradient(ellipse 50% 60% at 70% 30%, var(--aurora-2), transparent 70%)',
-                  }}
-                />
-              }
+              fallback={<HeroSceneFallback />}
             />
           }
         />

@@ -6,6 +6,7 @@ import { PageHero } from '@/components/design-system/PageHero'
 import { FinalCta } from '@/components/design-system/FinalCta'
 import { Reveal } from '@/components/motion/Reveal'
 import { DecorativeScene } from '@/components/three/DecorativeScene'
+import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { clientHubProductSlug } from '@/content/products/client-hub'
 import { productsHubSeo } from '@/content/products/client-hub'
 import { analyticsEvents, trackEvent } from '@/lib/analytics'
@@ -38,7 +39,7 @@ export function ProductsPage() {
             <DecorativeScene
               sceneId="products-core"
               scene={() => import('@/components/three/scenes/ProductCoreScene')}
-              fallback={<div className={styles.heroPoster} />}
+              fallback={<HeroSceneFallback />}
             />
           }
         />
