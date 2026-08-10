@@ -14,6 +14,7 @@ vi.mock('@/lib/supabase/client', () => ({
       signInWithOAuth: vi.fn(async () => ({ error: null })),
     },
   })),
+  getSupabaseAuthStorageKey: vi.fn(() => null),
 }))
 
 import { isFirebaseGoogleConfigured } from '@/lib/firebase/client'

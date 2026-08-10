@@ -1,6 +1,7 @@
 import { env } from '@/config/env'
 import { buildAuthRedirectUrl } from '@/lib/auth/auth-redirect-url'
 import { isMucolabsPortalOrigin, isMucolabsProductionMarketingHost } from '@/config/domains'
+import { resolveMarketingAuthOrigin } from '@/lib/auth/marketing-www-redirect'
 import { recordOAuthFlowDiagnosticsAtStart } from '@/lib/auth/oauth-callback-diagnostics'
 import { isFirebaseGoogleConfigured } from '@/lib/firebase/client'
 import { getSupabaseAuthStorageKey, getSupabaseClient } from '@/lib/supabase/client'
@@ -14,7 +15,8 @@ function redirectUrl(path: string): string | undefined {
   const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined
 
   if (origin && hostname && isMucolabsProductionMarketingHost(hostname)) {
-    return buildAuthRedirectUrl(path, origin.replace(/\/$/, ''), origin)
+    const marketingOrigin = resolveMarketingAuthOrigin(hostname)
+    return buildAuthRedirectUrl(path, marketingOrigin, marketingOrigin)
   }
 
   const authRedirectBase =

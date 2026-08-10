@@ -1,6 +1,19 @@
+import { DEFAULT_CANONICAL_SITE_URL } from '@/config/canonical-site'
+
 /** Marketing apex must match OAuth cookie/session origin (www). */
 export function shouldRedirectMarketingApexToWww(hostname: string): boolean {
   return hostname.toLowerCase() === 'mucolabs.com'
+}
+
+/** Canonical marketing origin for OAuth/email redirects (always www in production). */
+export function resolveMarketingAuthOrigin(hostname: string): string {
+  if (shouldRedirectMarketingApexToWww(hostname)) {
+    return DEFAULT_CANONICAL_SITE_URL
+  }
+  if (hostname.toLowerCase() === 'www.mucolabs.com') {
+    return DEFAULT_CANONICAL_SITE_URL
+  }
+  return typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : DEFAULT_CANONICAL_SITE_URL
 }
 
 /**

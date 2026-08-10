@@ -15,6 +15,22 @@ function readOAuthCodeFromUrl(): string | null {
   return new URLSearchParams(window.location.search).get('code')
 }
 
+/**
+ * Remove OAuth `code` from the URL before `auth.initialize()` so Supabase does not
+ * consume the code without a readable PKCE verifier (we exchange manually after sync).
+ */
+function captureAndStripOAuthCodeFromUrl(): string | null {
+  if (typeof window === 'undefined') return null
+  const url = new URL(window.location.href)
+  const code = url.searchParams.get('code')
+  if (!code) return null
+  url.searchParams.delete('code')
+  const search = url.searchParams.toString()
+  const next = `${url.pathname}${search ? `?${search}` : ''}${url.hash}`
+  window.history.replaceState(window.history.state, '', next)
+  return code
+}
+
 function getClientAuthStorage(client: SupabaseClient): Storage {
   const auth = client.auth as unknown as { storage?: Storage }
   return auth.storage ?? createSupabaseAuthStorage()
@@ -50,7 +66,7 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
   initializeOk: boolean
   initializeError: Error | null
 }> {
-  const oauthCodeCaptured = readOAuthCodeFromUrl()
+  const oauthCodeCaptured = captureAndStripOAuthCodeFromUrl() ?? readOAuthCodeFromUrl()
   const storageKey = getSupabaseAuthStorageKey()
   if (storageKey && oauthCodeCaptured) {
     preparePkceOAuthCallback(storageKey, getClientAuthStorage(client))

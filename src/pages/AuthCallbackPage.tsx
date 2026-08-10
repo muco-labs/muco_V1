@@ -9,6 +9,7 @@ import { completeAuthNavigation } from '@/lib/auth/complete-auth-navigation'
 import { ensureAppProfileAfterSignIn } from '@/lib/auth/ensure-app-profile-after-sign-in'
 import { resolvePostAuthDestination } from '@/lib/auth/post-auth-destination'
 import { consumeOAuthReturnPath } from '@/lib/auth/oauth-return-path'
+import { applyMarketingApexToWwwRedirect } from '@/lib/auth/marketing-www-redirect'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { waitForAuthSession } from '@/lib/supabase/wait-for-auth-session'
 import { friendlyAuthError } from '@/lib/auth/auth-errors'
@@ -60,6 +61,8 @@ export function AuthCallbackPage() {
     }
 
     async function finish() {
+      if (applyMarketingApexToWwwRedirect()) return
+
       const hasOAuthCode = new URLSearchParams(window.location.search).has('code')
       let snapshot = createEmptyOAuthCallbackSnapshot({
         pathname: window.location.pathname,
