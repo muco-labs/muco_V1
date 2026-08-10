@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PageMeta } from '@/components/seo/PageMeta'
 import { authCopy, authRoutes, portalRoutes } from '@/config/auth'
+import { resolvePortalHomePath } from '@/config/domains'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/contexts/auth-context'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
@@ -29,7 +30,7 @@ export function AdminSignInPage() {
         navigate(portalRoutes.unauthorized, { replace: true })
         return
       }
-      navigate(portalRoutes.admin, { replace: true })
+      navigate(resolvePortalHomePath('admin', window.location.hostname), { replace: true })
     } catch (err) {
       setError(friendlyAuthError(err, 'Sign in failed. Check your credentials.'))
     } finally {

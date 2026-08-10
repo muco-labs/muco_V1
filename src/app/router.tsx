@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type ReactNode } from 'react'
-import { createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom'
 import {
   resolveApplicationDomain,
   resolveRoutingMode,
@@ -283,16 +283,16 @@ const CookiePolicyPage = lazyPage(
 )
 const NotFoundPage = lazyPage(() => import('@/pages/NotFoundPage'), 'NotFoundPage')
 
-const subdomainAuthChildren: RouteObject[] = [
-  { path: 'auth/sign-in', element: <AuthSignInPage /> },
-  { path: 'auth/sign-up', element: <AuthSignUpPage /> },
-  { path: 'auth/callback', element: <AuthCallbackPage /> },
-  { path: 'auth/forgot-password', element: <AuthForgotPasswordPage /> },
-  { path: 'auth/reset-password', element: <AuthResetPasswordPage /> },
-  { path: 'auth/verify-email', element: <AuthVerifyEmailPage /> },
-  { path: 'auth/unauthorized', element: <AuthUnauthorizedPage /> },
-  { path: 'team/sign-in', element: <TeamSignInPage /> },
-  { path: 'admin/sign-in', element: <AdminSignInPage /> },
+const subdomainAuthRoutes: RouteObject[] = [
+  { path: '/auth/sign-in', element: <AuthSignInPage /> },
+  { path: '/auth/sign-up', element: <AuthSignUpPage /> },
+  { path: '/auth/callback', element: <AuthCallbackPage /> },
+  { path: '/auth/forgot-password', element: <AuthForgotPasswordPage /> },
+  { path: '/auth/reset-password', element: <AuthResetPasswordPage /> },
+  { path: '/auth/verify-email', element: <AuthVerifyEmailPage /> },
+  { path: '/auth/unauthorized', element: <AuthUnauthorizedPage /> },
+  { path: '/team/sign-in', element: <TeamSignInPage /> },
+  { path: '/admin/sign-in', element: <AdminSignInPage /> },
 ]
 
 const customerPortalChildren: RouteObject[] = [
@@ -405,36 +405,55 @@ function buildSubdomainRoutes(domain: ApplicationDomain): RouteObject[] {
   ): RouteObject => ({
     path: '/',
     element: <ProtectedPortal portal={portal}>{layout}</ProtectedPortal>,
-    children: [...children, ...subdomainAuthChildren, { path: '*', element: <NotFoundPage /> }],
+    children: [...children, { path: '*', element: <NotFoundPage /> }],
   })
+
+  const legacyPortalPathRedirects = (): RouteObject[] => {
+    switch (domain) {
+      case 'customer':
+        return [{ path: '/app', element: <Navigate to="/" replace /> }]
+      case 'employee':
+        return [
+          { path: '/team', element: <Navigate to="/" replace /> },
+        ]
+      case 'freelancer':
+        return [{ path: '/app/freelancer', element: <Navigate to="/" replace /> }]
+      case 'admin':
+        return [{ path: '/admin', element: <Navigate to="/" replace /> }]
+      default:
+        return []
+    }
+  }
 
   switch (domain) {
     case 'customer':
       return [
-        portalShell(
-          'customer',
-          <CustomerAppLayout />,
-          customerPortalChildren,
-        ),
+        ...subdomainAuthRoutes,
+        ...legacyPortalPathRedirects(),
+        portalShell('customer', <CustomerAppLayout />, customerPortalChildren),
+        { path: '*', element: <NotFoundPage /> },
       ]
     case 'employee':
       return [
-        portalShell(
-          'employee',
-          <EmployeeAppLayout />,
-          employeePortalChildren,
-        ),
+        ...subdomainAuthRoutes,
+        ...legacyPortalPathRedirects(),
+        portalShell('employee', <EmployeeAppLayout />, employeePortalChildren),
+        { path: '*', element: <NotFoundPage /> },
       ]
     case 'freelancer':
       return [
-        portalShell(
-          'freelancer',
-          <FreelancerAppLayout />,
-          freelancerPortalChildren,
-        ),
+        ...subdomainAuthRoutes,
+        ...legacyPortalPathRedirects(),
+        portalShell('freelancer', <FreelancerAppLayout />, freelancerPortalChildren),
+        { path: '*', element: <NotFoundPage /> },
       ]
     case 'admin':
-      return [portalShell('admin', <AdminAppLayout />, adminPortalChildren)]
+      return [
+        ...subdomainAuthRoutes,
+        ...legacyPortalPathRedirects(),
+        portalShell('admin', <AdminAppLayout />, adminPortalChildren),
+        { path: '*', element: <NotFoundPage /> },
+      ]
     default:
       return [{ path: '*', element: <NotFoundPage /> }]
   }

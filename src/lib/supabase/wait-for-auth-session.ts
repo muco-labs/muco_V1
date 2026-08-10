@@ -36,15 +36,44 @@ export async function waitForAuthSession(client: SupabaseClient): Promise<{
       initializeError: null,
     }
   }
-  const session = data.session ?? null
-  const hasOAuthCode =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).has('code')
-  if (!session && hasOAuthCode) {
+  let session = data.session ?? null
+  const oauthCode =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('code')
+      : null
+
+  if (!session && oauthCode) {
+    const exchanged = await client.auth.exchangeCodeForSession(oauthCode)
+    if (exchanged.error) {
+      return {
+        session: null,
+        error: exchanged.error,
+        failurePoint: 'pkce_exchange_skipped_or_failed',
+        initializeOk: true,
+        initializeError: null,
+      }
+    }
+    session = exchanged.data.session ?? null
+    if (!session) {
+      const afterExchange = await client.auth.getSession()
+      session = afterExchange.data.session ?? null
+      if (afterExchange.error && !session) {
+        return {
+          session: null,
+          error: afterExchange.error,
+          failurePoint: 'get_session',
+          initializeOk: true,
+          initializeError: null,
+        }
+      }
+    }
+  }
+
+  if (!session && oauthCode) {
     return {
       session: null,
       error: new Error(
-        'OAuth callback did not produce a session (PKCE exchange may have been skipped or storage read failed).',
+        'OAuth callback did not produce a session (PKCE exchange completed without a session).',
       ),
       failurePoint: 'pkce_exchange_skipped_or_failed',
       initializeOk: true,

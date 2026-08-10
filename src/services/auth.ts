@@ -7,12 +7,26 @@ import type { User } from '@supabase/supabase-js'
 
 export type OAuthProvider = 'google' | 'github'
 
+function isMucolabsPortalSubdomainOrigin(origin: string): boolean {
+  try {
+    const host = new URL(origin).hostname.toLowerCase()
+    if (!host.endsWith('.mucolabs.com')) return false
+    return (
+      host.startsWith('app.') ||
+      host.startsWith('team.') ||
+      host.startsWith('freelancers.') ||
+      host.startsWith('admin.')
+    )
+  } catch {
+    return false
+  }
+}
+
 function redirectUrl(path: string): string | undefined {
-  return buildAuthRedirectUrl(
-    path,
-    env.authRedirectUrl,
-    typeof window !== 'undefined' ? window.location.origin : undefined,
-  )
+  const origin = typeof window !== 'undefined' ? window.location.origin : undefined
+  const authRedirectBase =
+    origin && isMucolabsPortalSubdomainOrigin(origin) ? undefined : env.authRedirectUrl
+  return buildAuthRedirectUrl(path, authRedirectBase, origin)
 }
 
 export async function signUpCustomer(input: {
