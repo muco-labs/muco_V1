@@ -4,7 +4,7 @@
  * Localhost and preview hosts keep default localStorage behavior.
  */
 
-const CHUNK_SIZE = 3500
+const CHUNK_SIZE = 2000
 
 function shouldUseSharedMucolabsCookieStorage(): boolean {
   if (typeof window === 'undefined') return false
@@ -78,7 +78,10 @@ function readChunked(base: string): string | null {
   let value = ''
   for (let i = 0; i < count; i += 1) {
     const piece = readCookie(chunkKey(base, i))
-    if (piece === null) return null
+    if (piece === null) {
+      deleteChunked(base)
+      return null
+    }
     value += piece
   }
   return value
@@ -298,4 +301,39 @@ export function clearPkceVerifierCookies(storageKey: string): void {
     deleteChunked(name)
   }
   clearAllPkceMirrors()
+}
+
+function listCookieNamesForStorageKey(storageKey: string): string[] {
+  const names: string[] = []
+  const prefix = `${storageKey}`
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    const eq = trimmed.indexOf('=')
+    const rawName = eq >= 0 ? trimmed.slice(0, eq).trim() : trimmed
+    const name = decodeCookieName(rawName)
+    if (name === prefix || name.startsWith(`${prefix}__chunk_`) || name.startsWith(`${prefix}-flow-`)) {
+      names.push(name)
+    }
+  }
+  return names
+}
+
+/** Clear session + PKCE cookies for this Supabase project before a fresh OAuth redirect. */
+export function clearSupabaseAuthStorageCookies(storageKey: string): void {
+  clearPkceVerifierCookies(storageKey)
+  if (!shouldUseSharedMucolabsCookieStorage()) {
+    try {
+      window.localStorage.removeItem(storageKey)
+    } catch {
+      /* ignore */
+    }
+    return
+  }
+  deleteChunked(storageKey)
+  for (const name of listCookieNamesForStorageKey(storageKey)) {
+    if (!name.includes('-code-verifier')) {
+      deleteChunked(name)
+    }
+  }
 }

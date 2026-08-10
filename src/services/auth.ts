@@ -112,8 +112,8 @@ export async function signInWithOAuth(provider: OAuthProvider) {
 
   const storageKey = getSupabaseAuthStorageKey()
   if (storageKey) {
-    const { clearPkceVerifierCookies } = await import('@/lib/supabase/cross-subdomain-auth-storage')
-    clearPkceVerifierCookies(storageKey)
+    const { clearSupabaseAuthStorageCookies } = await import('@/lib/supabase/cross-subdomain-auth-storage')
+    clearSupabaseAuthStorageCookies(storageKey)
   }
 
   const redirectTo = redirectUrl('/auth/callback')
