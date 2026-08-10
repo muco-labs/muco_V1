@@ -1,6 +1,6 @@
 {
   "master": "MASTER-23",
-  "generatedAt": "2026-08-09T20:30:52.173Z",
+  "generatedAt": "2026-08-10T13:19:23.828Z",
   "pipeline": {
     "master22Docs": "PASS (committed on main)",
     "operatorConfiguration": "OPERATOR — execute MASTER-22 checklist",
@@ -10,13 +10,13 @@
       "httpStatus": 200,
       "external": {
         "email": true,
-        "google": false,
-        "github": false
+        "google": true,
+        "github": true
       }
     },
     "founderAccount": {
-      "bootstrapPostEmptyBodyStatus": 404,
-      "interpretation": "FOUNDER_BOOTSTRAP_SECRET likely unset on Production (endpoint hidden)",
+      "bootstrapPostEmptyBodyStatus": 400,
+      "interpretation": "Review status — secret may be set or validation failed",
       "founderRowsInDb": 0
     },
     "testCustomers": {
@@ -32,11 +32,11 @@
       "freelancerRoleCount": 0
     },
     "googleOAuth": {
-      "supabaseProviderEnabled": false,
+      "supabaseProviderEnabled": true,
       "browserQa": "BLOCKED (operator credentials)"
     },
     "githubOAuth": {
-      "supabaseProviderEnabled": false,
+      "supabaseProviderEnabled": true,
       "browserQa": "BLOCKED (operator credentials)"
     },
     "email": {
@@ -87,7 +87,7 @@
     "founderBootstrapEndpoint": {
       "method": "POST",
       "url": "https://www.mucolabs.com/api/v1/admin/bootstrap/founder",
-      "status": 404
+      "status": 400
     },
     "passwordLoginValidation": {
       "method": "POST",
