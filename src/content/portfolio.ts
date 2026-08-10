@@ -121,6 +121,166 @@ export const portfolioProjects: PortfolioProject[] = [
     relatedServiceSlug: 'software-development',
   },
   {
+    id: 'textile-erp-portal',
+    title: 'Enterprise ERP & supply chain portal',
+    category: 'Web Development',
+    kind: 'case_study',
+    status: 'live',
+    tagline:
+      'Cloud inventory, dispatch tracking, GST billing and supplier portals for textile manufacturers.',
+    problem:
+      'Paper billing and fragmented spreadsheets caused inventory mismatches and delayed dispatch across manufacturing units.',
+    solution:
+      'React + Node.js + PostgreSQL ERP with role-based vendor access, reorder alerts and automated GST invoicing workflows.',
+    capabilities: ['Inventory & dispatch', 'GST e-invoicing', 'Multi-user RBAC', 'Vendor portal'],
+    features: [
+      'Real-time inventory and dispatch logging',
+      'Automated GST invoice generation',
+      'Supplier vendor portal',
+      'Multi-unit operations visibility',
+    ],
+    technology: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+    role: 'Full-stack delivery (MUCO LABS)',
+    visual: 'saas',
+    relatedServiceSlug: 'software-development',
+    outcome: 'Faster dispatch cycles and cleaner GST compliance workflows.',
+    screenshotSrc:
+      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
+    caseStudy: {
+      challenge:
+        'Legacy paper-based billing and Excel sheets caused inventory mismatches and manual GST errors across units.',
+      approach:
+        'Unified cloud ERP with inventory alerts, vendor roles and one-click GST e-way bill generation.',
+      build: 'React 18 frontend, Node.js API, PostgreSQL data model, role-based access controls.',
+      result: 'Reduced order dispatch latency and automated GST invoice generation for operators.',
+    },
+  },
+  {
+    id: 'b2b-export-marketplace',
+    title: 'Multi-vendor B2B export marketplace',
+    category: 'Web Development',
+    kind: 'case_study',
+    status: 'live',
+    tagline: 'Bulk catalog, multi-currency pricing and freight-aware inquiry flows for agri exporters.',
+    problem:
+      'Regional producers lacked a direct digital channel to overseas wholesale buyers.',
+    solution:
+      'High-concurrency B2B marketplace with catalog search, sample booking and international payment-ready checkout patterns.',
+    capabilities: ['B2B catalog', 'Multi-currency pricing', 'Lead capture', 'Performance SEO'],
+    features: [
+      'Bulk SKU listing and filtering',
+      'Freight and sample inquiry flows',
+      'Buyer inquiry pipeline',
+      'Sub-second catalog search patterns',
+    ],
+    technology: ['Next.js', 'TypeScript', 'Stripe', 'Redis', 'Tailwind CSS'],
+    role: 'Product engineering (MUCO LABS)',
+    visual: 'commerce',
+    relatedServiceSlug: 'ecommerce-development',
+    screenshotSrc:
+      'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    id: 'fleet-manager-app',
+    title: 'Cross-platform fleet manager',
+    category: 'Mobile App',
+    kind: 'case_study',
+    status: 'live',
+    tagline: 'GPS tracking, route optimization and offline proof-of-delivery for logistics fleets.',
+    problem:
+      'Fleet managers lacked verified delivery logs and live visibility on off-grid routes.',
+    solution:
+      'React Native app with background GPS, offline SQLite sync, route optimization and digital signature capture.',
+    capabilities: ['Background GPS', 'Offline sync', 'Proof of delivery', 'Route optimization'],
+    features: [
+      'Live truck tracking',
+      'Offline-first log sync',
+      'Digital POD signatures',
+      'Driver route guidance',
+    ],
+    technology: ['React Native', 'Expo', 'Google Maps API', 'Firebase', 'TypeScript'],
+    role: 'Mobile product delivery (MUCO LABS)',
+    visual: 'mobile',
+    relatedServiceSlug: 'mobile-app-development',
+    screenshotSrc:
+      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    id: 'ai-support-bot',
+    title: 'AI smart customer support bot',
+    category: 'AI & Automation',
+    kind: 'case_study',
+    status: 'live',
+    tagline: 'Gemini-powered assistant on web chat and WhatsApp with human handoff.',
+    problem:
+      'Support teams drowned in repetitive catalog and FAQ questions without after-hours coverage.',
+    solution:
+      'Custom Gemini agent integrated with WhatsApp Business API and an embeddable web widget for catalog search, FAQs and lead routing.',
+    capabilities: ['RAG assistants', 'WhatsApp API', 'Human handoff', 'Lead routing'],
+    features: [
+      '24/7 instant responses',
+      'Catalog and FAQ retrieval',
+      'Seamless agent escalation',
+      'Conversation analytics',
+    ],
+    technology: ['Gemini AI', 'Node.js', 'WhatsApp API', 'Express'],
+    role: 'AI systems delivery (MUCO LABS)',
+    visual: 'ai-dashboard',
+    relatedServiceSlug: 'ai-solutions',
+    screenshotSrc:
+      'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    id: 'hospital-saas',
+    title: 'Multi-tenant hospital & diagnostic SaaS',
+    category: 'SaaS Platform',
+    kind: 'case_study',
+    status: 'live',
+    tagline: 'EHR, lab reports, appointments and billing for clinic networks.',
+    problem:
+      'Diagnostic clinics needed a shared cloud system for records, reports and appointments without fragile desktop tools.',
+    solution:
+      'Hospital information SaaS with patient records, PDF lab reports, booking and billing across clinic tenants.',
+    capabilities: ['Multi-tenant SaaS', 'EHR workflows', 'Report generation', 'Appointments'],
+    features: [
+      'Patient electronic health records',
+      'Lab report PDF generators',
+      'Doctor appointment booking',
+      'Clinic billing modules',
+    ],
+    technology: ['React', 'Node.js', 'Express', 'PostgreSQL', 'Docker'],
+    role: 'SaaS platform engineering (MUCO LABS)',
+    visual: 'saas',
+    relatedServiceSlug: 'software-development',
+    screenshotSrc:
+      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
+    id: 'quick-commerce-app',
+    title: 'On-demand grocery delivery apps',
+    category: 'Mobile App',
+    kind: 'case_study',
+    status: 'live',
+    tagline: 'Consumer ordering and driver partner apps with UPI payments and live status.',
+    problem:
+      'Local grocery networks needed reliable mobile ordering, driver assignment and payment collection.',
+    solution:
+      'Flutter consumer and driver apps with Firebase auth, push notifications and Razorpay UPI payments.',
+    capabilities: ['Dual-app delivery', 'Push notifications', 'UPI payments', 'Order routing'],
+    features: [
+      'Real-time order status',
+      'Driver partner workflows',
+      'Razorpay UPI checkout',
+      'Local delivery routing',
+    ],
+    technology: ['Flutter', 'Dart', 'Firebase Auth', 'Razorpay', 'Node.js'],
+    role: 'Mobile product delivery (MUCO LABS)',
+    visual: 'mobile',
+    relatedServiceSlug: 'mobile-app-development',
+    screenshotSrc:
+      'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
+  },
+  {
     id: 'concept-commerce',
     title: 'Modular commerce experience',
     category: 'E-commerce',
@@ -173,41 +333,6 @@ export const portfolioProjects: PortfolioProject[] = [
     role: 'Concept exploration (MUCO LABS)',
     visual: 'saas',
     relatedServiceSlug: 'software-development',
-  },
-  {
-    id: 'concept-premium-site',
-    title: 'Editorial brand platform',
-    category: 'Premium website',
-    kind: 'concept',
-    status: 'concept',
-    tagline: 'Credibility-first marketing for professional firms.',
-    problem:
-      'Professional firms need a digital presence that signals credibility without generic agency tropes.',
-    solution:
-      'Editorial site concept with asymmetric layouts, structured service storytelling and conversion paths.',
-    capabilities: ['Brand narrative', 'Content architecture', 'SEO foundation'],
-    features: ['Editorial layouts', 'Service storytelling', 'Conversion paths'],
-    technology: ['Web', 'CMS-ready structure'],
-    role: 'Concept exploration (MUCO LABS)',
-    visual: 'premium-site',
-    relatedServiceSlug: 'web-development',
-  },
-  {
-    id: 'concept-mobile',
-    title: 'Field operations companion',
-    category: 'Mobile app',
-    kind: 'concept',
-    status: 'concept',
-    tagline: 'Offline-aware mobile workflows.',
-    problem: 'Field teams lose productivity when apps fail offline or hide critical actions.',
-    solution:
-      'Mobile concept with offline queues, biometric-friendly auth and role-based home screens.',
-    capabilities: ['Mobile UX', 'Offline sync', 'Secure auth flows'],
-    features: ['Offline queue', 'Role-based home', 'Secure auth'],
-    technology: ['React Native', 'APIs', 'Push notifications'],
-    role: 'Concept exploration (MUCO LABS)',
-    visual: 'mobile',
-    relatedServiceSlug: 'mobile-app-development',
   },
   {
     id: 'concept-automation',

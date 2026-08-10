@@ -99,6 +99,11 @@ export function HomeTechnologySection() {
 }
 
 export function HomeWorkPreviewSection() {
+  const preview = [
+    ...portfolioProjects.filter((p) => p.kind === 'case_study'),
+    ...portfolioProjects.filter((p) => p.kind !== 'case_study'),
+  ].slice(0, 3)
+
   return (
     <section className="section" aria-labelledby="work-title">
       <div className="shell">
@@ -106,7 +111,7 @@ export function HomeWorkPreviewSection() {
           <div>
             <p className="text-label">Work</p>
             <h2 id="work-title" className="text-h2">
-              Internal builds and concept explorations—clearly labeled.
+              Case studies, internal builds and concept work—clearly labeled.
             </h2>
           </div>
           <Link className="link-underline" to={routePaths.work}>
@@ -114,7 +119,7 @@ export function HomeWorkPreviewSection() {
           </Link>
         </Reveal>
         <div className={styles.workGrid}>
-          {portfolioProjects.slice(0, 3).map((project, index) => (
+          {preview.map((project, index) => (
             <Reveal key={project.id} delayMs={index * 90}>
               <ProjectCard project={project} />
             </Reveal>

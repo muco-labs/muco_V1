@@ -123,7 +123,28 @@ export const faqs: FaqItem[] = [
     category: 'support',
     question: 'Do you provide SEO services?',
     answer:
-      'Yes—technical SEO, content structure and measurement. We tie SEO to your site and product, not isolated keyword lists.',
+      'Yes—technical SEO, content structure and measurement. Packages start from ₹10,000/mo with transparent weekly updates and monthly ROI reporting.',
+  },
+  {
+    id: 'payment-advance',
+    category: 'pricing',
+    question: 'Are booking advances refundable?',
+    answer:
+      'Listed package booking advances are typically non-refundable once paid—they reserve your project slot and apply toward fees. Full terms are confirmed in your proposal and Terms page.',
+  },
+  {
+    id: 'web-vs-maintenance',
+    category: 'support',
+    question: 'What is the difference between web development and maintenance?',
+    answer:
+      'Development covers design, build and launch. Maintenance is an ongoing monthly plan (from ₹2,999/mo) for security updates, backups, performance and content changes after go-live.',
+  },
+  {
+    id: 'react-next',
+    category: 'technology',
+    question: 'Do you build React, Next.js and full-stack applications?',
+    answer:
+      'Yes. We specialize in React and Next.js frontends, Node.js backends, TypeScript codebases, REST APIs, SaaS platforms and custom CRM/ERP systems tailored to business workflows.',
   },
 ]
 
@@ -133,4 +154,5 @@ export const homeFaqIds = [
   'ownership',
   'support',
   'contact',
+  'react-next',
 ] as const

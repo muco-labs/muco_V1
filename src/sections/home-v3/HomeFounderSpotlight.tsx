@@ -31,6 +31,7 @@ export function HomeFounderSpotlight() {
               </h2>
               <p className={styles.role}>{founder.title}</p>
               <p className={styles.lead}>{founder.introduction}</p>
+              <blockquote className={styles.quote}>{founder.quote}</blockquote>
               <div className={styles.actions}>
                 <Button
                   to={startProjectHref({ source: 'home_founder' })}

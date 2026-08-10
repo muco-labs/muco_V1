@@ -19,7 +19,17 @@ export function ProjectCard({ project, detailHref }: ProjectCardProps) {
     <article className={cn('surface surface--lift', styles.card)}>
       <Link to={href} className={styles.visualLink} aria-label={`View ${project.title}`}>
         <div className={styles.visual}>
-          <ProjectPreview visual={project.visual} title={project.title} />
+          {project.screenshotSrc ? (
+            <img
+              className={styles.screenshot}
+              src={project.screenshotSrc}
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <ProjectPreview visual={project.visual} title={project.title} />
+          )}
         </div>
       </Link>
       <div className={styles.body}>

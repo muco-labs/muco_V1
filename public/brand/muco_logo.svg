@@ -1,0 +1,67 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top & Bottom Cyan Vertical Arms & Nodes -->
+  <line x1="100" y1="100" x2="100" y2="35" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" />
+  <circle cx="100" cy="32" r="12" fill="#38bdf8" />
+  
+  <line x1="100" y1="100" x2="100" y2="165" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" />
+  <circle cx="100" cy="168" r="12" fill="#38bdf8" />
+
+  <!-- Outer Dark Navy Node Frame (4 Corners) -->
+  <line x1="100" y1="100" x2="52" y2="52" stroke="#0284c7" stroke-width="9" stroke-linecap="round" />
+  <line x1="52" y1="52" x2="52" y2="148" stroke="#0284c7" stroke-width="9" stroke-linecap="round" />
+  <line x1="100" y1="100" x2="52" y2="148" stroke="#0284c7" stroke-width="9" stroke-linecap="round" />
+  
+  <line x1="100" y1="100" x2="148" y2="52" stroke="#0284c7" stroke-width="9" stroke-linecap="round" />
+  <line x1="148" y1="52" x2="148" y2="148" stroke="#0284c7" stroke-width="9" stroke-linecap="round" />
+  <line x1="100" y1="100" x2="148" y2="148" stroke="#0284c7" stroke-width="9" stroke-linecap="round" />
+
+  <!-- Corner Circles -->
+  <circle cx="52" cy="52" r="15" fill="#0369a1" />
+  <circle cx="52" cy="148" r="15" fill="#0369a1" />
+  <circle cx="148" cy="52" r="15" fill="#0369a1" />
+  <circle cx="148" cy="148" r="15" fill="#0369a1" />
+
+  <!-- Inner Hexagon / Cube Box -->
+  <path d="M100 65 L128 81.5 L128 118.5 L100 135 L72 118.5 L72 81.5 Z" stroke="#0284c7" stroke-width="7" fill="none" stroke-linejoin="round" />
+  <path d="M100 65 L100 100 M128 118.5 L100 100 M72 118.5 L100 100" stroke="#0284c7" stroke-width="6" stroke-linecap="round" />
+
+  <!-- Side Cyan Nodes -->
+  <line x1="72" y1="100" x2="52" y2="100" stroke="#38bdf8" stroke-width="5" />
+  <circle cx="52" cy="100" r="7.5" fill="#38bdf8" />
+  
+  <line x1="128" y1="100" x2="148" y2="100" stroke="#38bdf8" stroke-width="5" />
+  <circle cx="148" cy="100" r="7.5" fill="#38bdf8" />
+
+  <!-- Central Hub Circle -->
+  <circle cx="100" cy="100" r="9" fill="#0284c7" />
+  <circle cx="100" cy="100" r="4" fill="#38bdf8" />
+
+  <!-- Circuit Traces & Micro Dots (Top Left) -->
+  <path d="M68 38 L80 50 L80 62" stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="68" cy="38" r="3.5" fill="#38bdf8" />
+  
+  <!-- Circuit Traces & Micro Dots (Top Right) -->
+  <path d="M132 38 L120 50 L120 62" stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="132" cy="38" r="3.5" fill="#38bdf8" />
+
+  <!-- Circuit Traces & Micro Dots (Bottom Left) -->
+  <path d="M68 162 L80 150 L80 138" stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="68" cy="162" r="3.5" fill="#38bdf8" />
+
+  <!-- Circuit Traces & Micro Dots (Bottom Right) -->
+  <path d="M132 162 L120 150 L120 138" stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="132" cy="162" r="3.5" fill="#38bdf8" />
+
+  <!-- Outer Side Micro Traces -->
+  <path d="M35 85 L44 85 L48 90" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round" />
+  <circle cx="35" cy="85" r="3" fill="#0284c7" />
+
+  <path d="M35 115 L44 115 L48 110" stroke="#0284c7" strokeWidth="3" fill="none" stroke-linecap="round" />
+  <circle cx="35" cy="115" r="3" fill="#0284c7" />
+
+  <path d="M165 85 L156 85 L152 90" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round" />
+  <circle cx="165" cy="85" r="3" fill="#0284c7" />
+
+  <path d="M165 115 L156 115 L152 110" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round" />
+  <circle cx="165" cy="115" r="3" fill="#0284c7" />
+</svg>

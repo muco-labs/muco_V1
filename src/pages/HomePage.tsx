@@ -19,6 +19,7 @@ import {
   HomeTechnologySection,
   HomeWorkPreviewSection,
 } from '@/sections/home-v3/HomeSystems'
+import { HomeTeamSection } from '@/sections/home-v3/HomeTeam'
 import { HomeTrustStrip } from '@/sections/home-v3/HomeTrustStrip'
 import { SignatureHero } from '@/sections/home-v3/SignatureHero'
 
@@ -49,6 +50,7 @@ export function HomePage() {
       <HomeTechnologySection />
       <HomeWorkPreviewSection />
       <HomeFounderSpotlight />
+      <HomeTeamSection />
       <HomeEngagementSections />
       <HomeLocalErodeSection />
       <HomeFaqSection />
