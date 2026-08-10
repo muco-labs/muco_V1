@@ -8,7 +8,7 @@ type ProductCoreSceneProps = {
   visible?: boolean
 }
 
-export default function ProductCoreScene({ visible = true }: ProductCoreSceneProps) {
+function ProductCoreContent({ visible }: { visible: boolean }) {
   const core = useRef<Mesh>(null)
 
   useFrame((_, delta) => {
@@ -17,7 +17,7 @@ export default function ProductCoreScene({ visible = true }: ProductCoreScenePro
   })
 
   return (
-    <SceneCanvas visible={visible} cameraPosition={[0, 0, 3.8]} fov={42}>
+    <>
       <ambientLight intensity={0.45} />
       <pointLight position={[2, 2, 3]} intensity={1.1} color="#7c5cff" />
       <Float speed={1.2} floatIntensity={0.4}>
@@ -32,6 +32,14 @@ export default function ProductCoreScene({ visible = true }: ProductCoreScenePro
           />
         </mesh>
       </Float>
+    </>
+  )
+}
+
+export default function ProductCoreScene({ visible = true }: ProductCoreSceneProps) {
+  return (
+    <SceneCanvas visible={visible} cameraPosition={[0, 0, 3.8]} fov={42}>
+      <ProductCoreContent visible={visible} />
     </SceneCanvas>
   )
 }

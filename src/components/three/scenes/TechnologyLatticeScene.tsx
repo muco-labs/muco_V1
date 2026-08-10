@@ -9,7 +9,7 @@ type TechnologyLatticeSceneProps = {
   visible?: boolean
 }
 
-export default function TechnologyLatticeScene({ visible = true }: TechnologyLatticeSceneProps) {
+function TechnologyLatticeContent({ visible }: { visible: boolean }) {
   const group = useRef<Group>(null)
   const scroll = useSceneScrollProgress()
 
@@ -21,7 +21,7 @@ export default function TechnologyLatticeScene({ visible = true }: TechnologyLat
   })
 
   return (
-    <SceneCanvas visible={visible} cameraPosition={[0, 0, 4]} fov={40}>
+    <>
       <ambientLight intensity={0.45} />
       <pointLight position={[2, 3, 3]} intensity={1} color="#00c2ff" />
       <group ref={group}>
@@ -34,6 +34,14 @@ export default function TechnologyLatticeScene({ visible = true }: TechnologyLat
           <meshBasicMaterial color="#1e88ff" transparent opacity={0.25} side={THREE.DoubleSide} />
         </mesh>
       </group>
+    </>
+  )
+}
+
+export default function TechnologyLatticeScene({ visible = true }: TechnologyLatticeSceneProps) {
+  return (
+    <SceneCanvas visible={visible} cameraPosition={[0, 0, 4]} fov={40}>
+      <TechnologyLatticeContent visible={visible} />
     </SceneCanvas>
   )
 }

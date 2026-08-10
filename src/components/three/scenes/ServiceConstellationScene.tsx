@@ -8,7 +8,7 @@ type ServiceConstellationSceneProps = {
   visible?: boolean
 }
 
-export default function ServiceConstellationScene({ visible = true }: ServiceConstellationSceneProps) {
+function ServiceConstellationContent({ visible }: { visible: boolean }) {
   const points = useRef<Points>(null)
   const positions = useMemo(() => {
     const count = 140
@@ -36,7 +36,7 @@ export default function ServiceConstellationScene({ visible = true }: ServiceCon
   })
 
   return (
-    <SceneCanvas visible={visible} cameraPosition={[0, 0, 5]} fov={45}>
+    <>
       <ambientLight intensity={0.5} />
       <points ref={points} geometry={geometry}>
         <pointsMaterial
@@ -51,6 +51,14 @@ export default function ServiceConstellationScene({ visible = true }: ServiceCon
         <sphereGeometry args={[0.35, 32, 32]} />
         <meshStandardMaterial color="#1e88ff" emissive="#1e88ff" emissiveIntensity={0.35} />
       </mesh>
+    </>
+  )
+}
+
+export default function ServiceConstellationScene({ visible = true }: ServiceConstellationSceneProps) {
+  return (
+    <SceneCanvas visible={visible} cameraPosition={[0, 0, 5]} fov={45}>
+      <ServiceConstellationContent visible={visible} />
     </SceneCanvas>
   )
 }

@@ -8,7 +8,7 @@ type HeroAuroraSceneProps = {
   visible?: boolean
 }
 
-export default function HeroAuroraScene({ visible = true }: HeroAuroraSceneProps) {
+function HeroAuroraContent({ visible }: { visible: boolean }) {
   const orb = useRef<Group>(null)
 
   useFrame((_, delta) => {
@@ -20,7 +20,7 @@ export default function HeroAuroraScene({ visible = true }: HeroAuroraSceneProps
   })
 
   return (
-    <SceneCanvas visible={visible} cameraPosition={[0, 0.15, 4.5]} fov={48}>
+    <>
       <ambientLight intensity={0.4} />
       <pointLight position={[3, 2, 4]} intensity={1.4} color="#00c2ff" />
       <pointLight position={[-4, -1, 2]} intensity={0.7} color="#7c5cff" />
@@ -49,6 +49,14 @@ export default function HeroAuroraScene({ visible = true }: HeroAuroraSceneProps
           </mesh>
         </group>
       </Float>
+    </>
+  )
+}
+
+export default function HeroAuroraScene({ visible = true }: HeroAuroraSceneProps) {
+  return (
+    <SceneCanvas visible={visible} cameraPosition={[0, 0.15, 4.5]} fov={48}>
+      <HeroAuroraContent visible={visible} />
     </SceneCanvas>
   )
 }

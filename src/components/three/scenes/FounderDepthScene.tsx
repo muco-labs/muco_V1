@@ -7,7 +7,7 @@ type FounderDepthSceneProps = {
   visible?: boolean
 }
 
-export default function FounderDepthScene({ visible = true }: FounderDepthSceneProps) {
+function FounderDepthContent({ visible }: { visible: boolean }) {
   const plane = useRef<Mesh>(null)
 
   useFrame((_, delta) => {
@@ -19,7 +19,7 @@ export default function FounderDepthScene({ visible = true }: FounderDepthSceneP
   })
 
   return (
-    <SceneCanvas visible={visible} cameraPosition={[0, 0, 3.2]} fov={38}>
+    <>
       <ambientLight intensity={0.55} />
       <pointLight position={[-2, 2, 2]} intensity={0.9} color="#00c2ff" />
       <mesh ref={plane}>
@@ -33,6 +33,14 @@ export default function FounderDepthScene({ visible = true }: FounderDepthSceneP
           emissiveIntensity={0.12}
         />
       </mesh>
+    </>
+  )
+}
+
+export default function FounderDepthScene({ visible = true }: FounderDepthSceneProps) {
+  return (
+    <SceneCanvas visible={visible} cameraPosition={[0, 0, 3.2]} fov={38}>
+      <FounderDepthContent visible={visible} />
     </SceneCanvas>
   )
 }
