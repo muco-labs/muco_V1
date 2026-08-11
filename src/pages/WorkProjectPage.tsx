@@ -77,7 +77,9 @@ export function WorkProjectPage() {
                 ) : (
                   <>
                     <ProjectPreview visual={project.visual} title={project.title} />
-                    <p className={styles.visualNote}>Project screenshot placeholder—replace when assets are ready.</p>
+                    <p className={styles.visualNote}>
+                      Visual preview—product screenshots publish when verified assets are ready.
+                    </p>
                   </>
                 )}
               </div>

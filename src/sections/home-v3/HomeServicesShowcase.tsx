@@ -27,7 +27,7 @@ export function HomeServicesShowcase() {
             <ServiceCard service={featured} variant="featured" />
           </Reveal>
           <div className={styles.secondary}>
-            {rest.slice(0, 4).map((service, index) => (
+            {rest.slice(0, 5).map((service, index) => (
               <Reveal key={service.slug} delayMs={index * 70}>
                 <ServiceCard service={service} />
               </Reveal>

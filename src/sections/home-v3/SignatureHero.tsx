@@ -9,7 +9,6 @@ import { HeroSceneFallback } from '@/components/three/HeroSceneFallback'
 import { Magnetic } from '@/components/motion/Magnetic'
 import { Reveal } from '@/components/motion/Reveal'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-import { company } from '@/content/company'
 import { site } from '@/config/site'
 import { analyticsEvents } from '@/lib/analytics'
 import { startProjectHref } from '@/lib/conversion/start-project-link'
@@ -100,8 +99,8 @@ export function SignatureHero() {
             )}
             <p className={styles.lead}>
               <strong>MUCO LABS</strong> is a founder-led technology company in Erode—websites,
-              custom software, mobile apps, AI systems and growth programs for teams who need
-              clarity, craft and accountable delivery. {company.positioning}
+              custom software, mobile apps, AI systems and growth programs delivered with clarity
+              and accountable craft.
             </p>
             <div className={styles.actions}>
               <Magnetic>
