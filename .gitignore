@@ -30,6 +30,7 @@ dist-ssr
 *.sw?
 
 .vercel
+.netlify
 .env*
 
 # Local scratch / migration probes (not source of truth)

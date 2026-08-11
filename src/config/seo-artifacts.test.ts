@@ -6,8 +6,8 @@ describe('seo-artifacts', () => {
     vi.unstubAllEnvs()
   })
 
-  it('production robots and sitemap never reference muco-v1 when VERCEL_ENV=production', () => {
-    vi.stubEnv('VERCEL_ENV', 'production')
+  it('production robots and sitemap never reference muco-v1 when DEPLOY_ENV=production', () => {
+    vi.stubEnv('DEPLOY_ENV', 'production')
     vi.stubEnv('VITE_SITE_URL', 'https://muco-v1.vercel.app')
 
     const { robots, sitemap } = buildSeoArtifacts('https://www.mucolabs.com')
@@ -18,7 +18,7 @@ describe('seo-artifacts', () => {
   })
 
   it('throws when production artifacts still contain vercel.app', () => {
-    vi.stubEnv('VERCEL_ENV', 'production')
+    vi.stubEnv('DEPLOY_ENV', 'production')
     expect(() =>
       assertProductionSeoOrigin(
         'https://www.mucolabs.com',
@@ -28,8 +28,8 @@ describe('seo-artifacts', () => {
     ).toThrow(/vercel\.app/)
   })
 
-  it('preview may keep muco-v1 in artifacts when explicitly passed', () => {
-    vi.stubEnv('VERCEL_ENV', 'preview')
+  it('preview may keep staging host in artifacts when explicitly passed', () => {
+    vi.stubEnv('DEPLOY_ENV', 'preview')
     const { robots } = buildSeoArtifacts('https://muco-v1.vercel.app')
     expect(robots).toContain('Sitemap: https://muco-v1.vercel.app/sitemap.xml')
   })

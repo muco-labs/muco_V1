@@ -2,13 +2,17 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolveBuildDeployEnv } from './src/config/deploy-env.ts'
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url))
+const buildDeployEnv = resolveBuildDeployEnv(process.env)
 
 // https://vite.dev/config/
 export default defineConfig({
   define: {
-    'import.meta.env.VERCEL_ENV': JSON.stringify(process.env.VERCEL_ENV ?? ''),
+    'import.meta.env.DEPLOY_ENV': JSON.stringify(buildDeployEnv),
+    // Compat alias for any remaining readers; mirrors DEPLOY_ENV on Netlify builds
+    'import.meta.env.VERCEL_ENV': JSON.stringify(buildDeployEnv),
   },
   plugins: [react()],
   resolve: {

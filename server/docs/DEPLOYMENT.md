@@ -1,32 +1,30 @@
-# MUCO LABS — Production deployment (Step 14)
+# MUCO LABS — Production deployment
 
-## Infrastructure map (pre-deploy audit)
+## Infrastructure map
 
 | Layer | Technology |
 |--------|------------|
 | Framework | React 19 + Vite 8 (SPA) |
-| API | Hono on Vercel Serverless (`api/index.ts`, Node runtime) |
+| API | Hono on Netlify Functions (`netlify/functions/api.ts`, Node) |
 | Package manager | npm |
-| Node | `>=20` (Vercel project may use 24.x) |
+| Node | `>=20` (`NODE_VERSION=20` in `netlify.toml`) |
 | Build | `npm run build` → SEO script, `tsc`, Vite → `dist/` |
 | Database | PostgreSQL via `DATABASE_URL` (Drizzle migrations in `server/db/migrations/`) |
 | Auth | Supabase Auth (browser: `VITE_SUPABASE_*`; server: service role + JWT) |
 | Storage | Supabase Storage bucket (`SUPABASE_STORAGE_BUCKET`) |
 | Payments | Razorpay server-side orders + verify + webhook |
 | Email | Resend (optional, `RESEND_API_KEY`) |
-| Hosting | Single Vercel project (`muco-v1`) connected to GitHub `muco-labs/muco_V1` `main` |
+| Hosting | Netlify (`netlify.toml` + `NETLIFY_MIGRATION.md`) |
 
-### URL architecture (recommended)
+### URL architecture
 
-One Vercel deployment serves everything on the apex domain:
+One Netlify site serves marketing + portals:
 
-- `https://mucolabs.com` — marketing site
-- `https://mucolabs.com/app/*` — customer portal
-- `https://mucolabs.com/team/*` — employee portal
-- `https://mucolabs.com/admin/*` — admin portal
-- `https://mucolabs.com/api/*` — API (same origin; no separate `api.` subdomain required)
+- `https://www.mucolabs.com` — marketing site
+- `https://www.mucolabs.com/app/*` — customer portal (path mode)
+- `https://www.mucolabs.com/api/*` — API (same origin via Netlify Function)
 
-Optional future subdomains (`app.`, `team.`, `admin.`, `freelancers.`) only need DNS + Vercel domain attach on the **same** `muco-v1` project + `CORS_ORIGINS` if browsers call `/api` cross-origin. See `src/docs/PHASE4.44-PORTAL-HOSTING-SUBDOMAIN-DEPLOYMENT-MASTER-REPORT.md` and `node scripts/master-17-portal-hosting-discovery.mjs`. Do not create extra Vercel projects unless you have a clear need.
+Apex `mucolabs.com` → `www.mucolabs.com` (301 in `netlify.toml`). Optional portal subdomains need DNS + Netlify domain attach on the **same** site + `CORS_ORIGINS` if browsers call `/api` cross-origin.
 
 ### API routes (high level)
 
@@ -36,29 +34,30 @@ Optional future subdomains (`app.`, `team.`, `admin.`, `freelancers.`) only need
 - `/api/v1/customer/*`, `/api/v1/employee/*`, `/api/v1/admin/*` — authenticated portals
 - `POST /api/v1/webhooks/razorpay` — signature-verified, idempotent payment events
 
-## Git → Vercel
+## Git → Netlify
 
 1. Push to `main` on GitHub (`muco-labs/muco_V1`).
-2. Vercel auto-builds with framework **Vite**, output `dist`, API from `/api`.
-3. Rollback: Vercel dashboard → Deployments → promote previous **production** deployment (do not delete history).
+2. Netlify auto-builds using `netlify.toml` (Vite → `dist`, API from `netlify/functions`).
+3. Rollback: Netlify dashboard → Deploys → publish a previous production deploy.
 
 ## Environment variables
 
-See `.env.example`. Classification:
+See `.env.example` and `NETLIFY_MIGRATION.md`. Classification:
 
 | Variable | Class | Notes |
 |----------|--------|--------|
 | `VITE_SITE_URL`, `VITE_APP_URL`, `VITE_*` analytics/SEO | **PUBLIC** | Bundled in client |
-| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | **PUBLIC** | Anon/publishable key only |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` / publishable | **PUBLIC** | Anon/publishable key only |
 | `DATABASE_URL` | **SECRET** | Server only |
-| `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET` | **SECRET** | Server only |
+| `SUPABASE_SERVICE_ROLE_KEY` | **SECRET** | Server only |
 | `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | **SECRET** | Server only |
 | `RESEND_API_KEY` | **SECRET** | Server only |
 | `FOUNDER_BOOTSTRAP_SECRET` | **SECRET** | Server only |
 | `RAZORPAY_KEY_ID` | **SERVER** | Used server-side; only **key id** may be returned to client for checkout |
 | `CORS_ORIGINS` | **SERVER** | Comma-separated; leave empty for same-origin-only |
+| `DEPLOY_ENV` | **BUILD** | `production` on Netlify production context |
 
-Set **Production**, **Preview**, and **Development** separately in Vercel. Use non-production Razorpay keys and databases for preview/local when possible.
+Set **Production** and **Deploy Previews** separately in Netlify. Use non-production Razorpay keys and databases for preview/local when possible.
 
 ## Database migrations
 
@@ -67,14 +66,12 @@ Set **Production**, **Preview**, and **Development** separately in Vercel. Use n
 npm run db:migrate
 ```
 
-Do **not** reset production. Migrations are additive through `0028_freelancer_availability_capacity.sql` (journal `server/db/migrations/meta/_journal.json`). RLS in `0002_row_level_security.sql`.
-
-Supabase dashboard “migrations” may be empty if you apply Drizzle SQL outside Supabase CLI — that is expected when using `npm run db:migrate`.
+Do **not** reset production. Migrations are additive (journal `server/db/migrations/meta/_journal.json`).
 
 ## Razorpay production
 
 1. Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` (live keys in production only).
-2. Webhook URL: `https://<your-production-host>/api/v1/webhooks/razorpay`
+2. Webhook URL: `https://www.mucolabs.com/api/v1/webhooks/razorpay`
 3. Set `RAZORPAY_WEBHOOK_SECRET` from Razorpay dashboard.
 4. Enable events: **`payment.captured`**, **`payment.failed`** (others only if implemented).
 5. Never mark paid from browser callbacks alone — use verify + webhook + `finalizeSuccessfulPayment`.
@@ -83,24 +80,20 @@ Supabase dashboard “migrations” may be empty if you apply Drizzle SQL outsid
 
 1. Verify sending domain in Resend.
 2. Set `RESEND_API_KEY` and `RESEND_FROM_EMAIL`.
-3. Configure **SPF / DKIM / DMARC** in GoDaddy (or DNS host) per Resend docs — **do not remove existing MX/SPF/DKIM** for company mail.
+3. Configure **SPF / DKIM / DMARC** in DNS per Resend docs — **do not remove existing MX/SPF/DKIM** for company mail.
 
-## GoDaddy DNS (safety checklist)
+## DNS (safety checklist)
 
 Before changing DNS, export current records.
 
 | Record type | Typical action |
 |-------------|----------------|
 | **MX** | **DO NOT TOUCH** unless migrating email |
-| **SPF/DKIM/DMARC TXT** | **KEEP**; add Resend records alongside, do not replace |
-| **A / CNAME @ and www** | **CHANGE** only to Vercel-provided values from Project → Domains |
+| **SPF/DKIM/DMARC TXT** | **KEEP**; add Resend records alongside |
+| **A / CNAME @ and www** | **CHANGE** only to Netlify-provided values from Domain management |
 | **Verification TXT** | **KEEP** unless provider says to replace |
 
-Use exact host/target values from **Vercel → Project → Settings → Domains** (not hard-coded in this repo).
-
-### Custom domain status
-
-Connect `mucolabs.com` and `www.mucolabs.com` in Vercel. Until assigned, traffic may hit a different host (health response format may differ from this codebase’s `{ success, data }` API).
+Use exact host/target values from **Netlify → Domain management**.
 
 ## CORS
 
@@ -116,7 +109,7 @@ Never use `*` for authenticated APIs.
 
 ## Security headers
 
-Configured in `vercel.json` (aligned with `src/config/security.ts`): HSTS, frame denial, CSP, referrer policy. After CSP changes, test auth (Supabase), analytics, and fonts.
+Configured in `netlify.toml` (aligned with `src/config/security.ts`): HSTS, frame denial, CSP, referrer policy. After CSP changes, test auth (Supabase), analytics, and fonts.
 
 ## Backups
 
@@ -126,14 +119,14 @@ Not configured in-repo. Enable **Supabase** (or Postgres provider) automated bac
 
 - [ ] `npm run build` and `npm run test` pass
 - [ ] `DATABASE_URL` + `npm run db:migrate` on production
-- [ ] Supabase Auth redirect URLs include production origins
-- [ ] Vercel env vars set (no secrets in `VITE_*`)
+- [ ] Supabase Auth redirect URLs include production Netlify / www origins
+- [ ] Netlify env vars set (no secrets in `VITE_*`)
 - [ ] Razorpay webhook live + secret set
 - [ ] Resend domain verified (if using email)
-- [ ] Custom domains assigned on Vercel project
+- [ ] Custom domains assigned on Netlify site
 - [ ] Portal routes return `noindex` (already in layouts)
 - [ ] Cross-role denial tested manually
 
 ## OAuth / SMS
 
-GitHub, GitLab, Google, and mobile OTP are **not** required for this architecture unless already configured in Supabase. Do not enable extra providers in Step 14 without explicit need.
+GitHub, GitLab, Google, and mobile OTP are **not** required for this architecture unless already configured in Supabase. Do not enable extra providers without explicit need.

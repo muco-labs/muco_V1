@@ -34,7 +34,8 @@ export function resolveApplicationDomain(hostname: string): ApplicationDomain {
     return mucolabs
   }
 
-  if (host.endsWith('.vercel.app')) return 'public'
+  // Preview / deploy hosts keep path-prefix public routing (not production subdomains)
+  if (host.endsWith('.vercel.app') || host.endsWith('.netlify.app')) return 'public'
 
   return 'unknown'
 }

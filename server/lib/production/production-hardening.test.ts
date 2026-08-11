@@ -34,15 +34,11 @@ describe('production hardening — Razorpay CSP', () => {
   })
 })
 
-describe('production hardening — vercel headers', () => {
-  it('keeps vercel.json CSP aligned with Razorpay checkout', () => {
-    const vercel = JSON.parse(readFileSync(join(repoRoot, 'vercel.json'), 'utf8')) as {
-      headers?: Array<{ headers?: Array<{ key: string; value: string }> }>
-    }
-    const csp = vercel.headers
-      ?.flatMap((block) => block.headers ?? [])
-      .find((h) => h.key === 'Content-Security-Policy')?.value
-    expect(csp).toContain('https://checkout.razorpay.com')
-    expect(csp).toContain('frame-src')
+describe('production hardening — Netlify headers', () => {
+  it('keeps netlify.toml CSP aligned with Razorpay checkout', () => {
+    const toml = readFileSync(join(repoRoot, 'netlify.toml'), 'utf8')
+    expect(toml).toContain('https://checkout.razorpay.com')
+    expect(toml).toContain('frame-src')
+    expect(toml).toContain('Content-Security-Policy')
   })
 })

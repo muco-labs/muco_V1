@@ -30,10 +30,11 @@ Allow these callback paths on the same Supabase project:
 - `https://freelancers.mucolabs.com/auth/callback`
 - `https://admin.mucolabs.com/auth/callback`
 
-Vercel Production:
+Netlify Production:
 
 - `VITE_AUTH_REDIRECT_URL=https://www.mucolabs.com` (marketing OAuth; portal hosts use their own origin at runtime)
 - `CORS_ORIGINS` must include all portal origins listed in deployment docs
+- Also allow Netlify Deploy Preview / branch deploy callback URLs in Supabase Auth if used for QA
 
 Portal subdomains expose `/auth/*` and portal sign-in routes **outside** `ProtectedPortal` so sign-in pages render when unauthenticated.
 

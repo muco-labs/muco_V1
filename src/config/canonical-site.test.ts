@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
 import { getRobotsTxt } from '@/config/robots'
 import { getSitemapXml } from '@/config/sitemap'
 import {
@@ -6,16 +6,29 @@ import {
   resolveCanonicalSiteUrl,
 } from './canonical-site'
 
+afterEach(() => {
+  vi.unstubAllEnvs()
+})
+
 describe('canonical-site', () => {
   it('uses www production host', () => {
     expect(DEFAULT_CANONICAL_SITE_URL).toBe('https://www.mucolabs.com')
   })
 
-  it('forces www on Vercel production even when VITE_SITE_URL is staging', () => {
+  it('forces www on production deploy even when VITE_SITE_URL is staging', () => {
     expect(
       resolveCanonicalSiteUrl({
         viteSiteUrl: 'https://muco-v1.vercel.app',
-        vercelEnv: 'production',
+        deployEnv: 'production',
+      }),
+    ).toBe('https://www.mucolabs.com')
+  })
+
+  it('forces www when Netlify CONTEXT is production', () => {
+    expect(
+      resolveCanonicalSiteUrl({
+        viteSiteUrl: 'https://deploy-preview-1--example.netlify.app',
+        context: 'production',
       }),
     ).toBe('https://www.mucolabs.com')
   })
@@ -24,13 +37,13 @@ describe('canonical-site', () => {
     expect(
       resolveCanonicalSiteUrl({
         viteSiteUrl: 'https://muco-v1.vercel.app',
-        vercelEnv: 'preview',
+        deployEnv: 'preview',
       }),
     ).toBe('https://muco-v1.vercel.app')
   })
 
   it('defaults to www when env is empty', () => {
-    expect(resolveCanonicalSiteUrl({ viteSiteUrl: '', vercelEnv: 'development' })).toBe(
+    expect(resolveCanonicalSiteUrl({ viteSiteUrl: '', deployEnv: 'development' })).toBe(
       'https://www.mucolabs.com',
     )
   })
@@ -38,7 +51,7 @@ describe('canonical-site', () => {
   it('production SEO artifacts never include muco-v1.vercel.app', () => {
     const siteUrl = resolveCanonicalSiteUrl({
       viteSiteUrl: 'https://muco-v1.vercel.app',
-      vercelEnv: 'production',
+      deployEnv: 'production',
     })
     const robots = getRobotsTxt(siteUrl)
     const sitemap = getSitemapXml(siteUrl)

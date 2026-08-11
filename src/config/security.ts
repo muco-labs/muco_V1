@@ -1,5 +1,5 @@
 /**
- * Production security reference — keep vercel.json (or host config) aligned with these values.
+ * Production security reference — keep netlify.toml (or host config) aligned with these values.
  *
  * Client bundle: only VITE_* variables are public. Never put API secrets in VITE_.
  * Server-only secrets (webhooks, DB, signing keys) belong on the backend / host env.

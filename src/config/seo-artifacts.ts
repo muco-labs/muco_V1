@@ -1,4 +1,5 @@
 import { resolveCanonicalSiteUrl } from '@/config/canonical-site'
+import { isProductionDeploy } from '@/config/deploy-env'
 import { getRobotsTxt } from '@/config/robots'
 import { getSitemapXml } from '@/config/sitemap'
 import { getSitemapIndexablePaths } from '@/config/indexable-routes'
@@ -14,18 +15,15 @@ export function buildSeoArtifacts(siteUrl: string, extraPaths: string[] = []) {
 }
 
 export function assertProductionSeoOrigin(siteUrl: string, robots: string, sitemap: string): void {
-  const vercelEnv =
-    typeof globalThis !== 'undefined' &&
-    'process' in globalThis &&
-    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-      ?.VERCEL_ENV
+  if (!isProductionDeploy()) return
 
-  if (vercelEnv !== 'production') return
-
-  if (siteUrl.includes('vercel.app')) {
-    throw new Error(`Production SEO siteUrl must not use vercel.app (got ${siteUrl})`)
-  }
-  if (robots.includes('vercel.app') || sitemap.includes('vercel.app')) {
-    throw new Error('Production SEO artifacts must not reference vercel.app')
+  const bannedHosts = ['vercel.app', 'netlify.app']
+  for (const host of bannedHosts) {
+    if (siteUrl.includes(host)) {
+      throw new Error(`Production SEO siteUrl must not use ${host} (got ${siteUrl})`)
+    }
+    if (robots.includes(host) || sitemap.includes(host)) {
+      throw new Error(`Production SEO artifacts must not reference ${host}`)
+    }
   }
 }

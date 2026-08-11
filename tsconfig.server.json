@@ -12,5 +12,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["server/**/*.ts", "api/**/*.ts", "drizzle.config.ts"]
+  "include": ["server/**/*.ts", "netlify/functions/**/*.ts", "drizzle.config.ts"]
 }

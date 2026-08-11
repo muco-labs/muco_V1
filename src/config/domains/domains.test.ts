@@ -22,6 +22,8 @@ describe('resolveApplicationDomain', () => {
   it('maps staging to public path-prefix mode', () => {
     expect(resolveApplicationDomain('muco-v1.vercel.app')).toBe('public')
     expect(resolveRoutingMode('muco-v1.vercel.app')).toBe('path_prefix')
+    expect(resolveApplicationDomain('deploy-preview--muco.netlify.app')).toBe('public')
+    expect(resolveRoutingMode('deploy-preview--muco.netlify.app')).toBe('path_prefix')
   })
 
   it('uses subdomain_root on portal hosts', () => {
@@ -62,8 +64,9 @@ describe('legacy portal redirects', () => {
     )
   })
 
-  it('does not redirect on vercel staging', () => {
+  it('does not redirect on preview staging hosts', () => {
     expect(resolveLegacyPortalRedirectUrl('muco-v1.vercel.app', '/app/projects')).toBeNull()
+    expect(resolveLegacyPortalRedirectUrl('deploy-preview--muco.netlify.app', '/app/projects')).toBeNull()
   })
 })
 

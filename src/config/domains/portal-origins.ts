@@ -10,7 +10,11 @@ export const productionPortalOrigins = {
   admin: 'https://admin.mucolabs.com',
 } as const
 
-export const stagingAppOrigin = 'https://muco-v1.vercel.app'
+/** Optional staging marketing origin override (Netlify preview URL or legacy host). */
+export const stagingAppOrigin =
+  (typeof import.meta.env !== 'undefined'
+    ? (import.meta.env.VITE_SITE_URL as string | undefined)
+    : undefined)?.replace(/\/$/, '') || 'https://www.mucolabs.com'
 
 export type PortalOriginsConfig = {
   public: string
@@ -20,13 +24,10 @@ export type PortalOriginsConfig = {
   admin: string
 }
 
-function readNodeVercelEnv(): string | undefined {
-  const rawNodeEnv =
-    typeof globalThis !== 'undefined' &&
-    'process' in globalThis &&
-    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
-  const nodeEnv = rawNodeEnv && typeof rawNodeEnv === 'object' ? rawNodeEnv : undefined
-  return nodeEnv?.VERCEL_ENV
+function readBundleDeployEnv(): string | undefined {
+  if (typeof import.meta.env === 'undefined') return undefined
+  const meta = import.meta.env as { DEPLOY_ENV?: string; VERCEL_ENV?: string }
+  return meta.DEPLOY_ENV || meta.VERCEL_ENV
 }
 
 export function readPortalOriginsFromEnv(): PortalOriginsConfig {
@@ -35,10 +36,7 @@ export function readPortalOriginsFromEnv(): PortalOriginsConfig {
       typeof import.meta.env !== 'undefined'
         ? (import.meta.env.VITE_SITE_URL as string | undefined)
         : undefined,
-    vercelEnv:
-      typeof import.meta.env !== 'undefined'
-        ? (import.meta.env as { VERCEL_ENV?: string }).VERCEL_ENV
-        : readNodeVercelEnv(),
+    deployEnv: readBundleDeployEnv(),
   })
 
   return {

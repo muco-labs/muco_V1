@@ -14,7 +14,7 @@ import styles from './HomeSystems.module.css'
 const techGroups = [
   { title: 'Frontend', items: ['React', 'TypeScript', 'Vite', 'Design systems'] },
   { title: 'Backend', items: ['Node', 'PostgreSQL', 'REST APIs', 'Supabase'] },
-  { title: 'Cloud & ops', items: ['Vercel', 'CI/CD', 'Observability', 'Security headers'] },
+  { title: 'Cloud & ops', items: ['Netlify', 'CI/CD', 'Observability', 'Security headers'] },
   { title: 'AI & data', items: ['Applied AI', 'Automation', 'Integrations', 'Analytics'] },
 ]
 

@@ -15,7 +15,7 @@ export function resolveFreelancerApplyUrl(hostname: string): string {
 
 /**
  * On www/mucolabs.com, legacy path-prefix portal URLs redirect to subdomain origins.
- * Localhost and *.vercel.app keep path-prefix routing.
+ * Localhost, *.vercel.app, and *.netlify.app keep path-prefix routing.
  */
 export function shouldRedirectLegacyPortalPaths(hostname: string): boolean {
   return isMucolabsProductionMarketingHost(hostname)

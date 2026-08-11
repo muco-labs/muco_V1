@@ -1,12 +1,17 @@
 /**
  * Production marketing canonical host (www).
- * Staging/preview may override via VITE_SITE_URL (e.g. muco-v1.vercel.app).
+ * Staging/preview may override via VITE_SITE_URL (e.g. Netlify deploy URL).
  */
+import { resolveDeployEnv } from './deploy-env'
+
 export const DEFAULT_CANONICAL_SITE_URL = 'https://www.mucolabs.com'
 
 export type ResolveCanonicalSiteUrlInput = {
   viteSiteUrl?: string | undefined
+  deployEnv?: string | undefined
+  /** @deprecated Prefer deployEnv — still accepted for legacy callers/tests */
   vercelEnv?: string | undefined
+  context?: string | undefined
 }
 
 function readNodeProcessEnv(key: string): string | undefined {
@@ -21,16 +26,20 @@ function readNodeProcessEnv(key: string): string | undefined {
 /**
  * Single source of truth for public marketing origin (SEO artifacts + client canonicals).
  *
- * Vercel Production builds always use www — historical Production env often set
- * VITE_SITE_URL to the *.vercel.app deployment host, which was baked into
+ * Production builds always use www — historical Production env often set
+ * VITE_SITE_URL to a preview host (*.vercel.app / *.netlify.app), which was baked into
  * public/sitemap.xml and public/robots.txt at build time.
  */
 export function resolveCanonicalSiteUrl(input: ResolveCanonicalSiteUrlInput = {}): string {
-  const vercelEnv = input.vercelEnv ?? readNodeProcessEnv('VERCEL_ENV')
+  const deployEnv = resolveDeployEnv({
+    deployEnv: input.deployEnv,
+    context: input.context,
+    vercelEnv: input.vercelEnv,
+  })
   const raw = (input.viteSiteUrl ?? readNodeProcessEnv('VITE_SITE_URL'))?.trim()
   const explicit = raw ? raw.replace(/\/$/, '') : ''
 
-  if (vercelEnv === 'production') {
+  if (deployEnv === 'production') {
     return DEFAULT_CANONICAL_SITE_URL
   }
 
